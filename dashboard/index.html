@@ -197,63 +197,73 @@
       display: inline-block;
     }
 
-    /* Sticky Mini-Nav (Sub-navigation for views) */
+    /* Sticky Mini-Nav (Sub-navigation for views - Single Unified Row) */
     .apple-sub-nav {
-      background-color: rgba(255, 255, 255, 0.92);
+      background-color: rgba(255, 255, 255, 0.95);
       backdrop-filter: saturate(180%) blur(20px);
       -webkit-backdrop-filter: saturate(180%) blur(20px);
       border-bottom: 1px solid var(--color-border);
       position: sticky;
-      top: 45px;
+      top: 40px;
       z-index: 900;
-      padding: 12px 24px;
+      padding: 8px 16px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      flex-wrap: wrap;
+      flex-wrap: nowrap;
       gap: 12px;
     }
 
     .sub-nav-left {
       display: flex;
       align-items: center;
-      gap: 16px;
+      gap: 12px;
+      flex-shrink: 0;
     }
 
     .sub-nav-product-name {
-      font-size: var(--text-subheading);
+      font-size: 16px;
       font-weight: 600;
       color: var(--color-carbon);
-      letter-spacing: var(--tracking-subheading);
+      letter-spacing: -0.2px;
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
+      white-space: nowrap;
     }
 
     .sub-nav-product-tag {
-      font-size: 11px;
+      font-size: 10.5px;
       font-weight: 500;
       background: var(--color-ice);
       color: var(--color-link-blue);
       border: 1px solid rgba(0, 113, 227, 0.2);
       border-radius: var(--radius-tags);
-      padding: 2px 8px;
+      padding: 2px 7px;
       text-transform: uppercase;
       letter-spacing: 0.5px;
+    }
+
+    .sub-nav-right {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      margin-left: auto;
+      flex-shrink: 0;
     }
 
     /* Tab Switcher: Apple Segmented Pill Control */
     .segmented-control {
       display: inline-flex;
       background: var(--color-pebble);
-      padding: 3px;
+      padding: 2px;
       border-radius: var(--radius-buttons);
       gap: 2px;
     }
 
     .segmented-tab {
-      padding: 6px 16px;
-      font-size: var(--text-body-sm);
+      padding: 5px 10px;
+      font-size: 12.5px;
       font-weight: 400;
       color: var(--color-smoke);
       background: transparent;
@@ -263,8 +273,9 @@
       transition: all 0.15s ease-in-out;
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 5px;
       text-decoration: none;
+      white-space: nowrap;
     }
 
     .segmented-tab:hover {
@@ -357,61 +368,52 @@
       padding: 24px;
     }
 
-    /* Hero Banner Section */
-    .product-hero-strip {
+    /* Slim Stats Strip (Single Row Telemetry) */
+    .slim-stats-strip {
       background-color: var(--color-white);
       border: 1px solid var(--color-border);
       border-radius: var(--radius-cards);
-      padding: 32px 36px;
-      margin-bottom: 24px;
+      padding: 12px 28px;
+      margin-bottom: 20px;
       display: flex;
-      justify-content: space-between;
       align-items: center;
-      gap: 24px;
-      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 16px;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
     }
 
-    .hero-title-group h2 {
-      font-size: var(--text-heading-sm);
-      font-weight: 600;
-      color: var(--color-carbon);
-      letter-spacing: var(--tracking-heading-sm);
-      line-height: var(--leading-heading-sm);
-      margin-bottom: 6px;
-    }
-
-    .hero-title-group p {
-      font-size: var(--text-body);
-      font-weight: 300;
-      color: var(--color-smoke);
-      letter-spacing: var(--tracking-body);
-      max-width: 650px;
-    }
-
-    .hero-kpi-row {
+    .stat-pill {
       display: flex;
-      gap: 24px;
-      flex-wrap: wrap;
+      align-items: center;
+      gap: 12px;
     }
 
-    .kpi-chip {
-      text-align: right;
-    }
-
-    .kpi-chip-label {
-      font-size: var(--text-caption);
+    .stat-pill-label {
+      font-size: 11px;
       color: var(--color-ash);
       text-transform: uppercase;
-      letter-spacing: 0.5px;
-      font-weight: 500;
-      margin-bottom: 2px;
+      letter-spacing: 0.6px;
+      font-weight: 600;
+      white-space: nowrap;
     }
 
-    .kpi-chip-val {
-      font-size: var(--text-subheading);
+    .stat-pill-val {
+      font-size: 18px;
       font-weight: 700;
       color: var(--color-carbon);
       font-family: var(--font-family-sans);
+      letter-spacing: -0.3px;
+      white-space: nowrap;
+    }
+
+    .stat-pill-val.stat-highlight {
+      color: var(--color-apple-blue);
+    }
+
+    .stat-pill-divider {
+      width: 1px;
+      height: 22px;
+      background-color: var(--color-border-subtle);
     }
 
     /* Card Containers */
@@ -999,14 +1001,14 @@
         </button>
       </div>
     </div>
-    <div class="sub-nav-right" style="display: flex; gap: 10px; align-items: center;">
-      <a href="/methodology" class="btn-apple-secondary" style="text-decoration: none; padding: 7px 14px; font-size: 13px;">
+    <div class="sub-nav-right">
+      <a href="/methodology" class="btn-apple-secondary" style="text-decoration: none; padding: 6px 12px; font-size: 13px;">
         <span>View Methodology</span>
       </a>
-      <button class="btn-apple-secondary" onclick="exportExecutiveSummary()">
+      <button class="btn-apple-secondary" onclick="exportExecutiveSummary()" style="padding: 6px 12px; font-size: 13px;">
         <span>Export Summary</span>
       </button>
-      <button class="btn-apple-primary" onclick="runAnalysisFromActiveView()">
+      <button class="btn-apple-primary" onclick="runAnalysisFromActiveView()" style="padding: 6px 14px; font-size: 13px;">
         <span>Run Live Analysis</span>
       </button>
     </div>
@@ -1015,9 +1017,28 @@
   <!-- Main Content Container -->
   <main class="app-container">
 
-
-
-    <!-- =========================================================================
+    <!-- Slim Single-Row Context Telemetry Strip -->
+    <section class="slim-stats-strip">
+      <div class="stat-pill">
+        <span class="stat-pill-label">Monitored Projects</span>
+        <span class="stat-pill-val" id="hero-total-projects">13,532</span>
+      </div>
+      <div class="stat-pill-divider"></div>
+      <div class="stat-pill">
+        <span class="stat-pill-label">Mean Delay Probability</span>
+        <span class="stat-pill-val" id="hero-mean-prob">56.6%</span>
+      </div>
+      <div class="stat-pill-divider"></div>
+      <div class="stat-pill">
+        <span class="stat-pill-label">Median Survival</span>
+        <span class="stat-pill-val" id="hero-median-days">124 Days</span>
+      </div>
+      <div class="stat-pill-divider"></div>
+      <div class="stat-pill">
+        <span class="stat-pill-label">Uno C-Index</span>
+        <span class="stat-pill-val stat-highlight" id="hero-c-index">0.667</span>
+      </div>
+    </section>    <!-- =========================================================================
          TAB 1: NATIONAL GIS MAP (Survey of India Compliant)
          ========================================================================= -->
     <section id="view-gis" class="tab-view active">
