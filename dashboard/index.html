@@ -1015,31 +1015,7 @@
   <!-- Main Content Container -->
   <main class="app-container">
 
-    <!-- Hero Product Banner Strip -->
-    <section class="product-hero-strip">
-      <div class="hero-title-group">
-        <h2>Infrastructure Delay Risk & Spatial Intelligence</h2>
-        <p>A study in predictive restraint: StackingClassifier Platt scaling, Random Survival Forests, and official Survey of India boundary geospatial governance.</p>
-      </div>
-      <div class="hero-kpi-row">
-        <div class="kpi-chip">
-          <div class="kpi-chip-label">Monitored Projects</div>
-          <div class="kpi-chip-val" id="hero-total-projects">200</div>
-        </div>
-        <div class="kpi-chip">
-          <div class="kpi-chip-label">Mean Delay Probability</div>
-          <div class="kpi-chip-val" id="hero-mean-prob">41.8%</div>
-        </div>
-        <div class="kpi-chip">
-          <div class="kpi-chip-label">Median Survival</div>
-          <div class="kpi-chip-val" id="hero-median-days">142 Days</div>
-        </div>
-        <div class="kpi-chip">
-          <div class="kpi-chip-label">Uno C-Index</div>
-          <div class="kpi-chip-val" id="hero-c-index" style="color: var(--color-apple-blue);">0.667</div>
-        </div>
-      </div>
-    </section>
+
 
     <!-- =========================================================================
          TAB 1: NATIONAL GIS MAP (Survey of India Compliant)
@@ -2555,12 +2531,15 @@
         updateStatsCounters(allProjects);
         if (overlay) overlay.style.display = 'none';
 
-        // Update hero KPI strip
-        document.getElementById('hero-total-projects').textContent = allProjects.length.toLocaleString();
+        // Update hero KPI strip (if present)
+        const heroTotalEl = document.getElementById('hero-total-projects');
+        if (heroTotalEl) heroTotalEl.textContent = allProjects.length.toLocaleString();
         const meanProb = (allProjects.reduce((acc, p) => acc + (p.delay_probability || 0), 0) / allProjects.length).toFixed(1);
-        document.getElementById('hero-mean-prob').textContent = `${meanProb}%`;
+        const heroMeanEl = document.getElementById('hero-mean-prob');
+        if (heroMeanEl) heroMeanEl.textContent = `${meanProb}%`;
         const meanDelay = Math.round(allProjects.reduce((acc, p) => acc + (p.predicted_delay_days || 0), 0) / allProjects.length);
-        document.getElementById('hero-median-days').textContent = `${meanDelay} Days`;
+        const heroMedianEl = document.getElementById('hero-median-days');
+        if (heroMedianEl) heroMedianEl.textContent = `${meanDelay} Days`;
 
         // Load National Boundary of India (Sleek Apple-style blue/slate border)
         fetchNationalBoundary().then(boundaryData => {
