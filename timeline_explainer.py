@@ -73,7 +73,16 @@ class TimelinePermutationExplainer:
                 self.rsf = m
 
             def predict(self, X):
-                return self.rsf.predict(X)
+                from survival_features import prepare_survival_features
+                expected = getattr(self.rsf, 'feature_names_in_', None)
+                X_prep = prepare_survival_features(X, expected)
+                return self.rsf.predict(X_prep)
+
+            def predict_survival_function(self, X):
+                from survival_features import prepare_survival_features
+                expected = getattr(self.rsf, 'feature_names_in_', None)
+                X_prep = prepare_survival_features(X, expected)
+                return self.rsf.predict_survival_function(X_prep)
 
         return cls(
             timeline_predictor=_RSFWrapper(rsf_model),
@@ -84,6 +93,16 @@ class TimelinePermutationExplainer:
             n_repeats=n_repeats,
             random_state=random_state
         )
+
+    def _predict_rsf(self, X):
+        from survival_features import prepare_survival_features
+        if self.rsf_model is not None and hasattr(self.rsf_model, 'predict'):
+            expected = getattr(self.rsf_model, 'feature_names_in_', None)
+            X_prep = prepare_survival_features(X, expected)
+            return self.rsf_model.predict(X_prep)
+        elif hasattr(self.timeline_predictor, 'predict'):
+            return self.timeline_predictor.predict(X)
+        return np.zeros(len(X), dtype=float)
 
     def fit(self, X_bg, events, times):
         """
@@ -119,7 +138,7 @@ class TimelinePermutationExplainer:
             return self
 
         # Base risk prediction
-        base_preds = self.rsf_model.predict(X_df)
+        base_preds = self._predict_rsf(X_df)
         try:
             c_base, _, _, _, _ = concordance_index_ipcw(y_surv, y_surv, base_preds)
         except Exception:
@@ -131,7 +150,7 @@ class TimelinePermutationExplainer:
             for col in self.feature_names:
                 X_perm = X_df.copy()
                 X_perm[col] = rng.permutation(X_perm[col].values)
-                perm_preds = self.rsf_model.predict(X_perm)
+                perm_preds = self._predict_rsf(X_perm)
                 try:
                     c_perm, _, _, _, _ = concordance_index_ipcw(y_surv, y_surv, perm_preds)
                 except Exception:
@@ -161,7 +180,10 @@ class TimelinePermutationExplainer:
         if hasattr(self.timeline_predictor, 'predict_time_to_delay'):
             return np.asarray(self.timeline_predictor.predict_time_to_delay(X_df), dtype=float)
         elif self.rsf_model is not None and hasattr(self.rsf_model, 'predict'):
-            return np.asarray(self.rsf_model.predict(X_df), dtype=float)
+            from survival_features import prepare_survival_features
+            expected = getattr(self.rsf_model, 'feature_names_in_', None)
+            X_prep = prepare_survival_features(X_df, expected)
+            return np.asarray(self.rsf_model.predict(X_prep), dtype=float)
         elif hasattr(self.timeline_predictor, 'predict'):
             res = self.timeline_predictor.predict(X_df)
             if isinstance(res, dict) and 'predicted_delay_days' in res:

@@ -147,12 +147,47 @@ class NonLinearTimelinePredictor:
         self.max_observed_time_ = np.max(duration)
         return self
         
+    def _prepare_rsf_features(self, X):
+        from survival_features import prepare_survival_features
+        expected = getattr(self.rsf, 'feature_names_in_', None)
+        return prepare_survival_features(X, expected)
+
+    def _prepare_deepsurv_features(self, X):
+        from survival_features import BASE_PIPELINE_FEATURES
+        if hasattr(self, 'deepsurv') and self.deepsurv is not None and hasattr(self.deepsurv, 'model') and self.deepsurv.model is not None:
+            expected_dim = self.deepsurv.model.net[0].in_features
+            if isinstance(X, pd.DataFrame):
+                if X.shape[1] == expected_dim:
+                    return X
+                if expected_dim == len(BASE_PIPELINE_FEATURES):
+                    cols = [c for c in BASE_PIPELINE_FEATURES if c in X.columns]
+                    if len(cols) == expected_dim:
+                        return X[cols]
+            if hasattr(X, 'shape') and X.shape[1] != expected_dim:
+                if X.shape[1] > expected_dim:
+                    return X.iloc[:, :expected_dim] if isinstance(X, pd.DataFrame) else X[:, :expected_dim]
+        return X
+
+    def predict(self, X):
+        X_rsf = self._prepare_rsf_features(X)
+        return self.rsf.predict(X_rsf)
+
+    def predict_survival_function(self, X):
+        X_rsf = self._prepare_rsf_features(X)
+        return self.rsf.predict_survival_function(X_rsf)
+
+    def predict_cumulative_hazard_function(self, X):
+        X_rsf = self._prepare_rsf_features(X)
+        return self.rsf.predict_cumulative_hazard_function(X_rsf)
+
     def get_dynamic_risk_threshold(self, X):
         """
         Determines median survival time from RSF, adjusted by DeepSurv risk score.
         """
-        surv_funcs = self.rsf.predict_survival_function(X)
-        ds_risk_scores = self.deepsurv.predict(X)
+        X_rsf = self._prepare_rsf_features(X)
+        X_ds = self._prepare_deepsurv_features(X)
+        surv_funcs = self.rsf.predict_survival_function(X_rsf)
+        ds_risk_scores = self.deepsurv.predict(X_ds)
         
         # Normalize deepsurv risk scores to act as a multiplier (basic scaling)
         ds_multiplier = np.exp(ds_risk_scores - np.mean(ds_risk_scores))
