@@ -404,9 +404,9 @@ def health_check():
 @app.get("/")
 def serve_home():
     from fastapi.responses import FileResponse, RedirectResponse
-    for path in ["dashboard/test_dashboard.html", "dashboard/index.html", "test_dashboard.html"]:
-        if os.path.exists(path):
-            return FileResponse(path)
+    path = "dashboard/index.html"
+    if os.path.exists(path):
+        return FileResponse(path)
     return RedirectResponse(url="/docs")
 
 @app.get("/map")
