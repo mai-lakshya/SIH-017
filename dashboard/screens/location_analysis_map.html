@@ -941,7 +941,7 @@
 
       const urlParams = new URLSearchParams(window.location.search);
       if (urlParams.get('heatmap') === '1' || urlParams.get('heatmap') === 'true') {
-        setTimeout(() => setHeatmapMode(true), 300);
+        setHeatmapMode(true);
       }
     });
 
