@@ -1,0 +1,951 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>National GIS Risk Map - LandIntel</title>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Plus+Jakarta+Sans:wght@600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet"/>
+  <!-- Leaflet CSS for real interactive cartography -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "app-bg": "#0B0F19",
+            "map-bg": "#080D14",
+            "panel-bg": "#0B0F19",
+            "panel-surface": "#111827",
+            "panel-border": "#1E293B",
+            "input-border": "#252d3a",
+            "brand-cyan": "#06b6d4",
+            "brand-cyanHover": "#0891b2",
+            "text-muted": "#64748B",
+            "text-light": "#94A3B8",
+            "risk-low": "#10b981",
+            "risk-medium": "#f59e0b",
+            "risk-high": "#ef4444"
+          },
+          fontFamily: {
+            sans: ["Inter", "sans-serif"],
+            heading: ["Plus Jakarta Sans", "sans-serif"],
+            mono: ["Space Grotesk", "monospace"]
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    /* Clean custom scrollbar */
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: #0B0F19; }
+    ::-webkit-scrollbar-thumb { background: #1E293B; border-radius: 2px; }
+    ::-webkit-scrollbar-thumb:hover { background: #334155; }
+
+    /* Strict functional inputs without glow */
+    input[type="text"], select {
+      background-color: #111827 !important;
+      border: 1px solid #252d3a !important;
+      color: #FFFFFF !important;
+      outline: none !important;
+      box-shadow: none !important;
+    }
+    input[type="text"]:focus, select:focus {
+      border-color: #06b6d4 !important;
+    }
+
+    /* Custom Leaflet Map and Dark Popups */
+    .leaflet-container {
+      background: #080D14 !important;
+      font-family: 'Inter', sans-serif !important;
+    }
+    .leaflet-popup-content-wrapper {
+      background: #111827 !important;
+      border: 1px solid #252d3a !important;
+      border-radius: 0px !important;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.8) !important;
+      padding: 0 !important;
+      color: #ffffff !important;
+    }
+    .leaflet-popup-tip {
+      background: #111827 !important;
+      border: 1px solid #252d3a !important;
+    }
+    .leaflet-popup-content {
+      margin: 0 !important;
+      line-height: 1.4 !important;
+    }
+    .leaflet-container a.leaflet-popup-close-button {
+      color: #94A3B8 !important;
+      padding: 6px 8px 0 0 !important;
+    }
+    .leaflet-container a.leaflet-popup-close-button:hover {
+      color: #06b6d4 !important;
+    }
+    .leaflet-control-attribution {
+      background: rgba(11, 15, 25, 0.85) !important;
+      color: #64748B !important;
+      font-size: 10px !important;
+      border: 1px solid #1E293B !important;
+      border-radius: 0 !important;
+      padding: 2px 6px !important;
+    }
+    .leaflet-control-attribution a {
+      color: #06b6d4 !important;
+      text-decoration: none !important;
+    }
+
+    /* Custom dark tooltip for Choropleth Hover */
+    .dark-leaflet-tooltip {
+      background: #111827 !important;
+      border: 1px solid #252d3a !important;
+      color: #ffffff !important;
+      font-family: 'Space Grotesk', monospace !important;
+      font-size: 11px !important;
+      padding: 8px 12px !important;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.85) !important;
+      border-radius: 0px !important;
+      pointer-events: none !important;
+    }
+    .dark-leaflet-tooltip::before {
+      border-top-color: #252d3a !important;
+      border-bottom-color: #252d3a !important;
+    }
+  </style>
+
+</head>
+<body class="bg-[#0B0F19] text-white h-screen w-screen overflow-hidden flex font-sans antialiased selection:bg-brand-cyan selection:text-black">
+
+  <!-- LEFT FILTER PANEL (Same width as other panels: 380px) -->
+  <aside class="w-[380px] bg-[#0B0F19] border-r border-[#1E293B] flex flex-col z-20 shrink-0 h-full">
+    
+    <!-- Heading & Subtext -->
+    <div class="p-6 border-b border-[#1E293B] shrink-0">
+      <div class="flex items-center justify-between mb-1.5">
+        <h1 class="font-heading text-lg font-bold text-white tracking-tight">Project Risk Map</h1>
+        <span class="text-[10px] font-mono uppercase px-2 py-0.5 bg-[#111827] border border-[#252d3a] text-brand-cyan font-semibold">GIS Live</span>
+      </div>
+      <p class="text-xs text-[#94A3B8] leading-relaxed">200 infrastructure projects across India, live risk assessment.</p>
+    </div>
+
+    <!-- Filter Controls (Scrollable) -->
+    <div class="flex-1 overflow-y-auto p-6 space-y-5">
+      
+      <!-- Search Input -->
+      <div>
+        <label class="block text-[11px] font-mono font-semibold uppercase tracking-wider text-[#94A3B8] mb-1.5">Search</label>
+        <div class="relative">
+          <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#64748B] text-[18px]">search</span>
+          <input id="search-input" class="w-full h-9 pl-9 pr-3 text-xs rounded-none" placeholder="Search project or district..." type="text"/>
+        </div>
+      </div>
+
+      <!-- State Dropdown -->
+      <div>
+        <label class="block text-[11px] font-mono font-semibold uppercase tracking-wider text-[#94A3B8] mb-1.5">State</label>
+        <div class="relative">
+          <select id="state-select" class="w-full h-9 pl-3 pr-8 text-xs appearance-none cursor-pointer rounded-none">
+            <option value="">All States</option>
+          </select>
+          <span class="material-symbols-outlined absolute right-2.5 top-1/2 -translate-y-1/2 text-[#64748B] pointer-events-none text-[20px]">expand_more</span>
+        </div>
+      </div>
+
+      <!-- Project Type Dropdown -->
+      <div>
+        <label class="block text-[11px] font-mono font-semibold uppercase tracking-wider text-[#94A3B8] mb-1.5">Project Type</label>
+        <div class="relative">
+          <select id="type-select" class="w-full h-9 pl-3 pr-8 text-xs appearance-none cursor-pointer rounded-none">
+            <option value="">All Types</option>
+          </select>
+          <span class="material-symbols-outlined absolute right-2.5 top-1/2 -translate-y-1/2 text-[#64748B] pointer-events-none text-[20px]">expand_more</span>
+        </div>
+      </div>
+
+      <!-- Risk Level Toggle Chips -->
+      <div>
+        <label class="block text-[11px] font-mono font-semibold uppercase tracking-wider text-[#94A3B8] mb-1.5">Risk Level</label>
+        <div class="grid grid-cols-3 gap-2" id="risk-chips">
+          <button id="chip-low" class="h-8 border border-[#10b981] bg-[#10b981]/15 text-[#10b981] flex items-center justify-center gap-1.5 text-xs font-mono font-semibold transition-colors cursor-pointer">
+            <span class="w-2 h-2 rounded-full bg-[#10b981]"></span>
+            <span>Low</span>
+          </button>
+          <button id="chip-med" class="h-8 border border-[#f59e0b] bg-[#f59e0b]/15 text-[#f59e0b] flex items-center justify-center gap-1.5 text-xs font-mono font-semibold transition-colors cursor-pointer">
+            <span class="w-2 h-2 rounded-full bg-[#f59e0b]"></span>
+            <span>Medium</span>
+          </button>
+          <button id="chip-high" class="h-8 border border-[#ef4444] bg-[#ef4444]/15 text-[#ef4444] flex items-center justify-center gap-1.5 text-xs font-mono font-semibold transition-colors cursor-pointer">
+            <span class="w-2 h-2 rounded-full bg-[#ef4444]"></span>
+            <span>High</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Status Dropdown -->
+      <div>
+        <label class="block text-[11px] font-mono font-semibold uppercase tracking-wider text-[#94A3B8] mb-1.5">Status</label>
+        <div class="relative">
+          <select id="status-select" class="w-full h-9 pl-3 pr-8 text-xs appearance-none cursor-pointer rounded-none">
+            <option value="">All Statuses</option>
+          </select>
+          <span class="material-symbols-outlined absolute right-2.5 top-1/2 -translate-y-1/2 text-[#64748B] pointer-events-none text-[20px]">expand_more</span>
+        </div>
+      </div>
+
+      <!-- Stats Summary Box -->
+      <div class="p-3.5 bg-[#111827] border border-[#252d3a]">
+        <div id="stats-total" class="text-xs font-medium text-white mb-2 tracking-tight">Showing 0 of 0 projects</div>
+        <div class="flex items-center justify-between text-xs font-mono font-medium">
+          <div class="flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-[#10b981]"></span>
+            <span id="stats-low" class="text-[#10b981]">0 Low</span>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-[#f59e0b]"></span>
+            <span id="stats-med" class="text-[#f59e0b]">0 Medium</span>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-[#ef4444]"></span>
+            <span id="stats-high" class="text-[#ef4444]">0 High</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Divider -->
+      <div class="border-t border-[#1E293B]"></div>
+
+      <!-- Heat Map View Toggle -->
+      <div class="flex items-center justify-between pt-1">
+        <span class="text-xs font-medium text-white select-none">Heat Map View</span>
+        <button id="heatmap-toggle" class="w-9 h-5 bg-[#1E293B] border border-[#334155] rounded-full relative transition-colors duration-200 cursor-pointer" title="Heat Map View (State-level aggregation preview)">
+          <span id="heatmap-knob" class="absolute left-0.5 top-0.5 w-3.5 h-3.5 bg-[#64748B] rounded-full transition-transform duration-200"></span>
+        </button>
+      </div>
+
+    </div>
+
+    <!-- Bottom Status Bar -->
+    <div class="p-3 bg-[#0B0F19] border-t border-[#1E293B] flex items-center justify-between text-[11px] font-mono text-[#64748B] shrink-0">
+      <span>EPSG:4326 (WGS84)</span>
+      <span class="text-brand-cyan">RFCTLARR 2013 Monitored</span>
+    </div>
+  </aside>
+
+  <!-- MAP AREA (Right side, large) -->
+  <main class="flex-1 relative bg-[#080D14] overflow-hidden">
+    
+    <!-- Real Interactive Leaflet Map Container -->
+    <div id="map" class="w-full h-full z-0"></div>
+
+    <!-- Loading / Error Status Overlay -->
+    <div id="map-status-overlay" class="absolute inset-0 z-30 flex items-center justify-center bg-[#080D14]/90 pointer-events-auto">
+      <div class="p-6 bg-[#111827] border border-[#252d3a] text-center max-w-sm">
+        <div id="map-status-text" class="text-sm font-mono text-[#94A3B8]">Loading project data...</div>
+      </div>
+    </div>
+
+    <!-- RESET VIEW BUTTON (Top-right of map) -->
+    <div class="absolute top-6 right-6 z-10">
+      <button id="reset-view" class="w-8 h-8 bg-[#111827] border border-[#334155] flex items-center justify-center text-white hover:bg-[#1E293B] hover:border-brand-cyan transition-colors shadow-lg cursor-pointer" title="Reset View (All-India)">
+        <span class="material-symbols-outlined text-[18px]">home</span>
+      </button>
+    </div>
+
+    <!-- LEGEND BOX (Bottom-left of map) -->
+    <div class="absolute bottom-6 left-6 bg-[#111827] border border-[#334155] p-3 z-10 flex flex-col gap-2 select-none shadow-lg min-w-[145px]" id="map-legend">
+      <!-- Marker View Legend -->
+      <div id="legend-markers" class="flex flex-col gap-2">
+        <div class="flex items-center gap-2.5 text-xs font-mono">
+          <span class="w-2.5 h-2.5 rounded-full bg-[#10b981]"></span>
+          <span class="text-white font-medium">Low Risk</span>
+        </div>
+        <div class="flex items-center gap-2.5 text-xs font-mono">
+          <span class="w-2.5 h-2.5 rounded-full bg-[#f59e0b]"></span>
+          <span class="text-white font-medium">Medium Risk</span>
+        </div>
+        <div class="flex items-center gap-2.5 text-xs font-mono">
+          <span class="w-2.5 h-2.5 rounded-full bg-[#ef4444]"></span>
+          <span class="text-white font-medium">High Risk</span>
+        </div>
+      </div>
+
+      <!-- Heat Map View Legend (hidden by default) -->
+      <div id="legend-heatmap" class="hidden flex-col gap-2">
+        <div class="text-[10px] font-mono text-[#94A3B8] font-semibold uppercase tracking-wider mb-0.5 border-b border-[#1E293B] pb-1">State Avg Risk</div>
+        <div class="flex items-center gap-2.5 text-xs font-mono">
+          <span class="w-2.5 h-2.5 rounded-sm bg-[#10b981]"></span>
+          <span class="text-white font-medium">Low Avg Risk</span>
+        </div>
+        <div class="flex items-center gap-2.5 text-xs font-mono">
+          <span class="w-2.5 h-2.5 rounded-sm bg-[#f59e0b]"></span>
+          <span class="text-white font-medium">Medium Avg Risk</span>
+        </div>
+        <div class="flex items-center gap-2.5 text-xs font-mono">
+          <span class="w-2.5 h-2.5 rounded-sm bg-[#ef4444]"></span>
+          <span class="text-white font-medium">High Avg Risk</span>
+        </div>
+        <div class="flex items-center gap-2.5 text-xs font-mono">
+          <span class="w-2.5 h-2.5 rounded-sm bg-[#374151] border border-[#4b5563]"></span>
+          <span class="text-[#94A3B8] font-medium">No Data</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ZOOM CONTROLS (Bottom-right of map) -->
+    <div class="absolute bottom-8 right-6 flex flex-col gap-1 z-10">
+      <button id="zoom-in" class="w-8 h-8 bg-[#111827] border border-[#334155] flex items-center justify-center text-white hover:bg-[#1E293B] hover:border-brand-cyan transition-colors shadow-lg cursor-pointer" title="Zoom in">
+        <span class="material-symbols-outlined text-[18px]">add</span>
+      </button>
+      <button id="zoom-out" class="w-8 h-8 bg-[#111827] border border-[#334155] flex items-center justify-center text-white hover:bg-[#1E293B] hover:border-brand-cyan transition-colors shadow-lg cursor-pointer" title="Zoom out">
+        <span class="material-symbols-outlined text-[18px]">remove</span>
+      </button>
+    </div>
+
+  </main>
+
+  <!-- Interactive Logic Wiring Real Data -->
+  <script>
+    // State management
+    let allProjects = [];
+    let markersLayer = null;
+    let choroplethLayer = null;
+    let map = null;
+    let stateGeoJsonData = null;
+    let stateRiskLookup = {};
+    let heatmapOn = false;
+
+
+    const activeRiskTiers = {
+      Low: true,
+      Medium: true,
+      High: true
+    };
+
+    const searchInput = document.getElementById('search-input');
+    const stateSelect = document.getElementById('state-select');
+    const typeSelect = document.getElementById('type-select');
+    const statusSelect = document.getElementById('status-select');
+    const chipLow = document.getElementById('chip-low');
+    const chipMed = document.getElementById('chip-med');
+    const chipHigh = document.getElementById('chip-high');
+    const statsTotalEl = document.getElementById('stats-total');
+    const statsLowEl = document.getElementById('stats-low');
+    const statsMedEl = document.getElementById('stats-med');
+    const statsHighEl = document.getElementById('stats-high');
+    const statusOverlay = document.getElementById('map-status-overlay');
+    const statusText = document.getElementById('map-status-text');
+    const heatmapToggle = document.getElementById('heatmap-toggle');
+    const heatmapKnob = document.getElementById('heatmap-knob');
+    const legendMarkers = document.getElementById('legend-markers');
+    const legendHeatmap = document.getElementById('legend-heatmap');
+
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    // Auth header provider: uses JWT from localStorage ("access_token")
+    // Fallback: uses X-API-Key for immediate development / preview
+    // TODO: Replace fallback with global session redirect once authentication provider is unified.
+    function getAuthHeaders() {
+      const token = localStorage.getItem("access_token");
+      if (token) {
+        return { "Authorization": `Bearer ${token}` };
+      }
+      return { "X-API-Key": "super-secret-token" };
+    }
+
+    const DEFAULT_CENTER = [22.8, 79.2];
+    const DEFAULT_ZOOM = 5;
+
+    // Initialize Leaflet Map with Esri World Dark Gray Canvas (No API key needed)
+    function initMap() {
+      map = L.map('map', {
+        center: DEFAULT_CENTER,
+        zoom: DEFAULT_ZOOM,
+        minZoom: 4,
+        maxZoom: 16,
+        zoomControl: false,
+        attributionControl: true
+      });
+      window.map = map;
+
+      // Base: Esri World Dark Gray Base (note {z}/{y}/{x} pattern)
+      L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
+        attribution: 'Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ',
+        maxZoom: 16
+      }).addTo(map);
+
+      // Reference: Labels on top (rendered in shadowPane so it doesn't block marker interaction)
+      L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}', {
+        maxZoom: 16,
+        pane: 'shadowPane'
+      }).addTo(map);
+
+      markersLayer = L.layerGroup().addTo(map);
+
+
+      // Custom Zoom Buttons
+      document.getElementById('zoom-in').addEventListener('click', () => map.zoomIn());
+      document.getElementById('zoom-out').addEventListener('click', () => map.zoomOut());
+
+      // Reset View Button (Flies back to default all-India overview)
+      document.getElementById('reset-view').addEventListener('click', () => {
+        map.flyTo(DEFAULT_CENTER, DEFAULT_ZOOM, {
+          duration: 1.2
+        });
+      });
+    }
+
+    // Lazy detailed data fetch for individual project click
+    window.fetchProjectDetail = async function(projectId) {
+      console.log(`[GIS Map] Fetching full analysis for project ID: ${projectId}`);
+      try {
+        const headers = getAuthHeaders();
+        const res = await fetch(`/projects/geo/${encodeURIComponent(projectId)}`, { headers });
+        if (!res.ok) {
+          throw new Error(`Failed to fetch project detail (${res.status} ${res.statusText})`);
+        }
+        const data = await res.json();
+        console.log(`[GIS Map] Full Analysis Data for ${projectId}:`, data);
+        alert(`Loaded full analysis for ${data.project_name || projectId}.\n\nPredicted Delay: ${data.predicted_delay_days} days\nMedian Survival: ${data.median_survival_days || 'N/A'} days\nTop Risk Drivers: ${(data.explainability && data.explainability.top_risk_drivers ? data.explainability.top_risk_drivers.length : 0)} drivers logged to browser console.`);
+      } catch (err) {
+        console.error(`[GIS Map] Error loading analysis for ${projectId}:`, err);
+        alert(`Failed to load project details: ${err.message}`);
+      }
+    };
+
+    // Render Markers on Map with click-to-zoom flyTo behavior
+    function renderMarkers(projects) {
+      if (!markersLayer) return;
+      markersLayer.clearLayers();
+
+      const colorMap = {
+        Low: '#10b981',
+        Medium: '#f59e0b',
+        High: '#ef4444'
+      };
+
+      projects.forEach(p => {
+        if (p.latitude == null || p.longitude == null) return;
+
+        const color = colorMap[p.risk_tier] || '#f59e0b';
+        const marker = L.circleMarker([p.latitude, p.longitude], {
+          radius: 5,
+          fillColor: color,
+          fillOpacity: 1.0,
+          color: '#080D14',
+          weight: 1,
+          opacity: 1.0
+        });
+
+        const popupHtml = `
+          <div class="p-3.5 space-y-2.5 max-w-[280px]">
+            <div>
+              <div class="font-bold text-white text-xs leading-snug">${escapeHtml(p.project_name)}</div>
+              <div class="text-[11px] text-[#94A3B8] mt-0.5">${escapeHtml(p.district || 'Unknown')}, ${escapeHtml(p.state)}</div>
+            </div>
+            <div class="flex items-center gap-1.5 flex-wrap">
+              <span class="px-1.5 py-0.5 text-[10px] font-mono bg-[#1E293B] text-brand-cyan border border-[#252d3a]">${escapeHtml(p.project_type)}</span>
+              <span class="px-1.5 py-0.5 text-[10px] font-mono bg-[#1E293B] text-white border border-[#252d3a]">${escapeHtml(p.status)}</span>
+            </div>
+            <div class="border-t border-[#1E293B] pt-2 space-y-1 text-xs font-mono">
+              <div class="flex justify-between items-center">
+                <span class="text-[#94A3B8]">Delay Probability:</span>
+                <span class="font-bold text-white">${p.delay_probability}%</span>
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="text-[#94A3B8]">Predicted Delay:</span>
+                <span class="font-bold text-white">${p.predicted_delay_days} days</span>
+              </div>
+            </div>
+            <button onclick="fetchProjectDetail('${p.project_id}')" class="w-full mt-2 py-1.5 px-2.5 bg-brand-cyan hover:bg-brand-cyanHover text-[#080D14] text-[11px] font-bold font-mono text-center transition-colors cursor-pointer">
+              View Full Analysis &rarr;
+            </button>
+          </div>
+        `;
+
+        // Bind popup with autoPan disabled so flyTo smoothly controls the camera
+        marker.bindPopup(popupHtml, {
+          autoPan: false,
+          closeButton: true,
+          className: 'dark-leaflet-popup'
+        });
+
+        // Click-to-zoom: smoothly fly to the marker coordinates at zoom 9.5
+        marker.on('click', () => {
+          map.flyTo([p.latitude, p.longitude], 9.5, {
+            duration: 1.2
+          });
+          marker.openPopup();
+        });
+
+        markersLayer.addLayer(marker);
+      });
+    }
+
+    // Live Stats Summary Update
+    function updateStats(filtered) {
+      const totalCount = allProjects.length;
+      const currentCount = filtered.length;
+
+      let low = 0, med = 0, high = 0;
+      filtered.forEach(p => {
+        if (p.risk_tier === 'Low') low++;
+        else if (p.risk_tier === 'Medium') med++;
+        else if (p.risk_tier === 'High') high++;
+      });
+
+      statsTotalEl.textContent = `Showing ${currentCount} of ${totalCount} projects`;
+      statsLowEl.textContent = `${low} Low`;
+      statsMedEl.textContent = `${med} Medium`;
+      statsHighEl.textContent = `${high} High`;
+    }
+
+    // Helper to extract state name regardless of property schema (ST_NM, NAME_1, state_name)
+    function getFeatureStateName(feature) {
+      if (!feature || !feature.properties) return '';
+      return feature.properties.ST_NM || feature.properties.NAME_1 || feature.properties.state_name || '';
+    }
+
+    // Normalizes state names between GeoJSON properties (DataMeet ST_NM) and project dataset
+    function normalizeStateName(rawName) {
+      if (!rawName) return '';
+      const name = String(rawName).trim();
+      const map = {
+        'Andaman & Nicobar Island': 'Andaman and Nicobar',
+        'Andaman & Nicobar Islands': 'Andaman and Nicobar',
+        'Andaman and Nicobar Islands': 'Andaman and Nicobar',
+        'Arunanchal Pradesh': 'Arunachal Pradesh',
+        'Dadara & Nagar Havelli': 'Dadra and Nagar Haveli',
+        'Dadra & Nagar Haveli': 'Dadra and Nagar Haveli',
+        'Dadra and Nagar Haveli': 'Dadra and Nagar Haveli',
+        'Daman & Diu': 'Daman and Diu',
+        'NCT of Delhi': 'Delhi',
+        'Jammu & Kashmir': 'Jammu and Kashmir',
+        'Jammu and Kashmir': 'Jammu and Kashmir',
+        'Jammu & Kashmir / Ladakh': 'Jammu and Kashmir',
+        'Ladakh': 'Jammu and Kashmir',
+        'Orissa': 'Odisha',
+        'Uttaranchal': 'Uttarakhand'
+      };
+      return map[name] || name;
+    }
+
+    // Client-side aggregation of risk metrics by state
+    function calculateStateRiskStats(projects) {
+      const grouped = {};
+      projects.forEach(p => {
+        if (!p.state) return;
+        const normState = normalizeStateName(p.state);
+        if (!grouped[normState]) {
+          grouped[normState] = {
+            scores: [],
+            count: 0,
+            low: 0,
+            medium: 0,
+            high: 0
+          };
+        }
+        const score = typeof p.composite_risk_score === 'number'
+          ? p.composite_risk_score
+          : (parseFloat(p.composite_risk_score) || 0);
+
+        grouped[normState].scores.push(score);
+        grouped[normState].count++;
+        if (p.risk_tier === 'Low') grouped[normState].low++;
+        else if (p.risk_tier === 'Medium') grouped[normState].medium++;
+        else if (p.risk_tier === 'High') grouped[normState].high++;
+      });
+
+      const lookup = {};
+      Object.keys(grouped).forEach(st => {
+        const g = grouped[st];
+        const sum = g.scores.reduce((a, b) => a + b, 0);
+        const avg = g.count > 0 ? (sum / g.count) : 0;
+        lookup[st] = {
+          avgScore: parseFloat(avg.toFixed(1)),
+          count: g.count,
+          low: g.low,
+          medium: g.medium,
+          high: g.high
+        };
+      });
+      return lookup;
+    }
+
+    // Leaflet Choropleth styling functions
+    function getStateColor(stats) {
+      if (!stats || stats.count === 0) return '#374151'; // Neutral dark gray for No Data
+      if (stats.avgScore <= 33.0) return '#10b981';     // Low risk green
+      if (stats.avgScore <= 66.0) return '#f59e0b';     // Medium risk amber
+      return '#ef4444';                                 // High risk red
+    }
+
+    function getStateBorderColor(stats) {
+      if (!stats || stats.count === 0) return '#4b5563';
+      if (stats.avgScore <= 33.0) return '#34d399';
+      if (stats.avgScore <= 66.0) return '#fbbf24';
+      return '#f87171';
+    }
+
+    function stateStyle(feature) {
+      const rawName = getFeatureStateName(feature);
+      const normName = normalizeStateName(rawName);
+      const stats = stateRiskLookup[normName];
+      return {
+        fillColor: getStateColor(stats),
+        weight: 1,
+        opacity: 1,
+        color: getStateBorderColor(stats),
+        fillOpacity: 0.55
+      };
+    }
+
+    function getTooltipHtml(feature) {
+      const rawName = getFeatureStateName(feature);
+      const normName = normalizeStateName(rawName);
+      const stats = stateRiskLookup[normName];
+      const displayName = normName === 'Jammu and Kashmir' ? 'Jammu & Kashmir / Ladakh' : normName;
+
+      if (stats && stats.count > 0) {
+        return `
+          <div class="space-y-1.5 min-w-[170px]">
+            <div class="font-bold text-white text-xs border-b border-[#1E293B] pb-1 tracking-tight">${escapeHtml(displayName)}</div>
+            <div class="flex justify-between items-center text-[11px] text-[#94A3B8]">
+              <span>Avg Risk Score:</span>
+              <span class="font-bold text-white font-mono">${stats.avgScore}</span>
+            </div>
+            <div class="flex justify-between items-center text-[11px] text-[#94A3B8]">
+              <span>Project Count:</span>
+              <span class="font-bold text-white font-mono">${stats.count}</span>
+            </div>
+            <div class="flex items-center justify-between pt-1 border-t border-[#1E293B]/60 text-[10px] font-mono">
+              <span class="text-[#10b981] font-semibold">${stats.low} Low</span>
+              <span class="text-[#64748B]">&bull;</span>
+              <span class="text-[#f59e0b] font-semibold">${stats.medium} Med</span>
+              <span class="text-[#64748B]">&bull;</span>
+              <span class="text-[#ef4444] font-semibold">${stats.high} High</span>
+            </div>
+          </div>
+        `;
+      } else {
+        return `
+          <div class="space-y-1.5 min-w-[150px]">
+            <div class="font-bold text-white text-xs border-b border-[#1E293B] pb-1 tracking-tight">${escapeHtml(displayName)}</div>
+            <div class="flex justify-between items-center text-[11px] text-[#94A3B8]">
+              <span>Status:</span>
+              <span class="font-medium text-white">No Data</span>
+            </div>
+            <div class="flex justify-between items-center text-[11px] text-[#94A3B8]">
+              <span>Project Count:</span>
+              <span class="font-bold text-white font-mono">0 projects</span>
+            </div>
+          </div>
+        `;
+      }
+    }
+
+    function highlightFeature(e) {
+      const layer = e.target;
+      layer.setStyle({
+        weight: 2,
+        color: '#06b6d4',
+        fillOpacity: 0.8
+      });
+      if (layer.bringToFront) {
+        layer.bringToFront();
+      }
+    }
+
+    function resetHighlight(e) {
+      if (choroplethLayer) {
+        choroplethLayer.resetStyle(e.target);
+      }
+    }
+
+    function onEachStateFeature(feature, layer) {
+      layer.bindTooltip(getTooltipHtml(feature), {
+        sticky: true,
+        className: 'dark-leaflet-tooltip',
+        direction: 'auto'
+      });
+
+      layer.on({
+        mouseover: highlightFeature,
+        mouseout: resetHighlight,
+        click: (e) => {
+          map.fitBounds(e.target.getBounds(), {
+            padding: [30, 30],
+            duration: 1.2
+          });
+
+          const rawName = getFeatureStateName(feature);
+          const normName = normalizeStateName(rawName);
+          const options = Array.from(stateSelect.options);
+          const match = options.find(opt => opt.value === normName || opt.value === rawName || (normName === 'Jammu and Kashmir' && opt.value.includes('Jammu')));
+          if (match) {
+            stateSelect.value = match.value;
+            applyFilters();
+          }
+        }
+      });
+    }
+
+
+    function renderChoropleth(geojsonData) {
+      if (choroplethLayer && map.hasLayer(choroplethLayer)) {
+        map.removeLayer(choroplethLayer);
+      }
+      choroplethLayer = L.geoJSON(geojsonData, {
+        style: stateStyle,
+        onEachFeature: onEachStateFeature
+      });
+      window.choroplethLayer = choroplethLayer;
+      if (heatmapOn) {
+        choroplethLayer.addTo(map);
+      }
+    }
+
+    function updateChoroplethLayers() {
+      if (!choroplethLayer) return;
+      choroplethLayer.eachLayer(layer => {
+        layer.setStyle(stateStyle(layer.feature));
+        layer.setTooltipContent(getTooltipHtml(layer.feature));
+      });
+    }
+
+    // Heat Map View Toggle Controller
+    function setHeatmapMode(active) {
+      heatmapOn = active;
+      if (heatmapOn) {
+        heatmapToggle.classList.replace('bg-[#1E293B]', 'bg-brand-cyan');
+        heatmapToggle.classList.replace('border-[#334155]', 'border-brand-cyan');
+        heatmapKnob.classList.add('translate-x-4', 'bg-black');
+        heatmapKnob.classList.remove('bg-[#64748B]');
+
+
+        if (markersLayer && map.hasLayer(markersLayer)) {
+          map.removeLayer(markersLayer);
+        }
+        if (choroplethLayer && !map.hasLayer(choroplethLayer)) {
+          map.addLayer(choroplethLayer);
+        }
+
+        legendMarkers.classList.add('hidden');
+        legendMarkers.classList.remove('flex');
+        legendHeatmap.classList.remove('hidden');
+        legendHeatmap.classList.add('flex');
+      } else {
+        heatmapToggle.classList.replace('bg-brand-cyan', 'bg-[#1E293B]');
+        heatmapToggle.classList.replace('border-brand-cyan', 'border-[#334155]');
+        heatmapKnob.classList.remove('translate-x-4', 'bg-black');
+        heatmapKnob.classList.add('bg-[#64748B]');
+
+        if (choroplethLayer && map.hasLayer(choroplethLayer)) {
+          map.removeLayer(choroplethLayer);
+        }
+        if (markersLayer && !map.hasLayer(markersLayer)) {
+          map.addLayer(markersLayer);
+        }
+
+        legendHeatmap.classList.add('hidden');
+        legendHeatmap.classList.remove('flex');
+        legendMarkers.classList.remove('hidden');
+        legendMarkers.classList.add('flex');
+      }
+    }
+
+    heatmapToggle.addEventListener('click', () => {
+      setHeatmapMode(!heatmapOn);
+    });
+
+    // Apply combined filters (AND logic)
+    function applyFilters() {
+      const query = searchInput.value.trim().toLowerCase();
+      const selectedState = stateSelect.value;
+      const selectedType = typeSelect.value;
+      const selectedStatus = statusSelect.value;
+
+      // Filter for individual markers
+      const filteredMarkers = allProjects.filter(p => {
+        if (query) {
+          const nameMatch = (p.project_name || '').toLowerCase().includes(query);
+          const distMatch = (p.district || '').toLowerCase().includes(query);
+          if (!nameMatch && !distMatch) return false;
+        }
+        if (selectedState && p.state !== selectedState) return false;
+        if (selectedType && p.project_type !== selectedType) return false;
+        if (selectedStatus && p.status !== selectedStatus) return false;
+        if (!activeRiskTiers[p.risk_tier]) return false;
+        return true;
+      });
+
+      // For state-level choropleth risk aggregation, apply global filters (query, type, status, tier)
+      // to reflect active subset while preserving national state view
+      const filteredForStates = allProjects.filter(p => {
+        if (query) {
+          const nameMatch = (p.project_name || '').toLowerCase().includes(query);
+          const distMatch = (p.district || '').toLowerCase().includes(query);
+          if (!nameMatch && !distMatch) return false;
+        }
+        if (selectedType && p.project_type !== selectedType) return false;
+        if (selectedStatus && p.status !== selectedStatus) return false;
+        if (!activeRiskTiers[p.risk_tier]) return false;
+        return true;
+      });
+
+      stateRiskLookup = calculateStateRiskStats(filteredForStates);
+      updateChoroplethLayers();
+
+      renderMarkers(filteredMarkers);
+      updateStats(filteredMarkers);
+    }
+
+    // Populate dropdown options dynamically from unique API response values
+    function populateDropdowns(projects) {
+      const states = [...new Set(projects.map(p => p.state).filter(Boolean))].sort();
+      stateSelect.innerHTML = '<option value="">All States</option>' +
+        states.map(s => `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join('');
+
+      const types = [...new Set(projects.map(p => p.project_type).filter(Boolean))].sort();
+      typeSelect.innerHTML = '<option value="">All Types</option>' +
+        types.map(t => `<option value="${escapeHtml(t)}">${escapeHtml(t.replace(/_/g, ' '))}</option>`).join('');
+
+      const statuses = [...new Set(projects.map(p => p.status).filter(Boolean))].sort();
+      statusSelect.innerHTML = '<option value="">All Statuses</option>' +
+        statuses.map(s => `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join('');
+    }
+
+    // Risk Chip Toggle Handlers
+    function toggleChip(chip, tier, activeBg, activeBorder, activeText) {
+      activeRiskTiers[tier] = !activeRiskTiers[tier];
+      if (activeRiskTiers[tier]) {
+        chip.className = `h-8 border ${activeBorder} ${activeBg} ${activeText} flex items-center justify-center gap-1.5 text-xs font-mono font-semibold transition-colors cursor-pointer`;
+      } else {
+        chip.className = 'h-8 border border-[#252d3a] bg-[#111827] text-[#64748B] flex items-center justify-center gap-1.5 text-xs font-mono font-semibold transition-colors cursor-pointer opacity-50';
+      }
+      applyFilters();
+    }
+
+    chipLow.addEventListener('click', () => toggleChip(chipLow, 'Low', 'bg-[#10b981]/15', 'border-[#10b981]', 'text-[#10b981]'));
+    chipMed.addEventListener('click', () => toggleChip(chipMed, 'Medium', 'bg-[#f59e0b]/15', 'border-[#f59e0b]', 'text-[#f59e0b]'));
+    chipHigh.addEventListener('click', () => toggleChip(chipHigh, 'High', 'bg-[#ef4444]/15', 'border-[#ef4444]', 'text-[#ef4444]'));
+
+    // Filter change listeners
+    searchInput.addEventListener('input', applyFilters);
+    stateSelect.addEventListener('change', () => {
+      const selState = stateSelect.value;
+      if (selState && choroplethLayer) {
+        let foundLayer = null;
+        choroplethLayer.eachLayer(layer => {
+          const normName = normalizeStateName(getFeatureStateName(layer.feature));
+          if (normName === normalizeStateName(selState)) {
+            foundLayer = layer;
+          }
+        });
+        if (foundLayer) {
+          map.fitBounds(foundLayer.getBounds(), { padding: [30, 30], duration: 1.2 });
+        }
+      } else if (!selState) {
+        map.flyTo(DEFAULT_CENTER, DEFAULT_ZOOM, { duration: 1.2 });
+      }
+      applyFilters();
+    });
+    typeSelect.addEventListener('change', applyFilters);
+    statusSelect.addEventListener('change', applyFilters);
+
+    // Fetch Indian state boundary GeoJSON (prioritizes local Survey-of-India boundary dataset)
+    async function fetchStateBoundaries() {
+      const urls = ['/india_states.geojson', 'india_states.geojson', '../india_states.geojson'];
+      for (const url of urls) {
+        try {
+          const res = await fetch(url);
+          if (res.ok) return await res.json();
+        } catch (e) {
+          // ignore and try next local fallback
+        }
+      }
+      const remoteRes = await fetch('https://raw.githubusercontent.com/geohacker/india/master/state/india_telengana.geojson');
+      if (!remoteRes.ok) throw new Error(`Boundary fetch HTTP ${remoteRes.status}`);
+      return await remoteRes.json();
+    }
+
+    // Fetch projects and render markers immediately; load boundaries asynchronously
+    async function loadGeoData() {
+      statusOverlay.style.display = 'flex';
+      statusText.innerHTML = 'Loading project data...';
+
+      try {
+        const headers = getAuthHeaders();
+        const projRes = await fetch('/projects/geo', { headers });
+
+        if (!projRes.ok) {
+          throw new Error(`HTTP ${projRes.status}: ${projRes.statusText}`);
+        }
+
+        allProjects = await projRes.json();
+        if (!Array.isArray(allProjects)) {
+          throw new Error('Invalid response format: Expected array of projects');
+        }
+
+        populateDropdowns(allProjects);
+        renderMarkers(allProjects);
+        updateStats(allProjects);
+
+        // Hide overlay immediately so user sees map, markers & filters with zero delay
+        statusOverlay.style.display = 'none';
+        console.log(`[GIS Map] Successfully loaded and rendered ${allProjects.length} infrastructure projects.`);
+
+        // Asynchronously load state boundaries for Heat Map View
+        fetchStateBoundaries().then(boundaryData => {
+          stateGeoJsonData = boundaryData;
+          window.stateGeoJsonData = stateGeoJsonData;
+          stateRiskLookup = calculateStateRiskStats(allProjects);
+          renderChoropleth(stateGeoJsonData);
+          if (heatmapOn && choroplethLayer && !map.hasLayer(choroplethLayer)) {
+            map.addLayer(choroplethLayer);
+          }
+          console.log(`[GIS Map] State boundaries ready (${stateGeoJsonData.features.length} regions).`);
+        }).catch(err => {
+          console.error('[GIS Map] Warning: Could not load state boundaries for heat map:', err);
+        });
+
+      } catch (err) {
+        console.error('[GIS Map] Error loading geo data:', err);
+        statusText.innerHTML = `
+          <div class="text-[#ef4444] font-bold mb-2">Connection Error</div>
+          <p class="text-xs text-[#94A3B8] mb-3">Unable to load project data. Please check your connection or session.</p>
+          <button onclick="loadGeoData()" class="px-3 py-1.5 bg-[#1E293B] hover:bg-[#252d3a] text-white text-xs font-mono border border-[#334155] cursor-pointer">
+            Retry
+          </button>
+        `;
+      }
+    }
+
+    // Initialize application on load
+    window.addEventListener('DOMContentLoaded', () => {
+      initMap();
+      loadGeoData();
+
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('heatmap') === '1' || urlParams.get('heatmap') === 'true') {
+        setTimeout(() => setHeatmapMode(true), 300);
+      }
+    });
+
+
+  </script>
+</body>
+</html>
