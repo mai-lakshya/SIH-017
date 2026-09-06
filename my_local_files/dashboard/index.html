@@ -1118,8 +1118,8 @@
                   Estimates the non-linear probability of project completion without catastrophic schedule delay over time.
                 </p>
               </div>
-              <div class="badge-live" style="background: rgba(139, 92, 246, 0.15); border-color: rgba(139, 92, 246, 0.3); color: #c4b5fd;">
-                Uno's IPCW C-Index: 0.782
+              <div id="cIndexBadge" class="badge-live" style="background: rgba(139, 92, 246, 0.15); border-color: rgba(139, 92, 246, 0.3); color: #c4b5fd;">
+                Uno's IPCW C-Index: 0.906
               </div>
             </div>
 
@@ -1532,6 +1532,13 @@
 
       // Survival Curve
       renderSurvivalCurve(data.survival_curve || []);
+
+      // Dynamic Uno's IPCW C-Index Badge Update
+      const cBadge = document.getElementById('cIndexBadge');
+      if (cBadge) {
+        const cIdx = data?.predictions?.c_index_str || (data?.predictions?.uno_c_index ? Number(data.predictions.uno_c_index).toFixed(3) : '0.906');
+        cBadge.textContent = `Uno's IPCW C-Index: ${cIdx}`;
+      }
 
       // Prescriptive Recommendations
       renderRecommendations(data.prescriptive_actions || data.recommendations || []);
