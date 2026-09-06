@@ -61,17 +61,23 @@ def prepare_survival_features(X, expected_features=None):
     if all(col in X_df.columns for col in expected_features):
         return X_df[expected_features]
 
+    # Helper to safely retrieve Series with fallback
+    def _col_series(col: str, default: float) -> pd.Series:
+        if col in X_df.columns:
+            return pd.to_numeric(X_df[col], errors='coerce').fillna(default)
+        return pd.Series(default, index=X_df.index, dtype=float)
+
     # Otherwise derive missing engineered features
     # 1. Interactions
-    title_disp = pd.to_numeric(X_df.get('title_dispute_rate_percent', 0.0), errors='coerce').fillna(0.0)
+    title_disp = _col_series('title_dispute_rate_percent', 0.0)
     legal_disputes = title_disp / 100.0
 
-    fund_disp_pct = pd.to_numeric(X_df.get('fund_disbursement_percent', 50.0), errors='coerce').fillna(50.0)
+    fund_disp_pct = _col_series('fund_disbursement_percent', 50.0)
     fund_disp = fund_disp_pct / 100.0
     comp_pending = 1.0 - fund_disp
 
-    sia_risk = pd.to_numeric(X_df.get('sia_approval_status_risk_score', 0.5), errors='coerce').fillna(0.5)
-    forest_risk = pd.to_numeric(X_df.get('forest_clearance_status_risk_score', 0.5), errors='coerce').fillna(0.5)
+    sia_risk = _col_series('sia_approval_status_risk_score', 0.5)
+    forest_risk = _col_series('forest_clearance_status_risk_score', 0.5)
     incomplete_docs = (sia_risk + forest_risk) / 2.0
 
     if 'interact_legal_x_comp_pending' not in X_df.columns:
@@ -82,7 +88,7 @@ def prepare_survival_features(X, expected_features=None):
 
     # 2. Ratios
     if 'ratio_disbursed_to_total_comp' not in X_df.columns:
-        comp_demand = pd.to_numeric(X_df.get('compensation_multiplier_demand', 1.0), errors='coerce').fillna(1.0)
+        comp_demand = _col_series('compensation_multiplier_demand', 1.0)
         X_df['ratio_disbursed_to_total_comp'] = fund_disp / np.maximum(comp_demand, 0.5)
 
     if 'ratio_docs_submitted_to_required' not in X_df.columns:
@@ -92,7 +98,7 @@ def prepare_survival_features(X, expected_features=None):
     if 'section_11_notification_days' in X_df.columns:
         sec11_days = pd.to_numeric(X_df['section_11_notification_days'], errors='coerce').fillna(365.0)
     else:
-        age_yrs = pd.to_numeric(X_df.get('project_age_years', 2.0), errors='coerce').fillna(2.0)
+        age_yrs = _col_series('project_age_years', 2.0)
         sec11_days = np.maximum(100.0, age_yrs * 180.0)
 
     if 'velocity_notif_to_approval' not in X_df.columns:
@@ -115,7 +121,7 @@ def prepare_survival_features(X, expected_features=None):
             X_df['district_delay_rate'] = 0.55
 
     # 5. Days since last activity (staleness)
-    age_yrs = pd.to_numeric(X_df.get('project_age_years', 2.0), errors='coerce').fillna(2.0)
+    age_yrs = _col_series('project_age_years', 2.0)
     proj_age_days = age_yrs * 365.25
     if 'days_since_last_activity' not in X_df.columns:
         X_df['days_since_last_activity'] = np.maximum(0.0, proj_age_days - sec11_days)

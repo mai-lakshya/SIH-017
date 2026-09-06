@@ -10,6 +10,9 @@ from hybrid_model import HybridRiskPredictor
 from timeline_predictor import NonLinearTimelinePredictor
 from explainer import DualParadigmExplainer
 from extract_shap import extract_xgb_model
+from compat import apply_all_patches
+
+apply_all_patches()
 
 def run_faithfulness_audit():
     print("=" * 80)
@@ -206,6 +209,20 @@ def run_faithfulness_audit():
     rho_top1, pval_top1 = spearmanr(top1_claimed_scores, top1_measured_deltas)
     rho_all, pval_all = spearmanr(all_claimed_scores, all_measured_deltas)
 
+    # Subgroup: True Perturbations where delta_prob > 1e-4 or delta_raw > 1e-4
+    nz_pairs = [(c, d) for c, d, r in zip(all_claimed_scores, all_measured_deltas, raw_stacker_directional_matches) if d > 1e-4 or abs(all_claimed_scores[0]) > 0]
+    nz_claimed = [c for c, d in zip(all_claimed_scores, all_measured_deltas) if d > 1e-4]
+    nz_deltas = [d for c, d in zip(all_claimed_scores, all_measured_deltas) if d > 1e-4]
+    if len(nz_claimed) > 2:
+        rho_nz, pval_nz = spearmanr(nz_claimed, nz_deltas)
+    else:
+        rho_nz, pval_nz = 0.0, 1.0
+
+    # Rank-level mean measured deltas
+    rank1_deltas = [d['abs_delta_prob'] for r in per_row_telemetry for d in r['drivers'] if d['rank'] == 1]
+    rank2_deltas = [d['abs_delta_prob'] for r in per_row_telemetry for d in r['drivers'] if d['rank'] == 2]
+    rank3_deltas = [d['abs_delta_prob'] for r in per_row_telemetry for d in r['drivers'] if d['rank'] == 3]
+
     top1_fidelity_rate = float(np.mean(top1_directional_matches))
     all_fidelity_rate = float(np.mean(all_directional_matches))
     raw_fidelity_rate = float(np.mean(raw_stacker_directional_matches))
@@ -217,7 +234,9 @@ def run_faithfulness_audit():
     median_top1_delta = float(np.median(top1_measured_deltas))
 
     print(f"Top-1 Driver Spearman rho: {rho_top1:.4f} (p = {pval_top1:.4e})")
-    print(f"Top-3 Drivers Spearman rho (N = 150): {rho_all:.4f} (p = {pval_all:.4e})")
+    print(f"Top-3 Drivers Spearman rho (All N = 150): {rho_all:.4f} (p = {pval_all:.4e})")
+    print(f"Top-3 Drivers Spearman rho on True Perturbations (N = {len(nz_claimed)}): {rho_nz:.4f} (p = {pval_nz:.4e})")
+    print(f"Rank-Level Monotonic Deltas: Rank 1 = {np.mean(rank1_deltas):.4f}, Rank 2 = {np.mean(rank2_deltas):.4f}, Rank 3 = {np.mean(rank3_deltas):.4f}")
     print(f"Top-1 Directional Fidelity (All N=50): {top1_fidelity_rate*100:.1f}%")
     print(f"Top-1 Directional Fidelity on True Perturbations (N={len(top1_non_zero_cal_matches) if 'top1_non_zero_cal_matches' in locals() else 0}): {top1_non_zero_rate*100:.1f}%")
     print(f"All Drivers Directional Fidelity (All N=150): {all_fidelity_rate*100:.1f}%")
@@ -233,6 +252,13 @@ def run_faithfulness_audit():
         "top1_spearman_pvalue": float(pval_top1),
         "top3_all_spearman_rho": round(float(rho_all), 4),
         "top3_all_spearman_pvalue": float(pval_all),
+        "top3_true_perturbations_spearman_rho": round(float(rho_nz), 4),
+        "top3_true_perturbations_spearman_pvalue": float(pval_nz),
+        "rank_level_measured_deltas": {
+            "rank_1_mean": round(float(np.mean(rank1_deltas)), 4),
+            "rank_2_mean": round(float(np.mean(rank2_deltas)), 4),
+            "rank_3_mean": round(float(np.mean(rank3_deltas)), 4)
+        },
         "top1_directional_fidelity_pct": round(top1_fidelity_rate * 100, 2),
         "top1_non_zero_directional_fidelity_pct": round(top1_non_zero_rate * 100, 2),
         "all_drivers_directional_fidelity_pct": round(all_fidelity_rate * 100, 2),

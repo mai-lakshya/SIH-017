@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-09-05T21:06:19Z",
+  "timestamp": "2026-09-07T00:47:54Z",
   "section_1_timeline_explainability": {
     "rsf_model_class": "<class 'sksurv.ensemble.forest.RandomSurvivalForest'>",
     "deepsurv_model_class": "<class 'timeline_predictor.DeepSurvModel'>",
@@ -23,15 +23,22 @@
     "evaluation_sample_size": 50,
     "additivity_validation": {
       "sample_size": 50,
-      "max_absolute_error": 5.86899673526986e-07,
-      "mean_absolute_error": 2.1920290090848838e-07,
-      "median_absolute_error": 1.5477878667624623e-07,
+      "max_absolute_error": 5.9952147557496e-07,
+      "mean_absolute_error": 2.1696762356082644e-07,
+      "median_absolute_error": 1.337424495595485e-07,
       "is_exact": true
     },
     "top1_spearman_rho": 0.5074,
-    "top1_spearman_pvalue": 0.00016917455883911473,
+    "top1_spearman_pvalue": 0.00016917455883911451,
     "top3_all_spearman_rho": 0.1388,
-    "top3_all_spearman_pvalue": 0.09029889770931473,
+    "top3_all_spearman_pvalue": 0.09029889770931479,
+    "top3_true_perturbations_spearman_rho": 0.6188,
+    "top3_true_perturbations_spearman_pvalue": 3.543503153279855e-10,
+    "rank_level_measured_deltas": {
+      "rank_1_mean": 0.1161,
+      "rank_2_mean": 0.0479,
+      "rank_3_mean": 0.0395
+    },
     "top1_directional_fidelity_pct": 50.0,
     "top1_non_zero_directional_fidelity_pct": 86.21,
     "all_drivers_directional_fidelity_pct": 54.67,
@@ -2678,7 +2685,7 @@
     "is_set_background_data_seeded": true,
     "set_background_data_seed": 42,
     "independent_draw_spearman_rho": 0.9787,
-    "independent_draw_spearman_pvalue": 2.1528490003919376e-19,
+    "independent_draw_spearman_pvalue": 2.1528490003919265e-19,
     "top10_jaccard_similarity": 0.8182,
     "top10_shared_features_count": 9,
     "top10_draw_A": [
@@ -2710,19 +2717,19 @@
     "normal_high_risk_top3": [
       {
         "feature": "P_r",
-        "impact_score": 0.12864401084799848,
+        "impact_score": 0.12864401006692955,
         "direction": "increases_delay",
         "source": "TreeSHAP"
       },
       {
         "feature": "terrain_type",
-        "impact_score": 0.12571221725910386,
+        "impact_score": 0.1257122164958355,
         "direction": "decreases_delay",
         "source": "TreeSHAP"
       },
       {
         "feature": "compensation_multiplier_demand",
-        "impact_score": 0.09149619446136802,
+        "impact_score": 0.09149619390584401,
         "direction": "increases_delay",
         "source": "TreeSHAP"
       }
@@ -2730,19 +2737,19 @@
     "normal_low_risk_top3": [
       {
         "feature": "F_r",
-        "impact_score": 0.12613409565536685,
+        "impact_score": 0.12613409574620021,
         "direction": "increases_delay",
         "source": "TreeSHAP"
       },
       {
         "feature": "affected_families_count",
-        "impact_score": 0.10432489166473097,
+        "impact_score": 0.10432489173985879,
         "direction": "increases_delay",
         "source": "TreeSHAP"
       },
       {
         "feature": "terrain_type",
-        "impact_score": 0.0956333263998508,
+        "impact_score": 0.09563332646871954,
         "direction": "decreases_delay",
         "source": "TreeSHAP"
       }
@@ -2750,31 +2757,31 @@
     "fallback_high_risk_top5": [
       {
         "feature": "P_r",
-        "impact_score": 0.3558533790761889,
+        "impact_score": 0.355853379076189,
         "direction": "increases_delay",
         "source": "Fallback_Heuristic"
       },
       {
         "feature": "forest_clearance_status",
-        "impact_score": 0.19771881610570635,
+        "impact_score": 0.1977188161057063,
         "direction": "increases_delay",
         "source": "Fallback_Heuristic"
       },
       {
         "feature": "terrain_type",
-        "impact_score": 0.170684559129063,
+        "impact_score": 0.1706845591290632,
         "direction": "increases_delay",
         "source": "Fallback_Heuristic"
       },
       {
         "feature": "local_protest_flag",
-        "impact_score": 0.1216227383749512,
+        "impact_score": 0.12162273837495134,
         "direction": "increases_delay",
         "source": "Fallback_Heuristic"
       },
       {
         "feature": "project_start_year",
-        "impact_score": 0.11292106946342352,
+        "impact_score": 0.11292106946342394,
         "direction": "decreases_delay",
         "source": "Fallback_Heuristic"
       }
@@ -2788,13 +2795,13 @@
       },
       {
         "feature": "forest_clearance_status",
-        "impact_score": 0.31666641577362536,
+        "impact_score": 0.31666641577362503,
         "direction": "increases_delay",
         "source": "Fallback_Heuristic"
       },
       {
         "feature": "terrain_type",
-        "impact_score": 0.19880869622437683,
+        "impact_score": 0.19880869622437716,
         "direction": "increases_delay",
         "source": "Fallback_Heuristic"
       },

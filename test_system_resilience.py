@@ -28,9 +28,13 @@ def dataset():
 @pytest.fixture(scope="module")
 def artifacts():
     try:
-        pipeline = joblib.load('pipeline.joblib')
-        predictor = HybridRiskPredictor.load('ensemble.joblib')
-        timeline = joblib.load('timeline.joblib')
+        from risk_analysis_system import _MODEL_CACHE
+        pipeline = _MODEL_CACHE.get('pipeline.joblib') or joblib.load('pipeline.joblib')
+        predictor = _MODEL_CACHE.get('ensemble.joblib') or HybridRiskPredictor.load('ensemble.joblib')
+        timeline = _MODEL_CACHE.get('timeline.joblib') or joblib.load('timeline.joblib')
+        _MODEL_CACHE['pipeline.joblib'] = pipeline
+        _MODEL_CACHE['ensemble.joblib'] = predictor
+        _MODEL_CACHE['timeline.joblib'] = timeline
         return pipeline, predictor, timeline
     except Exception as e:
         pytest.skip(f"Could not load artifacts: {e}")

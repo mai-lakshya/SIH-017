@@ -1,0 +1,61 @@
+{
+  "cross_model_comparison_n": 100,
+  "hybrid_mean_days": 393.96365599271246,
+  "hybrid_median_days": 249.99173589658645,
+  "timeline_mean_days": 1044.3116895591202,
+  "timeline_median_days": 480.10246135317016,
+  "mean_absolute_disagreement_days": 682.7554210150814,
+  "median_absolute_disagreement_days": 170.05377847635526,
+  "max_absolute_disagreement_days": 6439.927865639078,
+  "pearson_r": 0.707817858659576,
+  "pearson_pvalue": 1.8102491529767803e-16,
+  "spearman_rho": 0.8607586581456627,
+  "spearman_pvalue": 1.6915543090614618e-30,
+  "c4_verified": true,
+  "c4_verifications": [
+    {
+      "recommendation_id": "driver_high_legal_risk_title_dispute_rate_percent",
+      "issue": "High risk from Title Dispute Rate Percent",
+      "days_saved": 1.9,
+      "cost_savings_inr": 24262981.74,
+      "cost_savings_cr": 2.426298174,
+      "impl_cost_inr": 1500000.0,
+      "roi_percentage": 1517.5,
+      "savings_consistent": true,
+      "roi_consistent": true
+    },
+    {
+      "recommendation_id": "driver_high_social_risk_local_protest_flag",
+      "issue": "High risk from Local Protest Flag",
+      "days_saved": 1.3,
+      "cost_savings_inr": 15819913.9,
+      "cost_savings_cr": 1.58199139,
+      "impl_cost_inr": 500000.0,
+      "roi_percentage": 3064.0,
+      "savings_consistent": true,
+      "roi_consistent": true
+    },
+    {
+      "recommendation_id": "driver_financial_risk_fund_disbursement_percent",
+      "issue": "High risk from Fund Disbursement Percent",
+      "days_saved": 8.3,
+      "cost_savings_inr": 105407610.44,
+      "cost_savings_cr": 10.540761044,
+      "impl_cost_inr": 1000000.0,
+      "roi_percentage": 10440.8,
+      "savings_consistent": true,
+      "roi_consistent": true
+    },
+    {
+      "recommendation_id": "sched_zero_delay_buffer_preservation",
+      "issue": "Project on schedule with positive float (+0.0 Days buffer)",
+      "days_saved": 0.0,
+      "cost_savings_inr": 0.0,
+      "cost_savings_cr": 0.0,
+      "impl_cost_inr": 250000.0,
+      "roi_percentage": -100.0,
+      "savings_consistent": true,
+      "roi_consistent": true
+    }
+  ]
+}

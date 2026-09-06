@@ -10,15 +10,18 @@ from explainer import DualParadigmExplainer
 from timeline_explainer import TimelinePermutationExplainer
 from recommendation_engine import RecommendationEngine
 
+_MODEL_CACHE = {}
+
 class RiskAnalysisSystem:
     """
     Unified Orchestrator Class representing Phase 6 of the Risk Prediction System.
     Provides end-to-end predictions, explanations, timelines, and recommendations.
     """
-    def __init__(self, pipeline_path=None, ensemble_path=None, timeline_path=None):
-        self.pipeline = None
-        self.hybrid_model = None
-        self.timeline_predictor = None
+    def __init__(self, pipeline_path=None, ensemble_path=None, timeline_path=None,
+                 pipeline=None, hybrid_model=None, timeline_predictor=None):
+        self.pipeline = pipeline
+        self.hybrid_model = hybrid_model
+        self.timeline_predictor = timeline_predictor
         self.explainer = None
         self.timeline_explainer = None
         self.recommendation_engine = RecommendationEngine()
@@ -28,12 +31,18 @@ class RiskAnalysisSystem:
         # In-memory LRU cache for predictions (hash of first column if single row)
         self._cache = {}
         
-        if pipeline_path:
-            self.pipeline = joblib.load(pipeline_path)
-        if ensemble_path:
-            self.hybrid_model = HybridRiskPredictor.load(ensemble_path)
-        if timeline_path:
-            self.timeline_predictor = NonLinearTimelinePredictor.load(timeline_path)
+        if pipeline_path and self.pipeline is None:
+            if pipeline_path not in _MODEL_CACHE:
+                _MODEL_CACHE[pipeline_path] = joblib.load(pipeline_path)
+            self.pipeline = _MODEL_CACHE[pipeline_path]
+        if ensemble_path and self.hybrid_model is None:
+            if ensemble_path not in _MODEL_CACHE:
+                _MODEL_CACHE[ensemble_path] = HybridRiskPredictor.load(ensemble_path)
+            self.hybrid_model = _MODEL_CACHE[ensemble_path]
+        if timeline_path and self.timeline_predictor is None:
+            if timeline_path not in _MODEL_CACHE:
+                _MODEL_CACHE[timeline_path] = NonLinearTimelinePredictor.load(timeline_path)
+            self.timeline_predictor = _MODEL_CACHE[timeline_path]
             
     def initialize_explainer(self, feature_names):
         """Initializes DualParadigmExplainer and TimelinePermutationExplainer."""

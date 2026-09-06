@@ -149,6 +149,11 @@ class NonLinearTimelinePredictor:
         
     def _prepare_rsf_features(self, X):
         from survival_features import prepare_survival_features
+        if hasattr(self, 'rsf') and self.rsf is not None:
+            n_in = getattr(self.rsf, 'n_features_in_', None)
+            expected = getattr(self.rsf, 'feature_names_in_', None)
+            if expected is None and n_in is not None and hasattr(X, 'shape') and X.shape[1] == n_in:
+                return X
         expected = getattr(self.rsf, 'feature_names_in_', None)
         return prepare_survival_features(X, expected)
 

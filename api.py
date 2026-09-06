@@ -601,6 +601,7 @@ def calculate_prescriptive_actions(result: Dict[str, Any], project_cost_cr: floa
             "avoided_delay": delay_saved,
             "avoided_delay_days": delay_saved,
             "cost_saved_cr": cost_savings_cr,
+            "cost_savings_cr": cost_savings_cr,
             "cost_savings": cost_savings_cr,
             "roi": roi_pct,
             "roi_percentage": roi_pct,
