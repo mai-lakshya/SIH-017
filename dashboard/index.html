@@ -712,6 +712,64 @@
       color: var(--color-apple-blue);
     }
 
+    /* Basemap Switcher Controls */
+    .map-basemap-switcher {
+      position: absolute;
+      top: 16px;
+      left: 16px;
+      z-index: 800;
+      background: rgba(255, 255, 255, 0.94);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--color-border);
+      border-radius: 980px;
+      padding: 3px;
+      display: flex;
+      gap: 3px;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+    }
+
+    .basemap-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 5px 12px;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--color-carbon);
+      background: transparent;
+      border: none;
+      border-radius: 980px;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .basemap-btn:hover {
+      background: rgba(0, 0, 0, 0.05);
+    }
+
+    .basemap-btn.active {
+      background: var(--color-apple-blue);
+      color: #ffffff;
+      font-weight: 600;
+      box-shadow: 0 2px 6px rgba(0, 113, 227, 0.25);
+    }
+
+    .basemap-btn.active svg {
+      color: #ffffff !important;
+      stroke: #ffffff !important;
+    }
+
+    /* Street View Modal Styles */
+    .street-view-modal-backdrop {
+      animation: fadeIn 0.2s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
     /* Inspector Drawer (Slide-over) */
     .inspector-drawer {
       position: fixed;
@@ -906,7 +964,7 @@
     <div class="nav-status-cluster">
       <div class="nav-status-badge">
         <span class="status-dot"></span>
-        <span>Dual-Paradigm ML Online • RSF 0.906 C-Index</span>
+        <span>Dual-Paradigm ML Online • RSF 0.667 C-Index</span>
       </div>
       <span style="color: #474747;">|</span>
       <div class="nav-status-badge">
@@ -942,6 +1000,9 @@
       </div>
     </div>
     <div class="sub-nav-right" style="display: flex; gap: 10px; align-items: center;">
+      <a href="/methodology" class="btn-apple-secondary" style="text-decoration: none; padding: 7px 14px; font-size: 13px;">
+        <span>View Methodology</span>
+      </a>
       <button class="btn-apple-secondary" onclick="exportExecutiveSummary()">
         <span>Export Summary</span>
       </button>
@@ -975,7 +1036,7 @@
         </div>
         <div class="kpi-chip">
           <div class="kpi-chip-label">Uno C-Index</div>
-          <div class="kpi-chip-val" style="color: var(--color-apple-blue);">0.906</div>
+          <div class="kpi-chip-val" id="hero-c-index" style="color: var(--color-apple-blue);">0.667</div>
         </div>
       </div>
     </section>
@@ -1060,6 +1121,22 @@
         <!-- Map Viewport -->
         <div class="gis-map-viewport">
           <div id="map"></div>
+
+          <!-- Basemap View Selector (Canvas, Street Map View, Satellite) -->
+          <div class="map-basemap-switcher">
+            <button id="basemap-canvas-btn" class="basemap-btn active" onclick="setBasemap('canvas')" title="Minimal Light Canvas View">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon><line x1="8" y1="2" x2="8" y2="18"></line><line x1="16" y1="6" x2="16" y2="22"></line></svg>
+              <span>Canvas</span>
+            </button>
+            <button id="basemap-streets-btn" class="basemap-btn" onclick="setBasemap('streets')" title="Detailed Street Map View (Roads, Highways & Landmarks)">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: #0071e3;"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>
+              <span>Street Map View</span>
+            </button>
+            <button id="basemap-satellite-btn" class="basemap-btn" onclick="setBasemap('satellite')" title="Satellite Terrain Imagery">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"></path><path d="M2 12h20"></path></svg>
+              <span>Satellite</span>
+            </button>
+          </div>
 
           <!-- Floating Legend -->
           <div class="map-overlay-card" id="map-legend">
@@ -1330,7 +1407,7 @@
               <h3 class="card-title-clean">RSF Survival Function $S(t)$</h3>
               <p class="card-subtitle-clean">Probability of project milestone survival over 730 days</p>
             </div>
-            <span class="btn-apple-subtle" style="font-size: 11px;">Uno C-Index 0.9060</span>
+            <span class="btn-apple-subtle" style="font-size: 11px;">Uno C-Index 0.6670</span>
           </div>
           <div style="height: 380px; position: relative;">
             <canvas id="survivalChart"></canvas>
@@ -1596,10 +1673,57 @@
         </div>
       </div>
 
-      <!-- Action Button -->
+      <!-- Action Buttons -->
       <button class="btn-apple-primary" style="width: 100%; margin-top: 10px;" id="drawer-load-predictor-btn" onclick="loadDrawerProjectIntoPredictor()">
         Load into Interactive Risk Predictor &rarr;
       </button>
+      <a id="drawer-street-view-btn" href="#" target="_blank" rel="noopener noreferrer" class="btn-apple-secondary" style="display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; margin-top: 8px; text-decoration: none; padding: 10px; font-weight: 600; font-size: 13px; border-radius: var(--radius-buttons, 980px); border: 1px solid var(--color-border-subtle); color: var(--color-carbon); background: var(--color-frost);">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" style="color: #ea4335;"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+        <span>Explore Corridor in Google Street View &rarr;</span>
+      </a>
+  <!-- Integrated Street View Modal -->
+  <div id="street-view-modal" class="street-view-modal-backdrop" style="display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.65); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); z-index: 2500; align-items: center; justify-content: center; padding: 20px;">
+    <div style="background: #ffffff; width: 100%; max-width: 860px; border-radius: 16px; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); display: flex; flex-direction: column; max-height: 90vh;">
+      <!-- Modal Header -->
+      <div style="padding: 16px 20px; border-bottom: 1px solid var(--color-border); display: flex; justify-content: space-between; align-items: center; background: var(--color-frost);">
+        <div>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: #ea4335; letter-spacing: 0.5px; display: inline-flex; align-items: center; gap: 4px;">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+              Street Map & Ground Telemetry View
+            </span>
+            <span id="sv-modal-tier" class="badge-tier badge-tier-High" style="font-size: 10px; padding: 1px 6px;">High Risk</span>
+          </div>
+          <h3 id="sv-modal-title" style="font-size: 16px; font-weight: 600; color: var(--color-carbon); margin-top: 3px;">Project Corridor</h3>
+          <div id="sv-modal-subtitle" style="font-size: 12px; color: var(--color-ash); font-family: var(--font-family-mono); margin-top: 1px;">Coordinates loading...</div>
+        </div>
+        <button onclick="closeStreetViewModal()" style="width: 32px; height: 32px; border-radius: 50%; border: none; background: rgba(0,0,0,0.06); cursor: pointer; font-size: 18px; color: var(--color-smoke); display: flex; align-items: center; justify-content: center; transition: background 0.15s ease;" title="Close">&times;</button>
+      </div>
+
+      <!-- Modal Body (Street Map / Ground View Embed) -->
+      <div style="position: relative; flex: 1; min-height: 440px; background: #0b0f19;">
+        <iframe id="sv-modal-iframe" src="about:blank" style="width: 100%; height: 100%; min-height: 440px; border: none;" allowfullscreen loading="lazy"></iframe>
+        <div id="sv-modal-loading" style="position: absolute; inset: 0; background: rgba(11, 15, 25, 0.85); display: flex; flex-direction: column; align-items: center; justify-content: center; color: #ffffff; gap: 8px;">
+          <div style="font-size: 14px; font-weight: 500;">Loading Street Map Cartography...</div>
+          <div style="font-size: 11px; opacity: 0.7;">Acquiring ground roads and street network</div>
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div style="padding: 12px 20px; border-top: 1px solid var(--color-border); display: flex; justify-content: space-between; align-items: center; background: #ffffff; flex-wrap: wrap; gap: 10px;">
+        <div style="display: flex; gap: 8px; align-items: center;">
+          <button onclick="switchMapToStreetViewAndFocus()" class="btn-apple-secondary" style="font-size: 12px; padding: 7px 14px; border-radius: 980px; display: inline-flex; align-items: center; gap: 6px;">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: #0071e3;"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>
+            Switch Main Map to Street Map View
+          </button>
+        </div>
+        <div style="display: flex; gap: 8px; align-items: center;">
+          <a id="sv-modal-ext-link" href="#" target="_blank" rel="noopener noreferrer" class="btn-apple-primary" style="font-size: 12px; padding: 7px 16px; text-decoration: none; border-radius: 980px; display: inline-flex; align-items: center; gap: 6px; background: #ea4335;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+            Open 360° Ground Panorama ↗
+          </a>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -1619,6 +1743,14 @@
     let map = null;
     let markersLayer = null;
     let choroplethLayer = null;
+    let nationalBoundaryLayer = null;
+    let stateOutlineLayer = null;
+    let canvasBaseLayer = null;
+    let canvasRefLayer = null;
+    let streetsLayer = null;
+    let satelliteLayer = null;
+    let satRefLayer = null;
+    let activeBasemap = 'canvas';
     let stateGeoJsonData = null;
     let stateRiskLookup = {};
     let heatmapOn = false;
@@ -1710,6 +1842,22 @@
       executePredictRisk();
     }
 
+    function scrollToGisMap() {
+      switchMainTab('gis');
+      const target = document.getElementById('view-gis');
+      if (target) {
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }
+
+    function navigateToTab(tabId) {
+      switchMainTab(tabId);
+      const target = document.getElementById(`view-${tabId}`);
+      if (target) {
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }
+
     // =========================================================================
     // GIS CARTOGRAPHY ENGINE (Leaflet + Survey of India Boundary Compliance)
     // =========================================================================
@@ -1727,17 +1875,37 @@
       });
       window.map = map;
 
-      // Esri World Light Gray Base (clean, light, no API key watermark)
-      L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
+      // Layer 1: Esri World Light Gray Base (clean, light, no API key watermark)
+      canvasBaseLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
         attribution: 'Tiles &copy; Esri &mdash; Survey of India Compliant Cartography',
         maxZoom: 16
-      }).addTo(map);
+      });
 
-      // Labels layer in shadowPane so it doesn't block marker interactions
-      L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}', {
+      // Layer 1 Labels: Reference layer in shadowPane
+      canvasRefLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}', {
         maxZoom: 16,
         pane: 'shadowPane'
-      }).addTo(map);
+      });
+
+      // Layer 2: Detailed Street Map View (roads, NH corridors, city street networks)
+      streetsLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
+        attribution: 'Tiles &copy; Esri &mdash; Street Map Intelligence & Roads',
+        maxZoom: 18
+      });
+
+      // Layer 3: High-Resolution Satellite Imagery + Labels
+      satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+        attribution: 'Tiles &copy; Esri &mdash; Earthstar Geographics',
+        maxZoom: 18
+      });
+      satRefLayer = L.tileLayer('https://services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', {
+        maxZoom: 18,
+        pane: 'shadowPane'
+      });
+
+      // Default basemap: Canvas
+      canvasBaseLayer.addTo(map);
+      canvasRefLayer.addTo(map);
 
       // Initialize markersLayer with High-Performance Apple Marker Clustering
       if (window.L && typeof L.markerClusterGroup === 'function') {
@@ -1786,8 +1954,109 @@
         map.flyTo(DEFAULT_CENTER, DEFAULT_ZOOM, { duration: 1.2 });
       });
 
-      console.log('[GIS Engine] Initialized Apple-styled Leaflet map.');
+      console.log('[GIS Engine] Initialized Apple-styled Leaflet map with Multi-Basemap Engine.');
     }
+
+    // Basemap Switcher (Canvas | Street Map View | Satellite)
+    window.setBasemap = function(mode) {
+      if (!map) return;
+      activeBasemap = mode;
+
+      [canvasBaseLayer, canvasRefLayer, streetsLayer, satelliteLayer, satRefLayer].forEach(l => {
+        if (l && map.hasLayer(l)) map.removeLayer(l);
+      });
+
+      if (mode === 'streets') {
+        if (streetsLayer) streetsLayer.addTo(map);
+      } else if (mode === 'satellite') {
+        if (satelliteLayer) satelliteLayer.addTo(map);
+        if (satRefLayer) satRefLayer.addTo(map);
+      } else {
+        if (canvasBaseLayer) canvasBaseLayer.addTo(map);
+        if (canvasRefLayer) canvasRefLayer.addTo(map);
+      }
+
+      // Maintain proper layer depth ordering
+      if (choroplethLayer && map.hasLayer(choroplethLayer)) choroplethLayer.bringToBack();
+      if (nationalBoundaryLayer && map.hasLayer(nationalBoundaryLayer)) nationalBoundaryLayer.bringToFront();
+      if (markersLayer && map.hasLayer(markersLayer)) markersLayer.bringToFront();
+
+      ['canvas', 'streets', 'satellite'].forEach(b => {
+        const btn = document.getElementById(`basemap-${b}-btn`);
+        if (btn) {
+          if (b === mode) btn.classList.add('active');
+          else btn.classList.remove('active');
+        }
+      });
+    };
+
+    // Street View Modal Handlers
+    window.openStreetViewModal = function(projectId, event) {
+      if (event) {
+        if (typeof event.stopPropagation === 'function') event.stopPropagation();
+        if (typeof event.preventDefault === 'function') event.preventDefault();
+      }
+      const p = allProjects.find(item => item.project_id === projectId) || selectedProject;
+      const modal = document.getElementById('street-view-modal');
+      const iframe = document.getElementById('sv-modal-iframe');
+      const title = document.getElementById('sv-modal-title');
+      const subtitle = document.getElementById('sv-modal-subtitle');
+      const tierBadge = document.getElementById('sv-modal-tier');
+      const extLink = document.getElementById('sv-modal-ext-link');
+      const loading = document.getElementById('sv-modal-loading');
+
+      if (!modal) return;
+
+      if (p) {
+        selectedProject = p;
+        if (title) title.textContent = p.project_name || p.project_id;
+        if (subtitle) {
+          subtitle.textContent = `${p.district ? p.district + ', ' : ''}${p.state || 'India'} • Lat: ${p.latitude != null ? p.latitude.toFixed(4) : 'N/A'}, Lon: ${p.longitude != null ? p.longitude.toFixed(4) : 'N/A'}`;
+        }
+        if (tierBadge) {
+          tierBadge.className = `badge-tier badge-tier-${p.risk_tier || 'High'}`;
+          tierBadge.textContent = `${p.risk_tier || 'High'} Risk`;
+        }
+
+        const lat = p.latitude != null ? p.latitude : 28.6139;
+        const lon = p.longitude != null ? p.longitude : 77.2090;
+
+        if (extLink) {
+          extLink.href = `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${lat},${lon}`;
+        }
+
+        if (loading) loading.style.display = 'flex';
+        const pad = 0.015;
+        const bbox = `${lon - pad}%2C${lat - pad}%2C${lon + pad}%2C${lat + pad}`;
+        const osmUrl = `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${lat}%2C${lon}`;
+
+        if (iframe) {
+          iframe.onload = () => {
+            if (loading) loading.style.display = 'none';
+          };
+          iframe.src = osmUrl;
+        }
+      }
+
+      modal.style.display = 'flex';
+    };
+
+    window.closeStreetViewModal = function() {
+      const modal = document.getElementById('street-view-modal');
+      const iframe = document.getElementById('sv-modal-iframe');
+      if (modal) modal.style.display = 'none';
+      if (iframe) iframe.src = 'about:blank';
+    };
+
+    window.switchMapToStreetViewAndFocus = function() {
+      closeStreetViewModal();
+      window.setBasemap('streets');
+      if (selectedProject && selectedProject.latitude != null && selectedProject.longitude != null && map) {
+        map.flyTo([selectedProject.latitude, selectedProject.longitude], 15, {
+          duration: 1.5
+        });
+      }
+    };
 
     // Extract state name from any GeoJSON schema attribute
     window.getFeatureStateName = function(feature) {
@@ -1868,10 +2137,7 @@
     }
 
     function getStateBorderColor(stats) {
-      if (!stats || stats.count === 0) return '#d2d2d7';
-      if (stats.avgScore <= 33.0) return '#059669';
-      if (stats.avgScore <= 66.0) return '#d97706';
-      return '#dc2626';
+      return '#ffffff'; // Clean white state boundary separation
     }
 
     function stateStyle(feature) {
@@ -1880,10 +2146,10 @@
       const stats = stateRiskLookup[normName];
       return {
         fillColor: getStateColor(stats),
-        weight: 1,
-        opacity: 1,
-        color: getStateBorderColor(stats),
-        fillOpacity: 0.65
+        weight: 1.0,
+        opacity: 0.85,
+        color: '#ffffff',
+        fillOpacity: 0.72
       };
     }
 
@@ -2039,15 +2305,30 @@
               <strong style="color: var(--color-carbon); font-family: var(--font-family-mono);">${p.predicted_delay_days} days</strong>
             </div>
 
-            <button onclick="openInspectorForProject('${p.project_id}')" class="btn-apple-primary" style="width: 100%; font-size: 12px; padding: 6px 12px;">
-              Inspect Full Telemetry &rarr;
-            </button>
+            <div style="display: flex; gap: 6px; margin-top: 6px;">
+              <button onclick="openInspectorForProject('${p.project_id}')" class="btn-apple-primary" style="flex: 1; font-size: 11px; padding: 7px 10px;">
+                Inspect &rarr;
+              </button>
+              <button onclick="openStreetViewModal('${p.project_id}', event)" data-maps-url="https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${p.latitude},${p.longitude}" class="btn-apple-secondary" style="display: inline-flex; align-items: center; justify-content: center; gap: 5px; font-size: 11px; padding: 7px 12px; border-radius: var(--radius-buttons, 980px); border: 1px solid var(--color-border-subtle); color: var(--color-carbon); background: var(--color-frost); font-weight: 500; cursor: pointer;" title="Open Street Map & Ground View">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" style="color: #ea4335;"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+                <span>Street View</span>
+              </button>
+            </div>
           </div>
         `;
 
         marker.bindPopup(popupHtml, { autoPan: false, closeButton: true });
 
+        // Click-to-zoom: smoothly fly to the project coordinates at zoom 12
         marker.on('click', () => {
+          if (p.latitude != null && p.longitude != null) {
+            const currentZoom = map.getZoom();
+            const targetZoom = Math.max(currentZoom < 11 ? 12 : currentZoom + 1, 12);
+            map.flyTo([p.latitude, p.longitude], targetZoom, {
+              duration: 1.2,
+              easeLinearity: 0.25
+            });
+          }
           marker.openPopup();
           showQuickCardInfo(p);
         });
@@ -2072,9 +2353,15 @@
           <span>Delay Probability:</span>
           <strong>${p.delay_probability}%</strong>
         </div>
-        <button onclick="openInspectorForProject('${p.project_id}')" class="btn-apple-primary" style="width: 100%; font-size: 11px; padding: 5px 10px;">
-          View Full Analysis &rarr;
-        </button>
+        <div style="display: flex; gap: 6px;">
+          <button onclick="openInspectorForProject('${p.project_id}')" class="btn-apple-primary" style="flex: 1; font-size: 11px; padding: 6px 10px;">
+            View Full Analysis &rarr;
+          </button>
+          <button onclick="openStreetViewModal('${p.project_id}', event)" data-maps-url="https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${p.latitude},${p.longitude}" class="btn-apple-secondary" style="display: inline-flex; align-items: center; justify-content: center; gap: 4px; font-size: 11px; padding: 6px 10px; border-radius: var(--radius-buttons, 980px); border: 1px solid var(--color-border-subtle); color: var(--color-carbon); background: var(--color-frost); font-weight: 500; cursor: pointer;" title="Open Street Map & Ground View">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" style="color: #ea4335;"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+            <span>Street View</span>
+          </button>
+        </div>
       `;
     }
 
@@ -2091,6 +2378,7 @@
         knob.style.transform = 'translateX(16px)';
         if (markersLayer && map.hasLayer(markersLayer)) map.removeLayer(markersLayer);
         if (choroplethLayer && !map.hasLayer(choroplethLayer)) map.addLayer(choroplethLayer);
+        if (nationalBoundaryLayer && map.hasLayer(nationalBoundaryLayer)) nationalBoundaryLayer.bringToFront();
         legendMarkers.classList.add('hidden');
         legendHeatmap.classList.remove('hidden');
       } else {
@@ -2098,6 +2386,7 @@
         knob.style.transform = 'translateX(0)';
         if (choroplethLayer && map.hasLayer(choroplethLayer)) map.removeLayer(choroplethLayer);
         if (markersLayer && !map.hasLayer(markersLayer)) map.addLayer(markersLayer);
+        if (nationalBoundaryLayer && map.hasLayer(nationalBoundaryLayer)) nationalBoundaryLayer.bringToFront();
         legendHeatmap.classList.add('hidden');
         legendMarkers.classList.remove('hidden');
       }
@@ -2220,6 +2509,17 @@
     }
 
     // Boundary Fetching with fallback
+    async function fetchNationalBoundary() {
+      const urls = ['/india_national_boundary.geojson', 'india_national_boundary.geojson', '../india_national_boundary.geojson', 'dashboard/india_national_boundary.geojson'];
+      for (const url of urls) {
+        try {
+          const res = await fetch(url);
+          if (res.ok) return await res.json();
+        } catch (e) {}
+      }
+      return null;
+    }
+
     async function fetchStateBoundaries() {
       const urls = ['/india_states.geojson', 'india_states.geojson', '../india_states.geojson', 'dashboard/india_states.geojson'];
       for (const url of urls) {
@@ -2262,14 +2562,40 @@
         const meanDelay = Math.round(allProjects.reduce((acc, p) => acc + (p.predicted_delay_days || 0), 0) / allProjects.length);
         document.getElementById('hero-median-days').textContent = `${meanDelay} Days`;
 
+        // Load National Boundary of India (Sleek Apple-style blue/slate border)
+        fetchNationalBoundary().then(boundaryData => {
+          if (boundaryData) {
+            if (nationalBoundaryLayer && map.hasLayer(nationalBoundaryLayer)) {
+              map.removeLayer(nationalBoundaryLayer);
+            }
+            nationalBoundaryLayer = L.geoJSON(boundaryData, {
+              style: {
+                color: '#2563eb', // Sophisticated Apple Royal Blue (replaces harsh dark lines)
+                weight: 1.8,      // Clean, refined boundary stroke
+                opacity: 0.85,
+                lineCap: 'round',
+                lineJoin: 'round'
+              },
+              interactive: false
+            }).addTo(map);
+            window.nationalBoundaryLayer = nationalBoundaryLayer;
+          }
+        }).catch(err => {
+          console.warn('[GIS Engine] National boundary load warning:', err);
+        });
+
         // Asynchronously load state boundaries for Heatmap View
         fetchStateBoundaries().then(boundaryData => {
           stateGeoJsonData = boundaryData;
           window.stateGeoJsonData = stateGeoJsonData;
           stateRiskLookup = calculateStateRiskStats(allProjects);
+
           renderChoropleth(stateGeoJsonData);
           if (heatmapOn && choroplethLayer && !map.hasLayer(choroplethLayer)) {
             map.addLayer(choroplethLayer);
+          }
+          if (nationalBoundaryLayer && map.hasLayer(nationalBoundaryLayer)) {
+            nationalBoundaryLayer.bringToFront();
           }
           console.log(`[GIS Engine] State boundaries loaded (${stateGeoJsonData.features.length} regions).`);
         }).catch(err => {
@@ -2329,6 +2655,28 @@
 
       if (!p) return;
       selectedProject = p;
+
+      // Fly to project location with smooth zoom-in effect
+      if (p.latitude != null && p.longitude != null && map) {
+        const currentZoom = map.getZoom();
+        const targetZoom = Math.max(currentZoom < 11 ? 12 : currentZoom, 12);
+        map.flyTo([p.latitude, p.longitude], targetZoom, { duration: 1.2 });
+      }
+
+      // Configure Street View button in drawer
+      const svBtn = document.getElementById('drawer-street-view-btn');
+      if (svBtn) {
+        if (p.latitude != null && p.longitude != null) {
+          svBtn.onclick = (e) => {
+            if (e) e.preventDefault();
+            openStreetViewModal(p.project_id, e);
+          };
+          svBtn.href = `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${p.latitude},${p.longitude}`;
+          svBtn.style.display = 'flex';
+        } else {
+          svBtn.style.display = 'none';
+        }
+      }
 
       document.getElementById('drawer-project-name').textContent = p.project_name || p.project_id;
       document.getElementById('drawer-tier-badge').className = `badge-tier badge-tier-${p.risk_tier || 'High'}`;

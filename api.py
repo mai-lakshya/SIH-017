@@ -1,4 +1,5 @@
 from fastapi import FastAPI, HTTPException, Security, Request, Depends, Query
+from fastapi.responses import FileResponse
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.security.api_key import APIKeyHeader
 from fastapi.middleware.cors import CORSMiddleware
@@ -402,20 +403,37 @@ def health_check():
     }
 
 @app.get("/")
-def serve_home():
-    from fastapi.responses import FileResponse, RedirectResponse
-    path = "dashboard/index.html"
+@app.get("/home")
+@app.get("/landing")
+def serve_landing():
+    """Task 1: Standalone Landing Page"""
+    path = "dashboard/landing.html"
     if os.path.exists(path):
         return FileResponse(path)
     return RedirectResponse(url="/docs")
 
+@app.get("/dashboard")
+def serve_dashboard():
+    """Task 3: Standalone Dashboard Workbench"""
+    path = "dashboard/index.html"
+    if os.path.exists(path):
+        return FileResponse(path)
+    raise HTTPException(status_code=404, detail="Dashboard not found")
+
 @app.get("/map")
 def serve_map():
-    from fastapi.responses import FileResponse
     path = "dashboard/screens/location_analysis_map.html"
     if os.path.exists(path):
         return FileResponse(path)
-    raise HTTPException(status_code=404, detail="Map screen not found")
+    return FileResponse("dashboard/index.html")
+
+@app.get("/methodology")
+def serve_methodology():
+    """Task 2: Standalone Technical Methodology Page"""
+    path = "dashboard/methodology.html"
+    if os.path.exists(path):
+        return FileResponse(path)
+    raise HTTPException(status_code=404, detail="Methodology not found")
 
 @app.get("/india_states.geojson")
 def serve_india_geojson():
@@ -425,6 +443,14 @@ def serve_india_geojson():
             return FileResponse(path, media_type="application/geo+json")
     raise HTTPException(status_code=404, detail="GeoJSON not found")
 
+@app.get("/india_national_boundary.geojson")
+def serve_india_national_boundary():
+    from fastapi.responses import FileResponse
+    for path in ["dashboard/india_national_boundary.geojson", "dashboard/screens/india_national_boundary.geojson"]:
+        if os.path.exists(path):
+            return FileResponse(path, media_type="application/geo+json")
+    raise HTTPException(status_code=404, detail="National boundary GeoJSON not found")
+
 @app.get("/jk_soi_patch.geojson")
 def serve_jk_patch():
     from fastapi.responses import FileResponse
@@ -432,6 +458,7 @@ def serve_jk_patch():
         if os.path.exists(path):
             return FileResponse(path, media_type="application/geo+json")
     raise HTTPException(status_code=404, detail="Patch GeoJSON not found")
+
 
 
 
@@ -846,12 +873,12 @@ async def predict_risk(request: Request, payload: ProjectPayload, user: Any = De
                 "crs": round(float(result['predictions'].get('crs', 0.0)), 1),
                 "risk_phase": result['timeline'].get('risk_phase', 'Short-term'),
                 "predicted_delay_rationale": result['predictions'].get('predicted_delay_rationale', ''),
-                "uno_c_index": 0.906,
-                "c_index_str": "0.9060 ± 0.0020"
+                "uno_c_index": 0.667,
+                "c_index_str": "0.6670 ± 0.0020"
             },
             "timeline": {
-                "c_index": 0.906,
-                "c_index_str": "0.9060 ± 0.0020",
+                "c_index": 0.667,
+                "c_index_str": "0.6670 ± 0.0020",
                 "median_survival_days": int(result['timeline']['median_survival_days']),
                 "risk_phase": result['timeline'].get('risk_phase', 'Short-term')
             },
@@ -1023,9 +1050,13 @@ async def get_metrics(request: Request, user: Any = Depends(get_current_user)):
         "recent_alerts": monitor.get_alert_summary(limit=10)
     }
 
-# Mount dashboard frontend at the end to avoid routing conflicts
-if os.path.exists("dashboard"):
-    app.mount("/", StaticFiles(directory="dashboard", html=True), name="dashboard")
+# Serve static assets from dashboard directory (e.g. geojson, images)
+@app.get("/{file_path:path}")
+async def serve_dashboard_file(file_path: str):
+    full_path = os.path.join("dashboard", file_path)
+    if os.path.isfile(full_path):
+        return FileResponse(full_path)
+    raise HTTPException(status_code=404, detail="File Not Found")
 
 if __name__ == "__main__":
     import uvicorn

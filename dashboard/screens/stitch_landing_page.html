@@ -1,0 +1,180 @@
+<!DOCTYPE html><html lang="en" style=""><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>National Risk Platform — NEXUS-XAI</title>
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'SF Pro Text', 'SF Pro Display', 'Helvetica Neue', 'sans-serif'],
+          },
+          colors: {
+            canvas: '#f5f5f7',
+            carbon: '#1d1d1f',
+            action: '#0071e3',
+            'action-secondary': '#0066cc',
+            accent: '#2997ff',
+            hairline: '#d2d2d7',
+            utility: '#0F172A',
+          }
+        }
+      }
+    }
+  </script>
+<style>
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', sans-serif;
+      background-color: #f5f5f7;
+      color: #1d1d1f;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+    .pill-btn {
+      border-radius: 980px;
+    }
+    .hero-headline {
+      letter-spacing: -0.015em;
+      line-height: 1.07143;
+    }
+  </style>
+</head>
+<body class="min-h-screen bg-[#f5f5f7] flex flex-col selection:bg-[#0071e3]/20">
+<!-- TOP UTILITY BAR -->
+<header class="w-full bg-[#0F172A] text-white h-[40px] px-4 sm:px-8 flex items-center justify-between text-xs z-50 select-none">
+<!-- Left branding -->
+<div class="flex items-center gap-2.5">
+<span class="w-4 h-4 rounded bg-[#0071e3] flex items-center justify-center text-[10px] font-bold text-white shadow-none">
+<svg class="w-2.5 h-2.5 fill-current text-white" viewBox="0 0 24 24">
+<path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
+</svg>
+</span>
+<span class="font-bold tracking-tight text-white/95 font-sans">
+        NEXUS-XAI <span class="text-slate-400 font-normal mx-0.5">//</span> LandIntel Infrastructure Risk &amp; Timeline Engine
+      </span>
+</div>
+<!-- Right metrics / status -->
+<div class="flex items-center gap-5 text-[11px] font-medium tracking-tight">
+<div class="flex items-center gap-1.5 text-slate-200">
+<span class="w-2 h-2 rounded-full bg-[#34D399] animate-pulse"></span>
+<span class="">Dual-Paradigm ML Online</span>
+<span class="text-slate-500">•</span>
+<span class="text-slate-300 font-mono text-[10px]">RSF 0.667 C-Index</span>
+</div>
+<div class="h-3 w-px bg-slate-700/60 hidden sm:block"></div>
+<div class="flex items-center gap-1.5 text-slate-300">
+<span class="w-1.5 h-1.5 rounded-full bg-sky-400"></span>
+<span class="">Survey of India GIS Live</span>
+</div>
+</div>
+</header>
+<!-- NAVIGATION BAR -->
+<nav class="w-full bg-[#f5f5f7] border-b border-[#d2d2d7] py-[8px] px-6 sm:px-12 flex items-center justify-between sticky top-0 z-40">
+<!-- Left Navigation Identity -->
+<div class="flex items-center gap-3">
+<span class="text-[21px] font-semibold text-[#1d1d1f] tracking-tight">
+        National Risk Platform
+      </span>
+<span class="pill-btn px-2.5 py-0.5 border border-[#0066cc] text-[#0066cc] text-[10px] font-semibold tracking-wider uppercase bg-transparent">
+        VERSION 2.4
+      </span>
+</div>
+<!-- Right Action Buttons -->
+<div class="flex items-center gap-3">
+<a href="/methodology" class="pill-btn border border-[#0066cc] text-[#0066cc] bg-transparent text-[14px] font-medium tracking-normal hover:bg-[#0066cc]/5 transition-colors duration-150" style="padding: 11px 15px; line-height: 1; text-decoration: none;">
+        Learn More
+      </a>
+<a href="/dashboard" class="pill-btn bg-[#0071e3] text-white border-0 text-[14px] font-medium tracking-normal hover:bg-[#0077ed] active:bg-[#006edb] transition-colors duration-150 shadow-none" style="padding: 11px 15px; line-height: 1; text-decoration: none;">
+        Enter Platform
+      </a>
+</div>
+</nav>
+<!-- HERO SECTION -->
+<main class="flex-1 flex flex-col items-center justify-center bg-[#f5f5f7] px-6 text-center" style="padding-top: 64px; padding-bottom: 64px;">
+<div class="max-w-[980px] mx-auto flex flex-col items-center">
+<!-- Headline: Centered, 2 lines, 56px, weight 600, color #1d1d1f -->
+<h1 class="hero-headline text-[42px] sm:text-[52px] md:text-[56px] font-semibold text-[#1d1d1f] tracking-tight max-w-[860px]">
+        Infrastructure Delay Risk<br class="hidden sm:inline"> &amp; Spatial Intelligence
+      </h1>
+<!-- Subtitle: Centered, 21px, weight 300, color #1d1d1f -->
+<p class="mt-5 text-[18px] sm:text-[21px] font-light text-[#1d1d1f] max-w-[760px] leading-relaxed">
+        AI-powered risk prediction, explainable machine learning, and official Survey of India GIS mapping — unified in one national platform.
+      </p>
+<!-- Center Action Buttons: Filled & Outlined -->
+<div class="mt-9 flex flex-wrap items-center justify-center gap-4">
+<a href="/dashboard" class="pill-btn bg-[#0071e3] text-white text-[15px] font-medium tracking-normal hover:bg-[#0077ed] active:bg-[#006edb] transition-colors duration-150 shadow-none flex items-center gap-2" style="padding: 13px 22px; line-height: 1; text-decoration: none;">
+<span class="">Enter Platform</span>
+<span class="text-base font-normal">→</span>
+</a>
+<a href="/methodology" class="pill-btn border border-[#0066cc] text-[#0066cc] bg-transparent text-[15px] font-medium tracking-normal hover:bg-[#0066cc]/5 transition-colors duration-150" style="padding: 13px 22px; line-height: 1; text-decoration: none;">
+          Learn More
+        </a>
+</div>
+</div>
+</main><!-- DIVIDER 1 -->
+<div class="w-full max-w-[980px] mx-auto px-6">
+<div class="w-full h-px bg-[#d2d2d7]"></div>
+</div>
+<!-- STATS ROW -->
+<section class="w-full px-6" style="background-color: rgb(244, 248, 251); padding-top: 64px; padding-bottom: 64px;">
+<div class="max-w-[980px] mx-auto grid grid-cols-2 md:grid-cols-4 gap-8 text-center"><div class="flex flex-col items-center justify-center"><span class="text-[12px] font-normal tracking-wider uppercase" style="color: #707070;">MONITORED PROJECTS</span><span class="mt-2 text-[48px] font-bold tracking-tight text-[#1d1d1f] leading-none">13,532</span></div><div class="flex flex-col items-center justify-center"><span class="text-[12px] font-normal tracking-wider uppercase" style="color: #707070;">MEAN DELAY PROBABILITY</span><span class="mt-2 text-[48px] font-bold tracking-tight text-[#1d1d1f] leading-none">56.6%</span></div><div class="flex flex-col items-center justify-center"><span class="text-[12px] font-normal tracking-wider uppercase" style="color: #707070;">MEDIAN SURVIVAL</span><span class="mt-2 text-[48px] font-bold tracking-tight text-[#1d1d1f] leading-none">124 Days</span></div><div class="flex flex-col items-center justify-center"><span class="text-[12px] font-normal tracking-wider uppercase" style="color: #707070;">UNO C-INDEX</span><span class="mt-2 text-[48px] font-bold tracking-tight text-[#0071e3] leading-none">0.667</span></div></div>
+</section>
+<!-- PLATFORM CAPABILITIES FEATURE SECTION -->
+<section class="w-full bg-[#f5f5f7] px-6" style="padding-top: 64px; padding-bottom: 64px;">
+<div class="max-w-[980px] mx-auto flex flex-col items-center">
+<!-- Eyebrow text -->
+<span class="text-[12px] font-normal tracking-wider uppercase text-center" style="color: #707070;">
+      PLATFORM CAPABILITIES
+    </span>
+<!-- 4 Items in horizontal grid -->
+<div class="w-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-10 text-center" style="margin-top: 40px;"><div class="flex flex-col items-center text-center"><div class="rounded-full flex items-center justify-center mb-3" style="width: 48px; height: 48px; background-color: #f4f8fb;"><svg class="stroke-current fill-none" style="width: 20px; height: 20px; stroke: #0071e3; color: #0071e3;" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg></div><h3 class="text-[21px] font-semibold text-[#1d1d1f] tracking-tight leading-snug">National GIS Map</h3><p class="mt-2 text-[17px] font-light leading-relaxed" style="color: #707070;">Real-time spatial risk visualization across all Indian states and union territories.</p></div><div class="flex flex-col items-center text-center"><div class="rounded-full flex items-center justify-center mb-3" style="width: 48px; height: 48px; background-color: #f4f8fb;"><svg class="stroke-current fill-none" style="width: 20px; height: 20px; stroke: #0071e3; color: #0071e3;" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg></div><h3 class="text-[21px] font-semibold text-[#1d1d1f] tracking-tight leading-snug">Risk Predictor</h3><p class="mt-2 text-[17px] font-light leading-relaxed" style="color: #707070;">Calibrated ML models forecasting delay probability for any infrastructure project.</p></div><div class="flex flex-col items-center text-center"><div class="rounded-full flex items-center justify-center mb-3" style="width: 48px; height: 48px; background-color: #f4f8fb;"><svg class="stroke-current fill-none" style="width: 20px; height: 20px; stroke: #0071e3; color: #0071e3;" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" viewBox="0 0 24 24"><circle cx="6" cy="6" r="2.5"></circle><circle cx="18" cy="6" r="2.5"></circle><circle cx="12" cy="18" r="2.5"></circle><line x1="8.2" x2="15.8" y1="7.2" y2="7.2"></line><line x1="7.5" x2="10.8" y1="8.5" y2="15.5"></line><line x1="16.5" x2="13.2" y1="8.5" y2="15.5"></line></svg></div><h3 class="text-[21px] font-semibold text-[#1d1d1f] tracking-tight leading-snug">Explainable AI</h3><p class="mt-2 text-[17px] font-light leading-relaxed" style="color: #707070;">Transparent SHAP-based reasoning behind every risk score — no black-box predictions.</p></div><div class="flex flex-col items-center text-center"><div class="rounded-full flex items-center justify-center mb-3" style="width: 48px; height: 48px; background-color: #f4f8fb;"><svg class="stroke-current fill-none" style="width: 20px; height: 20px; stroke: #0071e3; color: #0071e3;" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><circle cx="12" cy="12" r="5"></circle><circle cx="12" cy="12" r="1.5"></circle></svg></div><h3 class="text-[21px] font-semibold text-[#1d1d1f] tracking-tight leading-snug">Prescriptive AI</h3><p class="mt-2 text-[17px] font-light leading-relaxed" style="color: #707070;">Data-backed mitigation recommendations with projected cost savings and ROI.</p></div></div>
+</div>
+</section>
+<!-- DIVIDER 2 -->
+<section class="w-full px-6" style="background-color: rgb(244, 248, 251); padding-top: 64px; padding-bottom: 64px;"><div class="max-w-[980px] mx-auto flex flex-col items-center text-center"><span class="text-[12px] font-normal tracking-wider uppercase" style="color: #707070;">NATIONAL COVERAGE</span><h2 class="mt-3 text-[32px] sm:text-[40px] font-semibold text-[#1d1d1f] tracking-tight leading-tight">Live Across Every State</h2><p class="mt-3 text-[18px] sm:text-[21px] font-light leading-relaxed max-w-[680px] mx-auto" style="color: #707070;">Real infrastructure projects, tracked and risk-scored across all Indian states and union territories.</p><div class="mt-10 relative flex items-center justify-center"><svg class="w-full max-w-[440px] h-auto drop-shadow-sm" viewBox="0 0 420 480" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- India Silhouette Path -->
+  <path d="M 160 38 C 166 24, 182 14, 192 14 C 204 14, 214 26, 222 34 C 230 42, 240 50, 242 62 C 244 74, 230 84, 232 94 C 234 102, 246 106, 252 114 C 258 122, 248 132, 242 140 C 236 148, 234 156, 228 162 C 220 170, 206 172, 198 180 C 188 188, 178 190, 168 194 C 154 200, 140 206, 126 210 C 114 214, 102 216, 90 224 C 80 232, 70 244, 76 256 C 82 268, 98 266, 108 266 C 116 266, 114 274, 108 280 C 98 290, 100 304, 114 308 C 128 312, 136 300, 144 290 C 150 282, 154 274, 164 272 C 172 270, 180 274, 188 282 C 196 290, 200 304, 202 316 C 206 332, 212 348, 216 364 C 222 384, 228 404, 236 424 C 242 436, 246 448, 250 456 C 252 460, 256 460, 258 454 C 266 436, 276 414, 284 394 C 294 372, 304 350, 314 330 C 318 322, 326 314, 332 304 C 338 292, 342 278, 338 264 C 334 252, 324 244, 320 232 C 314 218, 320 206, 332 198 C 342 192, 354 186, 366 186 C 378 186, 390 190, 400 184 C 408 178, 408 166, 400 160 C 392 154, 380 156, 370 154 C 358 152, 346 148, 334 148 C 322 148, 312 142, 302 140 C 292 138, 282 140, 274 134 C 266 128, 266 116, 258 108 C 250 100, 238 90, 230 78 C 224 70, 214 62, 204 54 C 194 46, 184 42, 172 40 Z" fill="#e8ecf1" stroke="#1d1d1f" stroke-width="1.75" stroke-linejoin="round" stroke-linecap="round"></path>
+  <!-- Major Connectivity Flow Lines (Subtle) -->
+  <path d="M 194 136 L 152 254 M 194 136 L 222 232 M 194 136 L 314 210 M 152 254 L 176 330 M 222 232 L 244 336 M 314 210 L 272 292 M 176 330 L 236 398 M 244 336 L 254 394" stroke="#0071e3" stroke-width="1" stroke-opacity="0.2" stroke-dasharray="3 3"></path>
+  <!-- Featured Delhi / NCR Node with Halo Ring -->
+  <circle cx="194" cy="136" r="16" fill="#0071e3" fill-opacity="0.15" stroke="#0071e3" stroke-width="1.5" stroke-opacity="0.35"></circle>
+  <circle cx="194" cy="136" r="5.5" fill="#0071e3"></circle>
+  <!-- Northern J&K / Ladakh -->
+  <circle cx="196" cy="52" r="4.5" fill="#0071e3"></circle>
+  <!-- Western Gujarat (Kutch/Ahmedabad) -->
+  <circle cx="116" cy="242" r="4.5" fill="#0071e3"></circle>
+  <!-- Western Maharashtra (Mumbai) -->
+  <circle cx="152" cy="282" r="4.5" fill="#0071e3"></circle>
+  <!-- Central MP (Bhopal/Indore) -->
+  <circle cx="204" cy="232" r="5" fill="#0071e3"></circle>
+  <!-- Eastern West Bengal (Kolkata) -->
+  <circle cx="306" cy="226" r="5" fill="#0071e3"></circle>
+  <!-- Northeast Assam (Guwahati) -->
+  <circle cx="368" cy="172" r="4.5" fill="#0071e3"></circle>
+  <!-- Odisha / East Coast -->
+  <circle cx="280" cy="282" r="4.5" fill="#0071e3"></circle>
+  <!-- Telangana / Hyderabad -->
+  <circle cx="224" cy="316" r="4.5" fill="#0071e3"></circle>
+  <!-- Karnataka / Bengaluru -->
+  <circle cx="218" cy="372" r="5" fill="#0071e3"></circle>
+  <!-- Tamil Nadu (Chennai) -->
+  <circle cx="256" cy="378" r="4.5" fill="#0071e3"></circle>
+  <!-- Southern Kerala / Kanyakumari zone -->
+  <circle cx="236" cy="430" r="4.5" fill="#0071e3"></circle>
+</svg></div><div class="mt-8"><a href="/dashboard" class="text-[17px] font-normal text-[#0066cc] hover:underline inline-flex items-center gap-1.5 transition-colors"><span class="">Explore the full map</span><span class="text-base">→</span></a></div></div></section><div class="w-full max-w-[980px] mx-auto px-6">
+<div class="w-full h-px bg-[#d2d2d7]"></div>
+</div>
+<!-- FOOTER -->
+<footer class="w-full bg-[#f5f5f7] py-12 px-6 text-center">
+<p class="text-[12px] font-normal tracking-normal" style="color: #707070;">
+    Ministry of Rural Development · Built for Smart India Hackathon 2026
+  </p>
+</footer>
+
+
+
+</body></html>

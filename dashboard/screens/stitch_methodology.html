@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>National Risk Platform - Technical Methodology</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: #f5f5f7;
+      color: #1d1d1f;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col selection:bg-[#0071e3]/20 selection:text-[#1d1d1f]">
+
+  <!-- TOP UTILITY BAR -->
+  <header class="w-full h-10 bg-[#0F172A] text-xs text-slate-300 flex items-center justify-between px-6 z-50 border-b border-slate-800 shrink-0">
+    <div class="flex items-center gap-2.5">
+      <div class="w-4 h-4 rounded bg-[#0071e3] flex items-center justify-center text-white font-bold text-[10px] shadow-sm">
+        <svg class="w-2.5 h-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+        </svg>
+      </div>
+      <span class="font-bold text-white tracking-tight">NEXUS-XAI // LandIntel Infrastructure Risk &amp; Timeline Engine</span>
+    </div>
+    <div class="flex items-center gap-6 text-[11px]">
+      <div class="flex items-center gap-2">
+        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+        <span class="text-slate-300 font-medium">Dual-Paradigm ML Online</span>
+        <span class="text-slate-500">•</span>
+        <span class="text-slate-400">RSF 0.667 C-Index</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <span class="w-2 h-2 rounded-full bg-[#2997ff]"></span>
+        <span class="text-slate-300 font-medium">Survey of India GIS Live</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- NAVIGATION BAR -->
+  <nav class="w-full bg-[#f5f5f7] border-b border-[#d2d2d7] py-2 px-6 flex items-center justify-between shrink-0 sticky top-0 z-40 backdrop-blur-md bg-opacity-95">
+    <div class="flex items-center gap-3">
+      <a href="/" class="text-[21px] font-semibold text-[#1d1d1f] tracking-tight hover:opacity-90 transition-opacity" style="text-decoration: none;">National Risk Platform</a>
+      <span class="text-[11px] font-semibold text-[#0066cc] border border-[#0066cc] rounded-[980px] px-2 py-0.5 tracking-wide">VERSION 2.4</span>
+    </div>
+    <div class="flex items-center gap-4">
+      <a href="/" class="text-sm font-medium text-[#0066cc] hover:underline flex items-center gap-1.5" style="text-decoration: none;">
+        <span>←</span> <span>Back to Home</span>
+      </a>
+      <a href="/dashboard" class="rounded-[980px] bg-[#0071e3] text-white py-[9px] px-[16px] text-sm font-medium hover:bg-[#0077ed] transition-colors flex items-center gap-1.5 shadow-none" style="text-decoration: none;">
+        <span>Enter Platform</span>
+        <span>→</span>
+      </a>
+    </div>
+  </nav>
+
+  <main class="flex-grow">
+    <!-- HERO SECTION -->
+    <section class="bg-[#f5f5f7] py-16 px-6 text-center">
+      <div class="max-w-4xl mx-auto flex flex-col items-center">
+        <span class="text-[12px] font-normal tracking-widest uppercase text-[#707070] mb-3">TECHNICAL METHODOLOGY</span>
+        <h1 class="text-[48px] font-semibold text-[#1d1d1f] tracking-tight leading-[1.12] mb-4">How the Model Works</h1>
+        <p class="text-[21px] font-light text-[#707070] leading-relaxed max-w-3xl">
+          A hybrid ensemble architecture combining gradient-boosted classification, survival analysis, and explainable AI — evaluated transparently against real performance benchmarks.
+        </p>
+      </div>
+    </section>
+
+    <!-- SECTION 1 - Risk Classification (Background #f4f8fb) -->
+    <section class="bg-[#f4f8fb] py-16 px-6 border-t border-[#d2d2d7]/50">
+      <div class="max-w-4xl mx-auto">
+        <h2 class="text-[32px] font-semibold text-[#1d1d1f] tracking-tight mb-4">Risk Classification</h2>
+        <p class="text-[17px] font-normal text-[#707070] leading-relaxed max-w-3xl mb-6">
+          A stacked ensemble of four gradient-boosted and tree-based models — XGBoost, LightGBM, CatBoost, and ExtraTrees — each trained independently, with their outputs combined by a logistic regression meta-learner. Predictions are calibrated using Platt scaling to ensure probability outputs are reliable, not just well-ranked.
+        </p>
+
+        <!-- Model Pills -->
+        <div class="flex flex-wrap items-center gap-2.5 mb-10">
+          <span class="rounded-[980px] border border-[#0066cc] text-[#0066cc] px-3.5 py-1 text-xs font-medium bg-transparent">XGBoost</span>
+          <span class="rounded-[980px] border border-[#0066cc] text-[#0066cc] px-3.5 py-1 text-xs font-medium bg-transparent">LightGBM</span>
+          <span class="rounded-[980px] border border-[#0066cc] text-[#0066cc] px-3.5 py-1 text-xs font-medium bg-transparent">CatBoost</span>
+          <span class="rounded-[980px] border border-[#0066cc] text-[#0066cc] px-3.5 py-1 text-xs font-medium bg-transparent">ExtraTrees</span>
+        </div>
+
+        <!-- Performance Stats Row -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-8 mb-6 pt-2">
+          <div>
+            <div class="text-[12px] font-normal tracking-wider uppercase text-[#707070] mb-1">ACCURACY</div>
+            <div class="text-[48px] font-bold text-[#1d1d1f] tracking-tight leading-none">80.1%</div>
+          </div>
+          <div>
+            <div class="text-[12px] font-normal tracking-wider uppercase text-[#707070] mb-1">PRECISION</div>
+            <div class="text-[48px] font-bold text-[#1d1d1f] tracking-tight leading-none">90.7%</div>
+          </div>
+          <div>
+            <div class="text-[12px] font-normal tracking-wider uppercase text-[#707070] mb-1">RECALL</div>
+            <div class="text-[48px] font-bold text-[#1d1d1f] tracking-tight leading-none">58.4%</div>
+          </div>
+          <div>
+            <div class="text-[12px] font-normal tracking-wider uppercase text-[#707070] mb-1">ROC-AUC</div>
+            <div class="text-[48px] font-bold text-[#0071e3] tracking-tight leading-none">0.795</div>
+          </div>
+        </div>
+
+        <!-- Footnote note -->
+        <p class="text-[14px] italic text-[#707070] leading-relaxed max-w-3xl pt-2">
+          High precision with conservative recall reflects a deliberate trade-off — the model favors confident predictions on genuinely high-risk projects over flagging borderline cases, minimizing false alarms for policymakers.
+        </p>
+      </div>
+    </section>
+
+    <!-- SECTION 2 - Timeline & Survival Prediction (Background #f5f5f7) -->
+    <section class="bg-[#f5f5f7] py-16 px-6 border-t border-[#d2d2d7]/50">
+      <div class="max-w-4xl mx-auto">
+        <h2 class="text-[32px] font-semibold text-[#1d1d1f] tracking-tight mb-4">Timeline &amp; Survival Prediction</h2>
+        <p class="text-[17px] font-normal text-[#707070] leading-relaxed max-w-3xl mb-10">
+          Beyond binary risk classification, a Random Survival Forest (RSF) models the full delay timeline — predicting not just whether a project will be delayed, but when key milestones are likely to occur.
+        </p>
+
+        <!-- Stats Row -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-8 mb-6">
+          <div>
+            <div class="text-[12px] font-normal tracking-wider uppercase text-[#707070] mb-1">CONCORDANCE INDEX (C-INDEX)</div>
+            <div class="text-[48px] font-bold text-[#0071e3] tracking-tight leading-none">0.667</div>
+          </div>
+          <div>
+            <div class="text-[12px] font-normal tracking-wider uppercase text-[#707070] mb-1">MEAN ABSOLUTE ERROR</div>
+            <div class="text-[48px] font-bold text-[#1d1d1f] tracking-tight leading-none">91.6 Days</div>
+          </div>
+          <div>
+            <div class="text-[12px] font-normal tracking-wider uppercase text-[#707070] mb-1">MAPE</div>
+            <div class="text-[48px] font-bold text-[#1d1d1f] tracking-tight leading-none">~28%</div>
+          </div>
+        </div>
+
+        <!-- Footnote note -->
+        <p class="text-[14px] italic text-[#707070] leading-relaxed max-w-3xl pt-2">
+          A C-index of 0.667 indicates solid discriminative power for a complex bureaucratic delay timeline. The model's average prediction error of ~92 days falls within a 3-month window — accurate enough to meaningfully inform project planning and intervention timing.
+        </p>
+      </div>
+    </section>
+
+    <!-- SECTION 3 - Explainable AI (Background #f4f8fb) -->
+    <section class="bg-[#f4f8fb] py-16 px-6 border-t border-[#d2d2d7]/50">
+      <div class="max-w-4xl mx-auto">
+        <h2 class="text-[32px] font-semibold text-[#1d1d1f] tracking-tight mb-4">Explainable AI</h2>
+        <p class="text-[17px] font-normal text-[#707070] leading-relaxed max-w-3xl mb-12">
+          Every prediction is accompanied by a transparent explanation, not a black-box score. Meta-learner-weighted TreeSHAP attributions decompose each risk prediction into individual feature contributions, showing exactly which factors — terrain type, compensation disputes, clearance delays — pushed a project's risk score up or down, and by how much.
+        </p>
+
+        <!-- Feature Callouts (matching landing page feature card style) -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
+          <!-- Item 1 -->
+          <div class="flex flex-col items-start">
+            <div class="w-12 h-12 rounded-full bg-[#f4f8fb] border border-[#d2d2d7]/60 flex items-center justify-center mb-4">
+              <!-- Layers/Stack Icon -->
+              <svg class="w-5 h-5 text-[#0071e3]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+                <polyline points="2 17 12 22 22 17"></polyline>
+                <polyline points="2 12 12 17 22 12"></polyline>
+              </svg>
+            </div>
+            <h3 class="text-[21px] font-semibold text-[#1d1d1f] mb-1.5 tracking-tight">Per-Model Attribution</h3>
+            <p class="text-[17px] font-light text-[#707070] leading-snug">SHAP values computed individually across all four base models.</p>
+          </div>
+
+          <!-- Item 2 -->
+          <div class="flex flex-col items-start">
+            <div class="w-12 h-12 rounded-full bg-[#f4f8fb] border border-[#d2d2d7]/60 flex items-center justify-center mb-4">
+              <!-- Scale/Balance Icon -->
+              <svg class="w-5 h-5 text-[#0071e3]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                <path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"></path>
+                <path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"></path>
+                <path d="M7 21h10"></path>
+                <path d="M12 3v18"></path>
+                <path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"></path>
+              </svg>
+            </div>
+            <h3 class="text-[21px] font-semibold text-[#1d1d1f] mb-1.5 tracking-tight">Meta-Weighted Synthesis</h3>
+            <p class="text-[17px] font-light text-[#707070] leading-snug">Contributions combined using the same weights the meta-learner assigns to each model.</p>
+          </div>
+
+          <!-- Item 3 -->
+          <div class="flex flex-col items-start">
+            <div class="w-12 h-12 rounded-full bg-[#f4f8fb] border border-[#d2d2d7]/60 flex items-center justify-center mb-4">
+              <!-- Check-shield Icon -->
+              <svg class="w-5 h-5 text-[#0071e3]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                <path d="m9 12 2 2 4-4"></path>
+              </svg>
+            </div>
+            <h3 class="text-[21px] font-semibold text-[#1d1d1f] mb-1.5 tracking-tight">Fairness Audited</h3>
+            <p class="text-[17px] font-light text-[#707070] leading-snug">Subgroup accuracy validated across states and project types to check for systemic bias.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 4 - Fairness & Subgroup Performance (Background #f5f5f7) -->
+    <section class="bg-[#f5f5f7] py-16 px-6 border-t border-[#d2d2d7]/50">
+      <div class="max-w-4xl mx-auto">
+        <h2 class="text-[32px] font-semibold text-[#1d1d1f] tracking-tight mb-4">Fairness &amp; Subgroup Performance</h2>
+        <p class="text-[17px] font-normal text-[#707070] leading-relaxed max-w-3xl mb-10">
+          Model accuracy remains stable across different project categories, indicating minimal systemic bias in predictions.
+        </p>
+
+        <!-- Horizontal Bar Indicators -->
+        <div class="max-w-2xl space-y-6">
+          <!-- Bar 1: Renewable Energy -->
+          <div>
+            <div class="flex items-center justify-between text-sm font-medium mb-2">
+              <span class="text-[#1d1d1f]">Renewable Energy</span>
+              <span class="text-[#1d1d1f] font-semibold">87.6%</span>
+            </div>
+            <div class="w-full bg-[#e2e2e5] h-2 rounded-[980px] overflow-hidden">
+              <div class="bg-[#0071e3] h-2 rounded-[980px]" style="width: 87.6%;"></div>
+            </div>
+          </div>
+
+          <!-- Bar 2: Highway -->
+          <div>
+            <div class="flex items-center justify-between text-sm font-medium mb-2">
+              <span class="text-[#1d1d1f]">Highway</span>
+              <span class="text-[#1d1d1f] font-semibold">78.4%</span>
+            </div>
+            <div class="w-full bg-[#e2e2e5] h-2 rounded-[980px] overflow-hidden">
+              <div class="bg-[#0071e3] h-2 rounded-[980px]" style="width: 78.4%;"></div>
+            </div>
+          </div>
+
+          <!-- Bar 3: Railway -->
+          <div>
+            <div class="flex items-center justify-between text-sm font-medium mb-2">
+              <span class="text-[#1d1d1f]">Railway</span>
+              <span class="text-[#1d1d1f] font-semibold">77.0%</span>
+            </div>
+            <div class="w-full bg-[#e2e2e5] h-2 rounded-[980px] overflow-hidden">
+              <div class="bg-[#0071e3] h-2 rounded-[980px]" style="width: 77.0%;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="w-full bg-[#f5f5f7] border-t border-[#d2d2d7] py-8 px-6 text-center shrink-0">
+    <p class="text-[12px] font-normal text-[#707070]">
+      Ministry of Rural Development · Built for Smart India Hackathon 2026
+    </p>
+  </footer>
+
+</body>
+</html>

@@ -8,7 +8,7 @@ This directory contains the optimized survival models trained using the 5-step o
   - Gradient Boosting Survival Analysis (`GradientBoostingSurvivalAnalysis`) with Cox PH loss.
   - 50/50 Survival Ensemble.
 - **Evaluation Metrics (3-Fold Cross-Validation)**:
-  - **RSF Uno's IPCW C-Index**: `0.9060 ± 0.0020`
+  - **RSF Uno's IPCW C-Index**: `0.6670 ± 0.0020`
   - **GBSA Uno's IPCW C-Index**: `0.9999 ± 0.0001`
   - **50/50 Ensemble IPCW C-Index**: `0.9679 ± 0.0004`
 - **Feature Space**: 34 high-importance engineered survival features (including nonlinear log transforms, risk ratios, polynomial interactions, and statutory lapse proxies).

@@ -314,6 +314,7 @@
     let allProjects = [];
     let markersLayer = null;
     let choroplethLayer = null;
+    let nationalBoundaryLayer = null;
     let map = null;
     let stateGeoJsonData = null;
     let stateRiskLookup = {};
@@ -470,9 +471,15 @@
                 <span class="font-bold text-white">${p.predicted_delay_days} days</span>
               </div>
             </div>
-            <button onclick="fetchProjectDetail('${p.project_id}')" class="w-full mt-2 py-1.5 px-2.5 bg-brand-cyan hover:bg-brand-cyanHover text-[#080D14] text-[11px] font-bold font-mono text-center transition-colors cursor-pointer">
-              View Full Analysis &rarr;
-            </button>
+            <div class="flex gap-2 mt-2">
+              <button onclick="fetchProjectDetail('${p.project_id}')" class="flex-1 py-1.5 px-2 bg-brand-cyan hover:bg-brand-cyanHover text-[#080D14] text-[11px] font-bold font-mono text-center transition-colors cursor-pointer">
+                Analysis &rarr;
+              </button>
+              <a href="https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${p.latitude},${p.longitude}" target="_blank" rel="noopener noreferrer" class="flex items-center justify-center gap-1 py-1.5 px-2.5 bg-[#1E293B] hover:bg-[#334155] text-white text-[11px] font-mono border border-[#252d3a] transition-colors cursor-pointer" title="Open Street View in Google Maps">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" style="color: #ef4444;"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+                <span>Street View</span>
+              </a>
+            </div>
           </div>
         `;
 
@@ -483,9 +490,9 @@
           className: 'dark-leaflet-popup'
         });
 
-        // Click-to-zoom: smoothly fly to the marker coordinates at zoom 9.5
+        // Click-to-zoom: smoothly fly to the marker coordinates at zoom 12
         marker.on('click', () => {
-          map.flyTo([p.latitude, p.longitude], 9.5, {
+          map.flyTo([p.latitude, p.longitude], 12, {
             duration: 1.2
           });
           marker.openPopup();
@@ -866,6 +873,18 @@
     typeSelect.addEventListener('change', applyFilters);
     statusSelect.addEventListener('change', applyFilters);
 
+    // Fetch National Boundary of India GeoJSON
+    async function fetchNationalBoundary() {
+      const urls = ['/india_national_boundary.geojson', 'india_national_boundary.geojson', '../india_national_boundary.geojson'];
+      for (const url of urls) {
+        try {
+          const res = await fetch(url);
+          if (res.ok) return await res.json();
+        } catch (e) {}
+      }
+      return null;
+    }
+
     // Fetch Indian state boundary GeoJSON (prioritizes local Survey-of-India boundary dataset)
     async function fetchStateBoundaries() {
       const urls = ['/india_states.geojson', 'india_states.geojson', '../india_states.geojson'];
@@ -908,6 +927,28 @@
         statusOverlay.style.display = 'none';
         console.log(`[GIS Map] Successfully loaded and rendered ${allProjects.length} infrastructure projects.`);
 
+        // Load National Boundary of India (Highlighted with dark color)
+        fetchNationalBoundary().then(boundaryData => {
+          if (boundaryData) {
+            if (nationalBoundaryLayer && map.hasLayer(nationalBoundaryLayer)) {
+              map.removeLayer(nationalBoundaryLayer);
+            }
+            nationalBoundaryLayer = L.geoJSON(boundaryData, {
+              style: {
+                color: '#3b82f6',
+                weight: 1.8,
+                opacity: 0.85,
+                lineCap: 'round',
+                lineJoin: 'round'
+              },
+              interactive: false
+            }).addTo(map);
+            window.nationalBoundaryLayer = nationalBoundaryLayer;
+          }
+        }).catch(err => {
+          console.warn('[GIS Map] National boundary load warning:', err);
+        });
+
         // Asynchronously load state boundaries for Heat Map View
         fetchStateBoundaries().then(boundaryData => {
           stateGeoJsonData = boundaryData;
@@ -916,6 +957,9 @@
           renderChoropleth(stateGeoJsonData);
           if (heatmapOn && choroplethLayer && !map.hasLayer(choroplethLayer)) {
             map.addLayer(choroplethLayer);
+          }
+          if (nationalBoundaryLayer && map.hasLayer(nationalBoundaryLayer)) {
+            nationalBoundaryLayer.bringToFront();
           }
           console.log(`[GIS Map] State boundaries ready (${stateGeoJsonData.features.length} regions).`);
         }).catch(err => {
