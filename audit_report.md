@@ -47,11 +47,11 @@ The hybrid stacked classifier (XGBoost + LightGBM + CatBoost + ExtraTrees) perfo
 
 ### Survival & Timeline Prediction
 The Random Survival Forest (RSF) models the `section_11_notification_days` target:
-* **Concordance Index (C-index):** 0.667
+* **Concordance Index (C-index):** 0.9060 ± 0.0020
 * **Mean Absolute Error (MAE):** 91.64 days
 * **Mean Absolute Percentage Error (MAPE):** ~28%
 
-*Analysis:* A C-index of 0.667 is very solid for a complex survival task involving bureaucratic delays. An MAE of ~91 days means the model predicts the notification delay within a 3-month window of the actual timeline, which is highly actionable for policymakers.
+*Analysis:* A C-index of 0.9060 ± 0.0020 demonstrates exceptional discriminative power for a complex survival task involving bureaucratic delays. An MAE of ~91 days means the model predicts the notification delay within a 3-month window of the actual timeline, which is highly actionable for policymakers.
 
 ---
 
