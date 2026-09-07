@@ -1,50 +1,61 @@
+import os
+from pathlib import Path
 import pandas as pd
 import joblib
+
 from pipeline import get_preprocessing_pipeline
 from hybrid_model import HybridRiskPredictor
 from timeline_predictor import NonLinearTimelinePredictor
 
+BASE_DIR = Path(__file__).resolve().parent
+
 def main():
-    print("Loading data...")
-    df = pd.read_csv('indian_infrastructure_projects_dataset.csv')
-    X = df.drop(columns=['delay_binary_label', 'Actual_Delay_Days', 'CRS', 'project_index'], errors='ignore')
-    y_binary = df['delay_binary_label']
+    print("[1/5] Loading infrastructure dataset...")
+    data_path = BASE_DIR / 'indian_infrastructure_projects_dataset.csv'
+    df = pd.read_csv(data_path)
     
-    print("Rebuilding and fitting pipeline...")
+    # Feature matrix & targets
+    X = df.drop(columns=[
+        'delay_binary_label', 'Actual_Delay_Days', 'CRS', 'project_index',
+        'delay_risk_tier', 'CRS_tier', 'section_11_notification_days'
+    ], errors='ignore')
+    
+    y_binary = df['delay_binary_label'].values
+    y_crs = df.get('CRS', df['delay_binary_label'] * 100).values
+    y_days = df.get('Actual_Delay_Days', df['delay_binary_label'] * 90).values
+    
+    print("[2/5] Fitting leak-free preprocessing pipeline...")
     pipeline = get_preprocessing_pipeline()
     pipeline.fit(X, y_binary)
-    joblib.dump(pipeline, 'pipeline.joblib')
+    pipeline_path = str(BASE_DIR / 'pipeline.joblib')
+    joblib.dump(pipeline, pipeline_path, compress=3)
     
-    print("Transforming data for models...")
+    print("[3/5] Transforming features...")
     X_tf = pipeline.transform(X)
     
-    print("Training Ensemble...")
-    y_train = pd.DataFrame({
-        'delay_binary': y_binary,
-        'CRS': df.get('CRS', y_binary * 100),
-        'delay_days': df.get('Actual_Delay_Days', y_binary * 90)
-    })
+    print("[4/5] Training Stacking Hybrid Ensemble (XGB + LGBM + CatBoost + ExtraTrees)...")
+    model_params = {
+        'xgb': {'n_estimators': 125, 'max_depth': 8, 'learning_rate': 0.0935},
+        'lgb': {'n_estimators': 126, 'num_leaves': 44, 'learning_rate': 0.1336},
+        'cat': {'iterations': 150, 'depth': 6, 'learning_rate': 0.08, 'verbose': False},
+        'et':  {'n_estimators': 100, 'max_depth': 12}
+    }
     
-    best_xgb = {'n_estimators': 125, 'max_depth': 8, 'learning_rate': 0.0935}
-    best_lgb = {'n_estimators': 126, 'num_leaves': 44, 'learning_rate': 0.1336}
-    best_rf = {'n_estimators': 107, 'max_depth': 12}
-    best_gb = {'n_estimators': 173, 'max_depth': 3, 'learning_rate': 0.0383}
+    predictor = HybridRiskPredictor(model_params=model_params)
+    predictor.fit(X_tf, y_binary, y_crs, y_days)
+    ensemble_path = str(BASE_DIR / 'ensemble.joblib')
+    predictor.save(ensemble_path)
     
-    predictor = HybridRiskPredictor()
-    predictor.train_ensemble(X_tf, y_train, xgb_params=best_xgb, lgb_params=best_lgb, rf_params=best_rf, gb_params=best_gb)
-    predictor.save('ensemble.joblib')
-    
-    print("Training Timeline Predictor...")
-    # NonLinearTimelinePredictor expects Actual_Delay_Days and delay_binary_label
-    y_time = df.get('Actual_Delay_Days', df['delay_binary_label'] * 90).replace(0, 365)
+    print("[5/5] Training Non-Linear Timeline Survival Engine (RSF + DeepSurv)...")
+    # Section 11 duration or Actual_Delay_Days
+    durations = df.get('section_11_notification_days', df.get('Actual_Delay_Days', 180)).replace(0, 180).values
     
     timeline = NonLinearTimelinePredictor()
-    timeline.train_survival_model(X_tf, y_time, y_binary)
-    joblib.dump(timeline, 'timeline.joblib')
-    if hasattr(timeline, 'rsf') and timeline.rsf is not None:
-        joblib.dump(timeline.rsf, 'rsf_only.joblib')
+    timeline.fit(X_tf, y_binary, durations)
+    timeline_path = str(BASE_DIR / 'timeline.joblib')
+    timeline.save(timeline_path)
     
-    print("Done retraining all artifacts!")
+    print("\n[SUCCESS] All models retrained and serialized successfully! Ready for production API.")
 
 if __name__ == '__main__':
     main()

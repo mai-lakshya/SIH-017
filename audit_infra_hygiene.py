@@ -100,8 +100,8 @@ def audit_infra():
         print("  [CLEAN] No hardcoded tokens, secret keys, or credentials found in working tree.")
 
     # Check git log using full history
-    git_secrets = []
-    git_exe = r'C:\Users\26beevlsi049\AppData\Local\Programs\Git\cmd\git.exe' if os.path.exists(r'C:\Users\26beevlsi049\AppData\Local\Programs\Git\cmd\git.exe') else 'git'
+    import shutil
+    git_exe = shutil.which('git') or 'git'
     try:
         import tempfile
         bare_dir = os.path.join(tempfile.gettempdir(), 'sih_bare_scan')

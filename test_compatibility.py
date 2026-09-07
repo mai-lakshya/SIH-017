@@ -68,9 +68,9 @@ def test_sklearn_multi_class_patch_decision_function_fidelity():
     stacker = pred.calibrated_classifier.calibrated_classifiers_[0].estimator
     final_step = stacker.final_estimator_.steps[-1][1] if hasattr(stacker.final_estimator_, 'steps') else stacker.final_estimator_
 
-    # Ground-truth numerical outputs recorded under scikit-learn 1.9.0 training
-    expected_dec_func = np.array([-1.63748238, 7.33138834, 0.86057198, -2.77468232, 0.82530844])
-    expected_proba = np.array([0.16280793, 0.99934576, 0.70278014, 0.05870773, 0.69536201])
+    # Ground-truth numerical outputs recorded under retrained ensemble
+    expected_dec_func = np.array([-3.94555749,  4.829348  , -4.69129259, -3.99841456, -3.44279344])
+    expected_proba = np.array([0.01897348, 0.99207163, 0.00909141, 0.01801423, 0.0309845 ])
 
     # 1. Verify fidelity with patch applied
     _patch_sklearn_multi_class()

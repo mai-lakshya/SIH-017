@@ -124,14 +124,14 @@ class NonLinearTimelinePredictor:
     def __init__(self, random_state=42, rsf_params=None, deepsurv_params=None):
         self.random_state = random_state
         
-        # Configure RSF
-        default_rsf = {'n_estimators': 300, 'min_samples_split': 10, 'max_features': 'sqrt'}
+        # Configure RSF (compact ensemble for standalone portability <50MB)
+        default_rsf = {'n_estimators': 60, 'min_samples_split': 10, 'max_features': 'sqrt'}
         if rsf_params:
             default_rsf.update(rsf_params)
         self.rsf = RandomSurvivalForest(random_state=random_state, n_jobs=-1, **default_rsf)
         
         # Configure DeepSurv
-        default_ds = {'epochs': 200, 'batch_size': 128, 'lr': 1e-3, 'hidden_layers': 2, 'dropout_p': 0.2, 'patience': 20}
+        default_ds = {'epochs': 50, 'batch_size': 128, 'lr': 1e-3, 'hidden_layers': 2, 'dropout_p': 0.2, 'patience': 10}
         if deepsurv_params:
             default_ds.update(deepsurv_params)
         self.deepsurv = DeepSurvModel(**default_ds)
@@ -243,6 +243,7 @@ class NonLinearTimelinePredictor:
         }
 
     def save(self, filepath):
+        filepath = str(filepath)
         joblib.dump(self, filepath, compress=3)
         if hasattr(self, 'rsf') and self.rsf is not None:
             rsf_path = filepath.replace("timeline.joblib", "rsf_only.joblib")

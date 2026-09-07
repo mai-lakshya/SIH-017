@@ -383,15 +383,27 @@ def load_artifacts():
         ensemble_path = 'ensemble.joblib'
         timeline_path = 'timeline.joblib'
 
+        # Check if files are missing or are 130-byte LFS pointer text files
+        needs_retrain = False
+        for p in [pipeline_path, ensemble_path, timeline_path]:
+            if not os.path.exists(p) or os.path.getsize(p) < 1000:
+                logging.warning(f"Artifact {p} is missing or an unresolved LFS pointer! Triggering auto-training...")
+                needs_retrain = True
+                break
+
+        if needs_retrain:
+            import retrain_all
+            retrain_all.main()
+
         system = RiskAnalysisSystem(
             pipeline_path=pipeline_path,
             ensemble_path=ensemble_path,
             timeline_path=timeline_path
         )
         monitor = ModelMonitor()
-        logging.info("RiskAnalysisSystem and Monitor successfully loaded.")
+        logging.info("✅ RiskAnalysisSystem and Monitor successfully loaded and ready.")
     except Exception as e:
-        logging.error(f"Failed to load artifacts: {e}")
+        logging.error(f"Failed to load artifacts: {e}", exc_info=True)
 
 @app.get("/health")
 def health_check():

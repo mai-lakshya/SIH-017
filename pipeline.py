@@ -244,7 +244,7 @@ class SMOTENCDynamicWrapper(BaseEstimator):
     def transform(self, X):
         return X
 
-def get_preprocessing_pipeline(cat_cols=None, log_cols=None, te_cols=None, use_smote=True):
+def get_preprocessing_pipeline(cat_cols=None, log_cols=None, te_cols=None, use_smote=False):
     """
     Constructs the leakage-free preprocessing pipeline.
     """

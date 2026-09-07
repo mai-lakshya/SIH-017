@@ -73,7 +73,7 @@ In Section 7 validation, `DualParadigmExplainer` was benchmarked against the sta
 
 ## 4. Performance Benchmarks & SLA Compliance
 
-> **Evidence & Reproducibility Note:** All figures below were captured programmatically via `benchmark_xai.py` and validated under `test_sections_678.py::test_section_8_latency_benchmark_and_sla`. Raw metrics and telemetry are permanently recorded in [`benchmark_results.json`](file:///c:/Users/usmed/Desktop/V1/benchmark_results.json).
+> **Evidence & Reproducibility Note:** All figures below were captured programmatically via `benchmark_xai.py` and validated under `test_sections_678.py::test_section_8_latency_benchmark_and_sla`. Raw metrics and telemetry are permanently recorded in [`benchmark_results.json`](./benchmark_results.json).
 
 ### Execution Environment Telemetry
 Programmatic system telemetry captured at test runtime:
@@ -189,7 +189,7 @@ Programmatic system telemetry captured at test runtime:
 
 ## 7. Deep Faithfulness Audit & Structural Coverage Gaps
 
-This section evaluates whether the explanations produced by `DualParadigmExplainer` are **genuinely faithful** to the underlying predictive models — whether the features named as "risk drivers" actually move the model's predictions, or are simply plausible labels attached to normalized scores. All metrics below were computed programmatically via [`audit_faithfulness.py`](file:///c:/Users/usmed/Desktop/V1/audit_faithfulness.py) and permanently logged in [`faithfulness_audit_results.json`](file:///c:/Users/usmed/Desktop/V1/faithfulness_audit_results.json).
+This section evaluates whether the explanations produced by `DualParadigmExplainer` are **genuinely faithful** to the underlying predictive models — whether the features named as "risk drivers" actually move the model's predictions, or are simply plausible labels attached to normalized scores. All metrics below were computed programmatically via [`audit_faithfulness.py`](./audit_faithfulness.py) and permanently logged in [`faithfulness_audit_results.json`](./faithfulness_audit_results.json).
 
 ### 7.1 Timeline / Survival Model Explainability (Resolved via Uno's C-Index Permutation)
 
@@ -355,7 +355,7 @@ To verify that the logit additivity holds without mathematical drift, `DualParad
 
 ### 8.3 Post-Fix Empirical Faithfulness Results (N = 50 Projects)
 
-The faithfulness benchmark was executed with the remediated `DualParadigmExplainer` and the smooth logit-space sigmoid calibration (Platt scaling) in `HybridRiskPredictor`. All metrics below were computed programmatically via [`audit_faithfulness.py`](file:///c:/Users/usmed/Desktop/V1/audit_faithfulness.py) and logged in [`faithfulness_audit_results.json`](file:///c:/Users/usmed/Desktop/V1/faithfulness_audit_results.json):
+The faithfulness benchmark was executed with the remediated `DualParadigmExplainer` and the smooth logit-space sigmoid calibration (Platt scaling) in `HybridRiskPredictor`. All metrics below were computed programmatically via [`audit_faithfulness.py`](./audit_faithfulness.py) and logged in [`faithfulness_audit_results.json`](./faithfulness_audit_results.json):
 
 | Metric | Pre-Fix Value (Unweighted / Isotonic) | Post-Fix Value (Sigmoid / Platt Calibrated) | Benchmark Target | Finding / Status |
 | :--- | :---: | :---: | :---: | :--- |
@@ -455,7 +455,7 @@ Measured model responsiveness decreases monotonically: $\text{Rank 1 } (0.1161) 
 
 ## 11. Part C: Timeline Permutation Explainer (Local Mode) Empirical Faithfulness
 
-The `TimelinePermutationExplainer` local attribution mode (`explain(row, top_k=3, mode="local")`) was subjected to deletion/insertion testing across $50$ test instances ($150$ deletion trials) using [`audit_timeline_faithfulness.py`](file:///c:/Users/26beevlsi049/Desktop/V1/SIh-main/audit_timeline_faithfulness.py):
+The `TimelinePermutationExplainer` local attribution mode (`explain(row, top_k=3, mode="local")`) was subjected to deletion/insertion testing across $50$ test instances ($150$ deletion trials) using [`audit_timeline_faithfulness.py`](./audit_timeline_faithfulness.py):
 
 | Metric | Measured Value | Benchmark Target | Status |
 | :--- | :---: | :---: | :---: |
@@ -476,7 +476,7 @@ Unlike the classification ensemble, the Random Survival Forest exhibits no step-
 ## 12. Part D: Cross-Model Delay-Days Consistency & Authoritative Architectural Contracts
 
 ### 12.1 Cross-Model Delay Comparison ($N = 100$ Projects)
-Cross-model comparison was executed via [`audit_delay_days_consistency.py`](file:///c:/Users/26beevlsi049/Desktop/V1/SIh-main/audit_delay_days_consistency.py) comparing `HybridRiskPredictor.predict()['predicted_delay_days']` against `NonLinearTimelinePredictor.predict_time_to_delay()`:
+Cross-model comparison was executed via [`audit_delay_days_consistency.py`](./audit_delay_days_consistency.py) comparing `HybridRiskPredictor.predict()['predicted_delay_days']` against `NonLinearTimelinePredictor.predict_time_to_delay()`:
 
 | Metric | Hybrid Stacking Regressor | Timeline Survival (RSF) | Disagreement / Correlation |
 | :--- | :---: | :---: | :---: |
@@ -511,7 +511,7 @@ All reported delay savings and cost savings correspond directly to the underlyin
 
 ## 13. Part E: Comprehensive Security & Integrity Audit of `ai_advisor.py`
 
-An exhaustive first-time security and integrity audit of `ai_advisor.py` was executed via [`audit_ai_advisor.py`](file:///c:/Users/26beevlsi049/Desktop/V1/SIh-main/audit_ai_advisor.py):
+An exhaustive first-time security and integrity audit of `ai_advisor.py` was executed via [`audit_ai_advisor.py`](./audit_ai_advisor.py):
 
 ### 13.1 Adversarial Injection Defense Suite (14 Vectors)
 Tested against 14 adversarial attack vectors spanning direct injection, indirect context injection, and zero-width character obfuscation:
