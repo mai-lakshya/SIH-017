@@ -1058,6 +1058,20 @@
             <p style="font-size: 12px; color: var(--color-ash);" id="stats-total">Loading project telemetry...</p>
           </div>
 
+          <!-- Saved Analyses Window Trigger Button -->
+          <div style="margin-bottom: 16px;">
+            <button type="button" class="btn-apple-secondary" onclick="openSavedAnalysesModal()" style="width: 100%; display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; border-radius: var(--radius-cards); font-size: 13px; font-weight: 600; border: 1.5px solid rgba(0, 113, 227, 0.28); background: #ffffff; color: var(--color-carbon); box-shadow: 0 1px 4px rgba(0,0,0,0.04); cursor: pointer; transition: all 0.2s ease;" onmouseover="this.style.borderColor='var(--color-apple-blue)'; this.style.background='var(--color-frost)';" onmouseout="this.style.borderColor='rgba(0, 113, 227, 0.28)'; this.style.background='#ffffff';" title="Open Saved Analyses window">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="color: var(--color-apple-blue); font-size: 15px;">♦</span>
+                <span>Your Saved Analyses</span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 6px;">
+                <span id="saved-analyses-badge" style="font-size: 11px; font-weight: 700; background: var(--color-apple-blue); color: #ffffff; border-radius: 980px; padding: 2px 8px;">0</span>
+                <span style="font-size: 13px; color: var(--color-ash);">&rarr;</span>
+              </div>
+            </button>
+          </div>
+
           <!-- Search Box -->
           <div class="form-group">
             <label class="form-label" for="search-input">Search Project or District</label>
@@ -1156,6 +1170,11 @@
           <!-- Floating Legend -->
           <div class="map-overlay-card" id="map-legend">
             <div style="font-weight: 600; margin-bottom: 6px; color: var(--color-carbon);" id="legend-title">Risk Legend</div>
+            <!-- Marker Distinction Key (Task 4) -->
+            <div id="legend-distinction" style="font-size: 11px; color: var(--color-carbon); margin-bottom: 8px; display: flex; gap: 12px; align-items: center; border-bottom: 1px solid var(--color-border-subtle); padding-bottom: 6px;">
+              <span style="display: flex; align-items: center; gap: 4px;"><span style="font-size: 12px; color: #64748b;">●</span> Reference Dataset</span>
+              <span style="display: flex; align-items: center; gap: 4px;"><span style="font-size: 12px; color: var(--color-apple-blue);">♦</span> Your Saved Analyses</span>
+            </div>
             <!-- Marker Legend -->
             <div id="legend-markers" style="display: flex; gap: 14px; align-items: center;">
               <span style="display: flex; align-items: center; gap: 5px;"><span style="width: 10px; height: 10px; border-radius: 50%; background: #10b981; display: inline-block;"></span> Low (&le;25)</span>
@@ -1231,21 +1250,57 @@
 
             <div class="grid-3">
               <div class="form-group">
-                <label class="form-label">State</label>
-                <select id="inp-state" class="form-select" onchange="updateDistrictsForState(this.value)">
-                  <option value="Maharashtra">Maharashtra</option>
-                  <option value="Uttar Pradesh">Uttar Pradesh</option>
-                  <option value="Karnataka">Karnataka</option>
-                  <option value="Tamil Nadu">Tamil Nadu</option>
-                  <option value="Rajasthan" selected>Rajasthan</option>
-                  <option value="West Bengal">West Bengal</option>
-                  <option value="Gujarat">Gujarat</option>
+                <label class="form-label" for="inp-state">State / UT (36)</label>
+                <select id="inp-state" class="form-select" onchange="handlePredictorStateChange(this.value)">
+                  <option value="">Select State / UT...</option>
+                  <option value="Andaman and Nicobar Islands">Andaman and Nicobar Islands</option>
+                  <option value="Andhra Pradesh">Andhra Pradesh</option>
+                  <option value="Arunachal Pradesh">Arunachal Pradesh</option>
+                  <option value="Assam">Assam</option>
+                  <option value="Bihar">Bihar</option>
+                  <option value="Chandigarh">Chandigarh</option>
                   <option value="Chhattisgarh">Chhattisgarh</option>
+                  <option value="Dadra and Nagar Haveli and Daman and Diu">Dadra and Nagar Haveli and Daman and Diu</option>
+                  <option value="Delhi">Delhi</option>
+                  <option value="Goa">Goa</option>
+                  <option value="Gujarat">Gujarat</option>
+                  <option value="Haryana">Haryana</option>
+                  <option value="Himachal Pradesh">Himachal Pradesh</option>
+                  <option value="Jammu and Kashmir">Jammu and Kashmir</option>
+                  <option value="Jharkhand">Jharkhand</option>
+                  <option value="Karnataka">Karnataka</option>
+                  <option value="Kerala">Kerala</option>
+                  <option value="Ladakh">Ladakh</option>
+                  <option value="Lakshadweep">Lakshadweep</option>
+                  <option value="Madhya Pradesh">Madhya Pradesh</option>
+                  <option value="Maharashtra">Maharashtra</option>
+                  <option value="Manipur">Manipur</option>
+                  <option value="Meghalaya">Meghalaya</option>
+                  <option value="Mizoram">Mizoram</option>
+                  <option value="Nagaland">Nagaland</option>
+                  <option value="Odisha">Odisha</option>
+                  <option value="Puducherry">Puducherry</option>
+                  <option value="Punjab">Punjab</option>
+                  <option value="Rajasthan" selected>Rajasthan</option>
+                  <option value="Sikkim">Sikkim</option>
+                  <option value="Tamil Nadu">Tamil Nadu</option>
+                  <option value="Telangana">Telangana</option>
+                  <option value="Tripura">Tripura</option>
+                  <option value="Uttar Pradesh">Uttar Pradesh</option>
+                  <option value="Uttarakhand">Uttarakhand</option>
+                  <option value="West Bengal">West Bengal</option>
                 </select>
               </div>
-              <div class="form-group">
-                <label class="form-label">District</label>
-                <input type="text" id="inp-district" class="form-input" value="Banswara" />
+              <div class="form-group" id="district-input-container">
+                <label class="form-label" for="inp-district">District</label>
+                <div id="district-field-wrapper">
+                  <select id="inp-district" class="form-select">
+                    <option value="Banswara" selected>Banswara</option>
+                  </select>
+                </div>
+                <div id="district-fallback-note" style="display: none; font-size: 11px; color: #b45309; margin-top: 4px; line-height: 1.3;">
+                  No district data on file for this state — please enter manually.
+                </div>
               </div>
               <div class="form-group">
                 <label class="form-label">Terrain Type</label>
@@ -1363,7 +1418,12 @@
               <h3 class="card-title-clean">Dual-Paradigm Prediction</h3>
               <p class="card-subtitle-clean">Meta-Learner Probability & Random Survival Forest Timeline</p>
             </div>
-            <span id="output-badge-tier" class="badge-tier badge-tier-High">High Risk</span>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <button id="btn-save-analysis" type="button" class="btn-apple-secondary" onclick="openSaveAnalysisModal()" style="display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; padding: 5px 12px; border-radius: 980px; cursor: pointer; border: 1px solid var(--color-border-subtle); background: var(--color-frost); color: var(--color-carbon); transition: all 0.2s;" title="Save this analysis to persistent memory and pin to National GIS Map">
+                <span>💾</span> Save This Analysis
+              </button>
+              <span id="output-badge-tier" class="badge-tier badge-tier-High">High Risk</span>
+            </div>
           </div>
 
           <!-- Top Metrics Grid -->
@@ -1800,6 +1860,9 @@
         <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" style="color: #ea4335;"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
         <span>Explore Corridor in Google Street View &rarr;</span>
       </a>
+    </div>
+  </div>
+
   <!-- Integrated Street View Modal -->
   <div id="street-view-modal" class="street-view-modal-backdrop" style="display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.65); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); z-index: 2500; align-items: center; justify-content: center; padding: 20px;">
     <div style="background: #ffffff; width: 100%; max-width: 860px; border-radius: 16px; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); display: flex; flex-direction: column; max-height: 90vh;">
@@ -1846,6 +1909,86 @@
     </div>
   </div>
 
+  <!-- Save Analysis Modal (Task 3) -->
+  <div id="save-analysis-modal" class="street-view-modal-backdrop" onclick="if (event.target === this) closeSaveAnalysisModal()" style="display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.65); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); z-index: 2500; align-items: center; justify-content: center; padding: 20px;">
+    <div style="background: #ffffff; width: 100%; max-width: 480px; border-radius: 16px; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); display: flex; flex-direction: column;">
+      <div style="padding: 16px 20px; border-bottom: 1px solid var(--color-border); display: flex; justify-content: space-between; align-items: center; background: var(--color-frost);">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span style="font-size: 16px;">💾</span>
+          <h3 style="font-size: 15px; font-weight: 600; color: var(--color-carbon); margin: 0;">Save Risk Analysis</h3>
+        </div>
+        <button onclick="closeSaveAnalysisModal()" style="width: 28px; height: 28px; border-radius: 50%; border: none; background: rgba(0,0,0,0.06); cursor: pointer; font-size: 16px; color: var(--color-smoke); display: flex; align-items: center; justify-content: center;" title="Close">&times;</button>
+      </div>
+      <div style="padding: 20px;">
+        <p style="font-size: 12px; color: var(--color-ash); margin: 0 0 16px 0; line-height: 1.4;">
+          Save this analysis to persistent memory. It will be stored in your portfolio and pinned as a distinct diamond marker (<strong style="color: var(--color-apple-blue);">♦</strong>) on the National GIS Map alongside reference corridors.
+        </p>
+        <div class="form-group" style="margin-bottom: 14px;">
+          <label class="form-label" for="save-project-name-input">Project Name <span style="color: #ef4444;">*</span></label>
+          <input type="text" id="save-project-name-input" class="form-input" style="width: 100%; font-size: 13px;" placeholder="e.g. Highway - Rajasthan, Banswara" required />
+        </div>
+        <div style="background: var(--color-ice); border: 1px solid var(--color-border-subtle); border-radius: var(--radius-cards); padding: 10px 12px; font-size: 12px; color: var(--color-smoke); display: flex; justify-content: space-between; align-items: center;">
+          <span id="save-modal-location">Location: Rajasthan, Banswara</span>
+          <span id="save-modal-tier" class="badge-tier badge-tier-High" style="font-size: 10px; padding: 1px 6px;">High Risk</span>
+        </div>
+      </div>
+      <div style="padding: 14px 20px; border-top: 1px solid var(--color-border); display: flex; justify-content: flex-end; gap: 10px; background: var(--color-frost);">
+        <button type="button" onclick="closeSaveAnalysisModal()" class="btn-apple-secondary" style="font-size: 12px; padding: 7px 14px;">Cancel</button>
+        <button type="button" id="btn-confirm-save-analysis" onclick="submitSaveAnalysis()" class="btn-apple-primary" style="font-size: 12px; padding: 7px 16px; display: inline-flex; align-items: center; gap: 6px;">
+          <span>Pin to National GIS Map &rarr;</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dedicated Saved Analyses Management Window (Modal) -->
+  <div id="saved-analyses-window-modal" class="street-view-modal-backdrop" onclick="if (event.target === this) closeSavedAnalysesModal()" style="display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.65); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); z-index: 2500; align-items: center; justify-content: center; padding: 20px;">
+    <div style="background: #ffffff; width: 100%; max-width: 860px; max-height: 88vh; border-radius: 18px; overflow: hidden; box-shadow: 0 25px 60px -12px rgba(0, 0, 0, 0.35); display: flex; flex-direction: column;">
+      
+      <!-- Header -->
+      <div style="padding: 16px 22px; border-bottom: 1px solid var(--color-border); display: flex; justify-content: space-between; align-items: center; background: var(--color-frost);">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <div style="width: 32px; height: 32px; border-radius: 8px; background: rgba(0, 113, 227, 0.1); display: flex; align-items: center; justify-content: center; color: var(--color-apple-blue); font-size: 16px;">♦</div>
+          <div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <h3 style="font-size: 16px; font-weight: 700; color: var(--color-carbon); margin: 0;">Your Saved Analyses</h3>
+              <span id="saved-window-badge" style="font-size: 11px; font-weight: 700; background: var(--color-apple-blue); color: #fff; border-radius: 980px; padding: 1px 8px;">0 Saved</span>
+            </div>
+            <p style="font-size: 12px; color: var(--color-ash); margin: 2px 0 0 0;">Browse, select to focus on map, inspect details, or manage your saved infrastructure analyses.</p>
+          </div>
+        </div>
+        <button onclick="closeSavedAnalysesModal()" style="width: 30px; height: 30px; border-radius: 50%; border: none; background: rgba(0,0,0,0.06); cursor: pointer; font-size: 18px; color: var(--color-smoke); display: flex; align-items: center; justify-content: center; transition: background 0.15s ease;" title="Close">&times;</button>
+      </div>
+
+      <!-- Filter Bar -->
+      <div style="padding: 12px 22px; border-bottom: 1px solid var(--color-border-subtle); background: #ffffff; display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+        <div style="flex: 1; min-width: 220px; position: relative;">
+          <input type="text" id="saved-search-input" oninput="filterSavedAnalysesList()" placeholder="Filter by project name, state, or district..." class="form-input" style="width: 100%; font-size: 12px; padding: 7px 10px;" />
+        </div>
+        <div style="display: flex; gap: 6px; align-items: center;">
+          <button type="button" class="btn-apple-secondary active" id="saved-tier-all" onclick="setSavedTierFilter('ALL')" style="font-size: 11px; padding: 5px 10px; border-radius: 980px;">All Tiers</button>
+          <button type="button" class="btn-apple-secondary" id="saved-tier-high" onclick="setSavedTierFilter('High')" style="font-size: 11px; padding: 5px 10px; border-radius: 980px; color: #ef4444;">High Risk</button>
+          <button type="button" class="btn-apple-secondary" id="saved-tier-med" onclick="setSavedTierFilter('Medium')" style="font-size: 11px; padding: 5px 10px; border-radius: 980px; color: #f59e0b;">Medium Risk</button>
+          <button type="button" class="btn-apple-secondary" id="saved-tier-low" onclick="setSavedTierFilter('Low')" style="font-size: 11px; padding: 5px 10px; border-radius: 980px; color: #10b981;">Low Risk</button>
+        </div>
+      </div>
+
+      <!-- List Container -->
+      <div id="saved-analyses-window-list" style="flex: 1; overflow-y: auto; padding: 16px 22px; display: flex; flex-direction: column; gap: 10px; background: #f8fafc; min-height: 280px; max-height: 55vh;">
+        <!-- Dynamically rendered rows/cards -->
+      </div>
+
+      <!-- Footer -->
+      <div style="padding: 12px 22px; border-top: 1px solid var(--color-border); display: flex; justify-content: space-between; align-items: center; background: var(--color-frost);">
+        <div style="font-size: 12px; color: var(--color-ash);">
+          <span id="saved-window-status-text">Showing all saved analyses</span> &bull; Plotted as <strong style="color: var(--color-apple-blue);">♦</strong> diamond markers on National GIS Map
+        </div>
+        <button type="button" onclick="closeSavedAnalysesModal()" class="btn-apple-secondary" style="font-size: 12px; padding: 7px 18px; border-radius: 980px;">Close</button>
+      </div>
+
+    </div>
+  </div>
+
   <!-- Notification Toast -->
   <div id="apple-toast" class="apple-toast">
     <span id="toast-message">Action completed successfully.</span>
@@ -1858,6 +2001,11 @@
     // --- Global Application State ---
     let allProjects = [];
     window.allProjects = allProjects;
+    let savedAnalyses = [];
+    window.savedAnalyses = savedAnalyses;
+    let savedAnalysesMarkersLayer = null;
+    let savedAnalysesPanelOpen = true;
+    let lastPredictorPayload = null;
     let selectedProject = null;
     let map = null;
     let markersLayer = null;
@@ -2065,6 +2213,10 @@
         markersLayer = L.layerGroup().addTo(map);
       }
       window.markersLayer = markersLayer;
+
+      // Dedicated layer for user-saved analyses (diamond markers)
+      savedAnalysesMarkersLayer = L.layerGroup().addTo(map);
+      window.savedAnalysesMarkersLayer = savedAnalysesMarkersLayer;
 
       // Custom Zoom & Reset Controls
       document.getElementById('zoom-in').addEventListener('click', () => map.zoomIn());
@@ -2699,6 +2851,7 @@
 
         populateFilterDropdowns(allProjects);
         renderMarkers(allProjects);
+        loadSavedAnalyses(); // Load user-saved persistent analyses alongside reference markers
         updateStatsCounters(allProjects);
         if (overlay) overlay.style.display = 'none';
 
@@ -2927,8 +3080,7 @@
 
       document.getElementById('inp-project-id').value = selectedProject.project_id || 'NHAI-PROJECT';
       document.getElementById('inp-project-type').value = selectedProject.project_type || 'Highway';
-      document.getElementById('inp-state').value = selectedProject.state || 'Maharashtra';
-      document.getElementById('inp-district').value = selectedProject.district || 'Pune';
+      setPredictorStateAndDistrict(selectedProject.state || 'Maharashtra', selectedProject.district || 'Pune');
       document.getElementById('inp-cost').value = selectedProject.estimated_cost_inr_crore || 1200;
       document.getElementById('inp-land-area').value = selectedProject.land_area_hectares || 150;
 
@@ -3019,13 +3171,93 @@
       }
     }
 
+    // --- State-to-Districts Cascading Logic ---
+    let referenceDistrictsMap = {};
+    window.referenceDistrictsMap = referenceDistrictsMap;
+
+    async function loadReferenceDistricts() {
+      try {
+        const res = await fetch('/reference/districts');
+        if (res.ok) {
+          referenceDistrictsMap = await res.json();
+          window.referenceDistrictsMap = referenceDistrictsMap;
+        }
+      } catch (err) {
+        console.warn('[Predictor] Could not load reference districts mapping:', err);
+      }
+      const curState = document.getElementById('inp-state')?.value || 'Rajasthan';
+      const curDistrict = 'Banswara';
+      populateDistrictField(curState, curDistrict);
+    }
+
+    function handlePredictorStateChange(state) {
+      // Clear district selection when state is changed
+      populateDistrictField(state, '');
+    }
+
+    function setPredictorStateAndDistrict(state, district) {
+      const stateEl = document.getElementById('inp-state');
+      if (stateEl && state) {
+        stateEl.value = state;
+      }
+      populateDistrictField(state, district || '');
+    }
+
+    function populateDistrictField(state, preselectedDistrict) {
+      const wrapper = document.getElementById('district-field-wrapper');
+      const fallbackNote = document.getElementById('district-fallback-note');
+      if (!wrapper) return;
+
+      const cleanState = (state || '').trim();
+      const districts = (cleanState && referenceDistrictsMap[cleanState]) ? referenceDistrictsMap[cleanState] : [];
+
+      if (!cleanState) {
+        wrapper.innerHTML = `
+          <select id="inp-district" class="form-select" disabled>
+            <option value="" selected>Select State First...</option>
+          </select>
+        `;
+        if (fallbackNote) fallbackNote.style.display = 'none';
+        return;
+      }
+
+      if (districts && districts.length > 0) {
+        const hasMatch = preselectedDistrict && districts.some(d => d.toLowerCase() === preselectedDistrict.toLowerCase());
+        const optionsHtml = districts.map(d => {
+          const isSel = preselectedDistrict && (d.toLowerCase() === preselectedDistrict.toLowerCase());
+          return `<option value="${escapeHtml(d)}"${isSel ? ' selected' : ''}>${escapeHtml(d)}</option>`;
+        }).join('');
+
+        wrapper.innerHTML = `
+          <select id="inp-district" class="form-select">
+            <option value="" disabled${!hasMatch ? ' selected' : ''}>Select District (${districts.length})...</option>
+            ${optionsHtml}
+          </select>
+        `;
+        if (fallbackNote) fallbackNote.style.display = 'none';
+
+        if (preselectedDistrict && hasMatch) {
+          const selectEl = document.getElementById('inp-district');
+          if (selectEl) {
+            const found = Array.from(selectEl.options).find(o => o.value.toLowerCase() === preselectedDistrict.toLowerCase());
+            if (found) selectEl.value = found.value;
+          }
+        }
+      } else {
+        // Fallback to manual text input with required note
+        wrapper.innerHTML = `
+          <input type="text" id="inp-district" class="form-input" placeholder="e.g. District name..." value="${escapeHtml(preselectedDistrict || '')}" />
+        `;
+        if (fallbackNote) fallbackNote.style.display = 'block';
+      }
+    }
+
     function loadPresetScenario(presetKey) {
       if (!SCENARIO_PRESETS[presetKey]) return;
       const p = SCENARIO_PRESETS[presetKey];
       document.getElementById('inp-project-id').value = p.id;
       document.getElementById('inp-project-type').value = p.type;
-      document.getElementById('inp-state').value = p.state;
-      document.getElementById('inp-district').value = p.district;
+      setPredictorStateAndDistrict(p.state, p.district);
       document.getElementById('inp-terrain').value = p.terrain;
       document.getElementById('inp-cost').value = p.cost;
       document.getElementById('inp-land-area').value = p.land;
@@ -3050,12 +3282,13 @@
       if (btn) btn.innerHTML = 'Calculating...';
 
       const sec11Val = parseInt(document.getElementById('inp-sec11-days')?.value || 30);
+      const districtVal = (document.getElementById('inp-district')?.value || '').trim() || 'Unknown';
 
       const payload = {
         project_id: document.getElementById('inp-project-id').value,
         project_type: document.getElementById('inp-project-type').value,
         state: document.getElementById('inp-state').value,
-        district: document.getElementById('inp-district').value,
+        district: districtVal,
         terrain_type: document.getElementById('inp-terrain').value,
         estimated_cost_inr_crore: parseFloat(document.getElementById('inp-cost').value),
         land_area_hectares: parseFloat(document.getElementById('inp-land-area').value),
@@ -3068,6 +3301,7 @@
         section_11_notification_days: sec11Val,
         local_protest_flag: document.getElementById('inp-protest-flag').checked
       };
+      window.lastPredictorPayload = payload;
 
       try {
         const headers = { ...getAuthHeaders(), 'Content-Type': 'application/json' };
@@ -3550,6 +3784,404 @@
     }
 
     // =========================================================================
+    // TASK 3, 4 & 5: PERSISTENT SAVED ANALYSES ENGINE (Map Markers & Storage)
+    // =========================================================================
+    function createDiamondIcon(color) {
+      return L.divIcon({
+        className: 'custom-diamond-marker',
+        html: `<div style="width: 14px; height: 14px; background-color: ${color}; transform: rotate(45deg); border: 2.5px solid #ffffff; box-shadow: 0 2px 6px rgba(0,0,0,0.45); border-radius: 2px; cursor: pointer; transition: transform 0.15s ease;"></div>`,
+        iconSize: [18, 18],
+        iconAnchor: [9, 9],
+        popupAnchor: [0, -11]
+      });
+    }
+
+    async function loadSavedAnalyses() {
+      try {
+        const headers = getAuthHeaders();
+        const res = await fetch('/analyses', { headers });
+        if (!res.ok) {
+          console.warn('[Saved Analyses] Fetch returned status:', res.status);
+          return;
+        }
+        savedAnalyses = await res.json();
+        if (!Array.isArray(savedAnalyses)) savedAnalyses = [];
+        window.savedAnalyses = savedAnalyses;
+        renderSavedAnalysesMarkers(savedAnalyses);
+        renderSavedAnalysesList(savedAnalyses);
+      } catch (err) {
+        console.warn('[Saved Analyses] Error loading saved analyses:', err);
+      }
+    }
+
+    function renderSavedAnalysesMarkers(analyses) {
+      if (!savedAnalysesMarkersLayer) return;
+      savedAnalysesMarkersLayer.clearLayers();
+
+      const colorMap = {
+        Low: '#10b981',
+        Medium: '#f59e0b',
+        High: '#ef4444'
+      };
+
+      analyses.forEach(a => {
+        if (a.latitude == null || a.longitude == null) return;
+        const color = colorMap[a.risk_tier] || '#f59e0b';
+        const icon = createDiamondIcon(color);
+        const marker = L.marker([a.latitude, a.longitude], {
+          icon: icon,
+          zIndexOffset: 1000
+        });
+        marker.analysisData = a;
+
+        const popupHtml = `
+          <div style="min-width: 250px; font-family: var(--font-family-sans);">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 5px;">
+              <span style="font-size: 10px; font-weight: 700; color: var(--color-apple-blue); text-transform: uppercase; letter-spacing: 0.5px; background: rgba(0,113,227,0.1); padding: 2px 6px; border-radius: 4px;">♦ Your Saved Analysis</span>
+              <span class="badge-tier badge-tier-${a.risk_tier}">${a.risk_tier} Risk</span>
+            </div>
+            <div style="font-weight: 700; font-size: 14px; color: var(--color-carbon); line-height: 1.3; margin-top: 4px;">${escapeHtml(a.project_name)}</div>
+            <div style="font-size: 11px; color: var(--color-ash); margin-top: 2px;">📍 ${escapeHtml(a.district || 'District')}, ${escapeHtml(a.state)} (${escapeHtml(a.project_type || 'Infrastructure')})</div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin: 10px 0 8px 0; background: var(--color-frost); padding: 8px; border-radius: 6px; border: 1px solid var(--color-border-subtle);">
+              <div>
+                <div style="font-size: 10px; color: var(--color-ash);">Delay Probability</div>
+                <strong style="font-size: 13px; color: ${color}; font-family: var(--font-family-mono);">${a.delay_probability}%</strong>
+              </div>
+              <div>
+                <div style="font-size: 10px; color: var(--color-ash);">Predicted Delay</div>
+                <strong style="font-size: 13px; color: var(--color-carbon); font-family: var(--font-family-mono);">${a.predicted_delay_days}d</strong>
+              </div>
+              <div>
+                <div style="font-size: 10px; color: var(--color-ash);">Risk Score (CRS)</div>
+                <strong style="font-size: 13px; color: var(--color-carbon); font-family: var(--font-family-mono);">${a.composite_risk_score}</strong>
+              </div>
+              <div>
+                <div style="font-size: 10px; color: var(--color-ash);">Saved Date</div>
+                <span style="font-size: 11px; color: var(--color-smoke);">${a.created_at ? new Date(a.created_at).toLocaleDateString() : 'Recent'}</span>
+              </div>
+            </div>
+
+            <div style="display: flex; gap: 6px; margin-top: 6px;">
+              <button onclick="zoomToSavedAnalysis('${a.id}')" class="btn-apple-primary" style="flex: 1; font-size: 11px; padding: 6px 10px;">
+                Focus &rarr;
+              </button>
+              <button onclick="deleteAnalysis('${a.id}', event)" class="btn-apple-secondary" style="font-size: 11px; padding: 6px 10px; color: #ef4444; border-color: rgba(239,68,68,0.3); background: #fef2f2;" title="Delete this saved analysis">
+                🗑️ Delete
+              </button>
+            </div>
+          </div>
+        `;
+
+        marker.bindPopup(popupHtml, { autoPan: true, closeButton: true });
+        marker.on('click', () => {
+          marker.openPopup();
+        });
+
+        savedAnalysesMarkersLayer.addLayer(marker);
+      });
+    }
+
+    let currentSavedTierFilter = 'ALL';
+
+    function openSavedAnalysesModal() {
+      const modal = document.getElementById('saved-analyses-window-modal');
+      if (!modal) return;
+      modal.style.display = 'flex';
+      filterSavedAnalysesList();
+    }
+
+    function closeSavedAnalysesModal() {
+      const modal = document.getElementById('saved-analyses-window-modal');
+      if (modal) {
+        modal.style.display = 'none';
+      }
+    }
+
+    function setSavedTierFilter(tier) {
+      currentSavedTierFilter = tier;
+      ['all', 'high', 'med', 'low'].forEach(t => {
+        const btn = document.getElementById(`saved-tier-${t}`);
+        if (btn) btn.classList.remove('active');
+      });
+      const activeBtn = document.getElementById(`saved-tier-${tier.toLowerCase()}`);
+      if (activeBtn) activeBtn.classList.add('active');
+      filterSavedAnalysesList();
+    }
+
+    function filterSavedAnalysesList() {
+      const q = (document.getElementById('saved-search-input')?.value || '').trim().toLowerCase();
+      let list = savedAnalyses || [];
+      if (currentSavedTierFilter !== 'ALL') {
+        list = list.filter(a => (a.risk_tier || '').toLowerCase() === currentSavedTierFilter.toLowerCase());
+      }
+      if (q) {
+        list = list.filter(a => 
+          (a.project_name || '').toLowerCase().includes(q) ||
+          (a.state || '').toLowerCase().includes(q) ||
+          (a.district || '').toLowerCase().includes(q) ||
+          (a.project_type || '').toLowerCase().includes(q)
+        );
+      }
+      const statusText = document.getElementById('saved-window-status-text');
+      if (statusText) {
+        statusText.textContent = `Showing ${list.length} of ${savedAnalyses.length} saved analyses`;
+      }
+      renderSavedAnalysesWindowList(list);
+    }
+
+    function renderSavedAnalysesWindowList(analyses) {
+      const container = document.getElementById('saved-analyses-window-list');
+      const badge = document.getElementById('saved-window-badge');
+      const sidebarBadge = document.getElementById('saved-analyses-badge');
+      if (badge) badge.textContent = `${savedAnalyses.length} Saved`;
+      if (sidebarBadge) sidebarBadge.textContent = savedAnalyses.length;
+      if (!container) return;
+
+      if (!analyses || analyses.length === 0) {
+        container.innerHTML = `
+          <div style="text-align: center; padding: 45px 20px; color: var(--color-ash); background: #ffffff; border-radius: 12px; border: 1px dashed var(--color-border);">
+            <div style="font-size: 32px; margin-bottom: 8px;">♦</div>
+            <div style="font-size: 15px; font-weight: 600; color: var(--color-carbon); margin-bottom: 4px;">No saved analyses found</div>
+            <p style="font-size: 12px; margin: 0 0 16px 0;">Run a risk assessment in the <strong>Risk Predictor</strong> and click &ldquo;Save This Analysis&rdquo; to save it to your portfolio.</p>
+            <button onclick="closeSavedAnalysesModal(); switchMainTab('predictor');" class="btn-apple-primary" style="font-size: 12px; padding: 8px 16px;">
+              Go to Risk Predictor &rarr;
+            </button>
+          </div>
+        `;
+        return;
+      }
+
+      const colorMap = { Low: '#10b981', Medium: '#f59e0b', High: '#ef4444' };
+
+      container.innerHTML = analyses.map(a => {
+        const color = colorMap[a.risk_tier] || '#f59e0b';
+        const dateStr = a.created_at ? new Date(a.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Recent';
+        return `
+          <div class="saved-analysis-window-card" style="background: #ffffff; border: 1px solid var(--color-border-subtle); border-radius: 12px; padding: 14px 18px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); transition: all 0.2s ease; display: flex; flex-direction: column; gap: 10px;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap;">
+              <div>
+                <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                  <span style="display: inline-flex; width: 10px; height: 10px; background: ${color}; transform: rotate(45deg); border-radius: 1.5px;"></span>
+                  <h4 style="font-size: 15px; font-weight: 700; color: var(--color-carbon); margin: 0;">${escapeHtml(a.project_name)}</h4>
+                  <span class="badge-tier badge-tier-${a.risk_tier}" style="font-size: 10px; padding: 2px 7px;">${a.risk_tier} Risk</span>
+                  <span style="font-size: 11px; font-family: var(--font-family-mono); background: var(--color-frost); color: var(--color-ash); padding: 1px 6px; border-radius: 4px;">${escapeHtml(a.project_type || 'Infrastructure')}</span>
+                </div>
+                <div style="font-size: 12px; color: var(--color-ash); margin-top: 4px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                  <span>📍 <strong>${escapeHtml(a.district || 'District')}</strong>, ${escapeHtml(a.state)}</span>
+                  <span>&bull;</span>
+                  <span>Coordinates: <span style="font-family: var(--font-family-mono);">${a.latitude}, ${a.longitude}</span></span>
+                  <span>&bull;</span>
+                  <span>Saved ${dateStr}</span>
+                </div>
+              </div>
+              <div style="display: flex; gap: 8px; align-items: center; flex-shrink: 0;">
+                <button onclick="selectSavedAnalysisFromModal('${a.id}')" class="btn-apple-primary" style="font-size: 12px; padding: 7px 14px; display: inline-flex; align-items: center; gap: 5px;" title="Select and focus on map">
+                  <span>Select &amp; Focus Map &rarr;</span>
+                </button>
+                <button onclick="deleteAnalysis('${a.id}', event)" class="btn-apple-secondary" style="font-size: 12px; padding: 7px 12px; color: #ef4444; border-color: rgba(239,68,68,0.25); background: #fef2f2;" title="Delete this saved analysis">
+                  🗑️ Delete
+                </button>
+              </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px; background: var(--color-frost); padding: 10px 14px; border-radius: 8px; border: 1px solid var(--color-border-subtle);">
+              <div>
+                <div style="font-size: 10px; color: var(--color-ash); text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px;">Delay Probability</div>
+                <div style="font-size: 14px; font-weight: 700; color: ${color}; font-family: var(--font-family-mono);">${a.delay_probability}%</div>
+              </div>
+              <div>
+                <div style="font-size: 10px; color: var(--color-ash); text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px;">Predicted Delay</div>
+                <div style="font-size: 14px; font-weight: 700; color: var(--color-carbon); font-family: var(--font-family-mono);">${a.predicted_delay_days} Days</div>
+              </div>
+              <div>
+                <div style="font-size: 10px; color: var(--color-ash); text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px;">Composite Risk Score</div>
+                <div style="font-size: 14px; font-weight: 700; color: var(--color-carbon); font-family: var(--font-family-mono);">${a.composite_risk_score} <span style="font-size: 11px; font-weight: 400; color: var(--color-ash);">/ 100</span></div>
+              </div>
+              <div>
+                <div style="font-size: 10px; color: var(--color-ash); text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px;">Map Marker</div>
+                <div style="font-size: 12px; font-weight: 600; color: var(--color-carbon); display: flex; align-items: center; gap: 4px; margin-top: 1px;">
+                  <span style="color: ${color}; font-size: 14px;">♦</span> Solid Diamond
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Compatibility alias
+    function renderSavedAnalysesList(analyses) {
+      const sidebarBadge = document.getElementById('saved-analyses-badge');
+      if (sidebarBadge) sidebarBadge.textContent = analyses.length;
+      filterSavedAnalysesList();
+    }
+
+    function selectSavedAnalysisFromModal(id) {
+      closeSavedAnalysesModal();
+      zoomToSavedAnalysis(id);
+    }
+
+    function zoomToSavedAnalysis(id) {
+      const item = savedAnalyses.find(a => a.id === id);
+      if (!item || !map) return;
+      switchMainTab('gis');
+      if (item.latitude != null && item.longitude != null) {
+        map.flyTo([item.latitude, item.longitude], 12, { duration: 1.0 });
+        if (savedAnalysesMarkersLayer) {
+          savedAnalysesMarkersLayer.eachLayer(layer => {
+            if (layer.analysisData && layer.analysisData.id === id) {
+              setTimeout(() => layer.openPopup(), 450);
+            }
+          });
+        }
+      }
+    }
+
+    async function deleteAnalysis(id, event) {
+      if (event) {
+        event.stopPropagation();
+      }
+      if (!confirm('Are you sure you want to delete this saved analysis?')) {
+        return;
+      }
+      try {
+        const headers = getAuthHeaders();
+        const res = await fetch(`/analyses/${encodeURIComponent(id)}`, {
+          method: 'DELETE',
+          headers
+        });
+        if (!res.ok && res.status !== 404) {
+          throw new Error(`HTTP ${res.status}`);
+        }
+        showToast('Saved analysis deleted.');
+        savedAnalyses = savedAnalyses.filter(a => a.id !== id);
+        window.savedAnalyses = savedAnalyses;
+        renderSavedAnalysesMarkers(savedAnalyses);
+        renderSavedAnalysesList(savedAnalyses);
+        if (map) map.closePopup();
+      } catch (err) {
+        console.error('Delete failed:', err);
+        showToast('Failed to delete analysis.');
+      }
+    }
+
+    function openSaveAnalysisModal() {
+      const pType = document.getElementById('inp-project-type')?.value || 'Highway';
+      const state = document.getElementById('inp-state')?.value || 'Rajasthan';
+      const district = document.getElementById('inp-district')?.value || 'Banswara';
+
+      // Default prefilled project name: "{ProjectType} - {State}, {District}"
+      const defaultName = `${pType} - ${state}, ${district}`;
+      const inputEl = document.getElementById('save-project-name-input');
+      if (inputEl) {
+        inputEl.value = defaultName;
+      }
+
+      const locEl = document.getElementById('save-modal-location');
+      if (locEl) {
+        locEl.textContent = `Location: ${state}, ${district}`;
+      }
+
+      const tierEl = document.getElementById('save-modal-tier');
+      if (tierEl && window.currentPredictionData && window.currentPredictionData.predictions) {
+        const tier = window.currentPredictionData.predictions.calibrated_risk_tier || 'Medium';
+        tierEl.className = `badge-tier badge-tier-${tier}`;
+        tierEl.textContent = `${tier} Risk`;
+      }
+
+      const modal = document.getElementById('save-analysis-modal');
+      if (modal) {
+        modal.style.display = 'flex';
+        if (inputEl) {
+          setTimeout(() => inputEl.focus(), 50);
+        }
+      }
+    }
+
+    function closeSaveAnalysisModal() {
+      const modal = document.getElementById('save-analysis-modal');
+      if (modal) {
+        modal.style.display = 'none';
+      }
+    }
+
+    async function submitSaveAnalysis() {
+      const inputEl = document.getElementById('save-project-name-input');
+      const projName = (inputEl ? inputEl.value : '').trim();
+      if (!projName) {
+        alert('Please enter a project name.');
+        if (inputEl) inputEl.focus();
+        return;
+      }
+
+      const btn = document.getElementById('btn-confirm-save-analysis');
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = 'Saving...';
+      }
+
+      // Collect current form input payload
+      const sec11Val = parseInt(document.getElementById('inp-sec11-days')?.value || 30);
+      const state = document.getElementById('inp-state')?.value || 'Rajasthan';
+      const district = (document.getElementById('inp-district')?.value || '').trim() || 'Banswara';
+      const payload = window.lastPredictorPayload || {
+        project_id: document.getElementById('inp-project-id')?.value || 'NHAI-CUSTOM',
+        project_type: document.getElementById('inp-project-type')?.value || 'Highway',
+        state: state,
+        district: district,
+        terrain_type: document.getElementById('inp-terrain')?.value || 'Plain',
+        estimated_cost_inr_crore: parseFloat(document.getElementById('inp-cost')?.value || 100),
+        land_area_hectares: parseFloat(document.getElementById('inp-land-area')?.value || 50),
+        sia_approval_status: document.getElementById('inp-sia-status')?.value || 'Pending',
+        forest_clearance_status: document.getElementById('inp-forest-status')?.value || 'Not_Required',
+        fund_disbursement_percent: parseFloat(document.getElementById('inp-fund-pct')?.value || 10),
+        affected_families_count: parseInt(document.getElementById('inp-affected-families')?.value || 200),
+        title_dispute_rate_percent: parseFloat(document.getElementById('inp-dispute-rate')?.value || 5),
+        compensation_multiplier_demand: parseFloat(document.getElementById('inp-comp-mult')?.value || 1.5),
+        section_11_notification_days: sec11Val,
+        local_protest_flag: document.getElementById('inp-protest-flag')?.checked || false
+      };
+
+      try {
+        const headers = { ...getAuthHeaders(), 'Content-Type': 'application/json' };
+        const res = await fetch('/analyses/save', {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({
+            project_name: projName,
+            state: state,
+            district: district,
+            input_payload: payload
+          })
+        });
+
+        if (!res.ok) {
+          const errJson = await res.json().catch(() => ({}));
+          throw new Error(errJson.detail || `HTTP ${res.status}`);
+        }
+
+        const savedRecord = await res.json();
+        closeSaveAnalysisModal();
+        showToast(`Saved as '${projName}'`);
+
+        // Prepend to local savedAnalyses list and update map & sidebar
+        savedAnalyses = [savedRecord, ...savedAnalyses.filter(a => a.id !== savedRecord.id)];
+        window.savedAnalyses = savedAnalyses;
+        renderSavedAnalysesMarkers(savedAnalyses);
+        renderSavedAnalysesList(savedAnalyses);
+      } catch (err) {
+        console.error('Failed to save analysis:', err);
+        showToast(`Failed to save analysis: ${err.message}`);
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = '<span>Pin to National GIS Map &rarr;</span>';
+        }
+      }
+    }
+
+    // =========================================================================
     // INITIALIZATION
     // =========================================================================
     window.addEventListener('DOMContentLoaded', () => {
@@ -3566,8 +4198,19 @@
       }
 
       // Initial prediction setup
+      loadReferenceDistricts();
       loadPresetScenario('highway');
       executePredictRisk();
+
+      // Keyboard shortcuts: Escape dismisses open modals & drawers
+      window.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          closeSavedAnalysesModal();
+          closeSaveAnalysisModal();
+          closeStreetViewModal();
+          closeInspectorDrawer();
+        }
+      });
     });
   </script>
 </body>
