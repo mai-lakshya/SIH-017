@@ -16,6 +16,8 @@ import time
 import datetime
 import threading
 import jwt
+import sqlite3
+import uuid
 from typing import Optional, List, Dict, Any
 from starlette.concurrency import run_in_threadpool
 
@@ -371,6 +373,51 @@ class SimulationPayload(BaseModel):
     baseline: ProjectPayload
     interventions: Dict[str, Any]
 
+class SaveAnalysisRequest(BaseModel):
+    project_name: str
+    state: Optional[str] = None
+    district: Optional[str] = None
+    input_payload: Dict[str, Any]
+
+# --- Phase 10: Persistent Memory Storage (saved_analyses.db) ---
+SAVED_ANALYSES_DB = os.getenv("SAVED_ANALYSES_DB", "saved_analyses.db")
+_SAVED_DB_LOCK = threading.RLock()
+
+def init_saved_analyses_db():
+    with _SAVED_DB_LOCK:
+        conn = sqlite3.connect(SAVED_ANALYSES_DB, timeout=30.0)
+        try:
+            with conn:
+                conn.execute("""
+                    CREATE TABLE IF NOT EXISTS saved_analyses (
+                        id TEXT PRIMARY KEY,
+                        project_name TEXT NOT NULL,
+                        created_by_email TEXT,
+                        state TEXT,
+                        district TEXT,
+                        project_type TEXT,
+                        latitude REAL,
+                        longitude REAL,
+                        input_payload TEXT,
+                        delay_probability REAL,
+                        risk_tier TEXT,
+                        predicted_delay_days INTEGER,
+                        composite_risk_score REAL,
+                        created_at TEXT
+                    )
+                """)
+            logging.info("Initialized persistent saved_analyses table in %s", SAVED_ANALYSES_DB)
+        finally:
+            conn.close()
+
+def get_saved_db_connection():
+    conn = sqlite3.connect(SAVED_ANALYSES_DB, timeout=30.0)
+    conn.row_factory = sqlite3.Row
+    return conn
+
+# Initialize DB on module load as well
+init_saved_analyses_db()
+
 # Global variables
 system: RiskAnalysisSystem = None
 monitor: ModelMonitor = None
@@ -378,6 +425,7 @@ monitor: ModelMonitor = None
 @app.on_event("startup")
 def load_artifacts():
     global system, monitor
+    init_saved_analyses_db()
     try:
         pipeline_path = 'pipeline.joblib'
         ensemble_path = 'ensemble.joblib'
@@ -793,9 +841,7 @@ async def get_ai_advisory(request: Request, req: AIAdvisoryRequest, user: Any = 
     res = await run_in_threadpool(advisor.generate_advisory, req.query, req.context, req.project_metadata)
     return res
 
-@app.post("/predict")
-@limiter.limit("60/minute")
-async def predict_risk(request: Request, payload: ProjectPayload, user: Any = Depends(get_current_user)):
+async def _execute_prediction_pipeline(payload: ProjectPayload) -> dict:
     if not system:
         raise HTTPException(status_code=500, detail="Models not loaded")
 
@@ -991,6 +1037,166 @@ async def predict_risk(request: Request, payload: ProjectPayload, user: Any = De
     except Exception as e:
         logging.error("Inference pipeline failed for project %s: %s", payload.project_id, e, exc_info=True)
         raise HTTPException(status_code=500, detail=f"Prediction failed: {e}")
+
+@app.post("/predict")
+@limiter.limit("60/minute")
+async def predict_risk(request: Request, payload: ProjectPayload, user: Any = Depends(get_current_user)):
+    return await _execute_prediction_pipeline(payload)
+
+# --- Phase 10: Persistent Memory Endpoints ---
+@app.post("/analyses/save")
+@limiter.limit("60/minute")
+async def save_analysis(request: Request, req: SaveAnalysisRequest, user: Any = Depends(get_current_user)):
+    """
+    Saves a completed risk analysis with persistent memory in SQLite.
+    Computes/verifies prediction, derives deterministic coordinates based on UUID seed,
+    and returns the stored record.
+    """
+    if not req.project_name or not req.project_name.strip():
+        raise HTTPException(status_code=400, detail="project_name is required and cannot be empty")
+
+    if not isinstance(req.input_payload, dict):
+        raise HTTPException(status_code=400, detail="input_payload must be a JSON object")
+
+    try:
+        payload_obj = ProjectPayload(**req.input_payload)
+    except Exception as ve:
+        raise HTTPException(status_code=400, detail=f"Invalid input_payload: {ve}")
+
+    frontend_response = await _execute_prediction_pipeline(payload_obj)
+
+    state = (req.state or payload_obj.state or req.input_payload.get('state') or 'Unknown').strip()
+    district = (req.district or payload_obj.district or req.input_payload.get('district') or 'Unknown').strip()
+    project_type = (payload_obj.project_type or req.input_payload.get('project_type') or 'Infrastructure').strip()
+
+    rec_id = str(uuid.uuid4())
+    created_at = datetime.datetime.now(datetime.timezone.utc).isoformat()
+    created_by_email = user.get("email", "unknown@user")
+
+    # Jitter seed derived deterministically from the record UUID
+    jitter_seed = (uuid.UUID(rec_id).int % 30) + 1
+    lat, lon = derive_coordinates({}, rec_id, state, district, intra_index=jitter_seed)
+
+    preds = frontend_response.get('predictions', {})
+    delay_prob = float(preds.get('delay_probability', 0.0))
+    raw_tier = str(preds.get('calibrated_risk_tier', 'Medium'))
+    risk_tier = "High" if raw_tier in ["Critical", "Very_High", "High"] else ("Medium" if raw_tier == "Medium" else "Low")
+    pred_delay_days = int(preds.get('predicted_delay_days', 0))
+    crs = float(preds.get('crs', 0.0))
+
+    input_payload_json = json.dumps(req.input_payload)
+
+    with _SAVED_DB_LOCK:
+        conn = get_saved_db_connection()
+        try:
+            with conn:
+                conn.execute("""
+                    INSERT INTO saved_analyses (
+                        id, project_name, created_by_email, state, district, project_type,
+                        latitude, longitude, input_payload, delay_probability, risk_tier,
+                        predicted_delay_days, composite_risk_score, created_at
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """, (
+                    rec_id, req.project_name.strip(), created_by_email, state, district, project_type,
+                    lat, lon, input_payload_json, delay_prob, risk_tier,
+                    pred_delay_days, crs, created_at
+                ))
+        finally:
+            conn.close()
+
+    return {
+        "id": rec_id,
+        "project_name": req.project_name.strip(),
+        "state": state,
+        "district": district,
+        "project_type": project_type,
+        "latitude": lat,
+        "longitude": lon,
+        "delay_probability": delay_prob,
+        "risk_tier": risk_tier,
+        "predicted_delay_days": pred_delay_days,
+        "composite_risk_score": crs,
+        "created_at": created_at
+    }
+
+@app.get("/analyses")
+@limiter.limit("60/minute")
+async def get_saved_analyses(request: Request, user: Any = Depends(get_current_user)):
+    """
+    Returns all saved analyses created by the authenticated user, ordered most recent first.
+    """
+    user_email = user.get("email", "")
+    with _SAVED_DB_LOCK:
+        conn = get_saved_db_connection()
+        try:
+            cur = conn.execute("""
+                SELECT id, project_name, state, district, project_type,
+                       latitude, longitude, delay_probability, risk_tier,
+                       predicted_delay_days, composite_risk_score, created_at
+                FROM saved_analyses
+                WHERE created_by_email = ?
+                ORDER BY created_at DESC
+            """, (user_email,))
+            rows = cur.fetchall()
+            return [dict(r) for r in rows]
+        finally:
+            conn.close()
+
+@app.get("/analyses/{id}")
+@limiter.limit("60/minute")
+async def get_saved_analysis_detail(request: Request, id: str, user: Any = Depends(get_current_user)):
+    """
+    Returns detail for one saved analysis including parsed input_payload.
+    Rejects with 404 if not found or created by another user.
+    """
+    user_email = user.get("email", "")
+    with _SAVED_DB_LOCK:
+        conn = get_saved_db_connection()
+        try:
+            cur = conn.execute("""
+                SELECT id, project_name, created_by_email, state, district, project_type,
+                       latitude, longitude, input_payload, delay_probability, risk_tier,
+                       predicted_delay_days, composite_risk_score, created_at
+                FROM saved_analyses
+                WHERE id = ?
+            """, (id,))
+            row = cur.fetchone()
+            if not row:
+                raise HTTPException(status_code=404, detail="Analysis not found")
+            row_dict = dict(row)
+            if row_dict.get("created_by_email") != user_email:
+                raise HTTPException(status_code=404, detail="Analysis not found")
+
+            try:
+                row_dict["input_payload"] = json.loads(row_dict["input_payload"])
+            except Exception:
+                pass
+            row_dict.pop("created_by_email", None)
+            return row_dict
+        finally:
+            conn.close()
+
+@app.delete("/analyses/{id}")
+@limiter.limit("60/minute")
+async def delete_saved_analysis(request: Request, id: str, user: Any = Depends(get_current_user)):
+    """
+    Deletes the saved analysis record if owned by the requesting user.
+    Returns 404 otherwise.
+    """
+    user_email = user.get("email", "")
+    with _SAVED_DB_LOCK:
+        conn = get_saved_db_connection()
+        try:
+            with conn:
+                cur = conn.execute("""
+                    DELETE FROM saved_analyses
+                    WHERE id = ? AND created_by_email = ?
+                """, (id, user_email))
+                if cur.rowcount == 0:
+                    raise HTTPException(status_code=404, detail="Analysis not found")
+            return {"status": "deleted", "id": id}
+        finally:
+            conn.close()
 
 @app.get("/projects/geo")
 @limiter.limit("120/minute")
