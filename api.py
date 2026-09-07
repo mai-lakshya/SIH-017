@@ -1198,6 +1198,97 @@ async def delete_saved_analysis(request: Request, id: str, user: Any = Depends(g
         finally:
             conn.close()
 
+# --- State-to-Districts Reference Mapping Cache ---
+_DISTRICTS_MAPPING_CACHE: Optional[Dict[str, List[str]]] = None
+_DISTRICTS_MAPPING_LOCK = threading.Lock()
+
+# Official 75 Districts of Uttar Pradesh
+UP_ALL_75_DISTRICTS = [
+    "Agra", "Aligarh", "Ambedkar Nagar", "Amethi", "Amroha", "Auraiya", "Ayodhya", "Azamgarh",
+    "Baghpat", "Bahraich", "Ballia", "Balrampur", "Banda", "Barabanki", "Bareilly", "Basti",
+    "Bhadohi", "Bijnor", "Budaun", "Bulandshahr", "Chandauli", "Chitrakoot", "Deoria", "Etah",
+    "Etawah", "Farrukhabad", "Fatehpur", "Firozabad", "Gautam Buddha Nagar (Noida)", "Ghaziabad",
+    "Ghazipur", "Gonda", "Gorakhpur", "Hamirpur", "Hapur", "Hardoi", "Hathras", "Jalaun",
+    "Jaunpur", "Jhansi", "Kannauj", "Kanpur Dehat", "Kanpur Nagar", "Kasganj", "Kaushambi",
+    "Kushinagar", "Lakhimpur Kheri", "Lalitpur", "Lucknow", "Maharajganj", "Mahoba", "Mainpuri",
+    "Mathura", "Mau", "Meerut", "Mirzapur", "Moradabad", "Muzaffarnagar", "Pilibhit", "Pratapgarh",
+    "Prayagraj", "Raebareli", "Rampur", "Saharanpur", "Sambhal", "Sant Kabir Nagar", "Shahjahanpur",
+    "Shamli", "Shravasti", "Siddharthnagar", "Sitapur", "Sonbhadra", "Sultanpur", "Unnao", "Varanasi"
+]
+
+def get_state_districts_mapping() -> Dict[str, List[str]]:
+    global _DISTRICTS_MAPPING_CACHE
+    if _DISTRICTS_MAPPING_CACHE is not None:
+        return _DISTRICTS_MAPPING_CACHE
+
+    with _DISTRICTS_MAPPING_LOCK:
+        if _DISTRICTS_MAPPING_CACHE is not None:
+            return _DISTRICTS_MAPPING_CACHE
+
+        csv_path = "indian_infrastructure_projects_dataset.csv"
+        if not os.path.exists(csv_path):
+            if os.path.exists("Revolution-main/indian_infrastructure_projects_dataset.csv"):
+                csv_path = "Revolution-main/indian_infrastructure_projects_dataset.csv"
+
+        mapping: Dict[str, List[str]] = {}
+        if os.path.exists(csv_path):
+            try:
+                # Read the FULL CSV file independently (no row cap, completely separate from /projects/geo)
+                df = pd.read_csv(csv_path, usecols=['state', 'district'])
+                total_rows = len(df)
+                raw_shape = df.shape
+                print(f"[Reference Districts] Reading FULL CSV: {total_rows} rows (shape: {raw_shape}), covering {df['state'].nunique()} unique states.")
+                logging.info(
+                    "[Reference Districts] Successfully read FULL CSV file '%s': %d rows (shape: %s), covering %d states.",
+                    csv_path, total_rows, str(raw_shape), df['state'].nunique()
+                )
+
+                raw_state_counts = {}
+                for state, group in df.groupby('state'):
+                    state_str = str(state).strip()
+                    districts = sorted(list(set([
+                        str(d).strip() for d in group['district'].dropna().unique() 
+                        if str(d).strip() and str(d).strip().lower() not in ['nan', 'none', 'unknown', '']
+                    ])))
+                    mapping[state_str] = districts
+                    raw_state_counts[state_str] = len(districts)
+
+                # Complete official 75 districts for Uttar Pradesh (source CSV contains 25 infrastructure project districts;
+                # augmented with all 75 official districts to provide complete reference dropdown coverage)
+                up_csv_count = len(mapping.get("Uttar Pradesh", []))
+                up_existing = set(mapping.get("Uttar Pradesh", []))
+                up_combined = sorted(list(up_existing.union(set(UP_ALL_75_DISTRICTS))))
+                mapping["Uttar Pradesh"] = up_combined
+
+                print(f"[Reference Districts] Total unique districts per state from CSV (all {len(mapping)} states):")
+                for s_name in sorted(mapping.keys()):
+                    final_cnt = len(mapping[s_name])
+                    raw_cnt = raw_state_counts.get(s_name, 0)
+                    if s_name == "Uttar Pradesh":
+                        print(f"  - {s_name}: {final_cnt} districts (augmented from {raw_cnt} in CSV to full {final_cnt} official districts)")
+                    else:
+                        print(f"  - {s_name}: {final_cnt} districts")
+
+                logging.info(
+                    "[Reference Districts] Mapping initialized for %d states. Uttar Pradesh: %d districts (raw CSV: %d -> full: 75), Rajasthan: %d, West Bengal: %d, Maharashtra: %d. Total CSV rows: %d.",
+                    len(mapping), len(mapping.get("Uttar Pradesh", [])), up_csv_count, len(mapping.get("Rajasthan", [])),
+                    len(mapping.get("West Bengal", [])), len(mapping.get("Maharashtra", [])), total_rows
+                )
+            except Exception as e:
+                print(f"[Reference Districts] ERROR reading districts mapping from {csv_path}: {e}")
+                logging.error("Failed reading districts mapping from %s: %s", csv_path, e)
+
+        _DISTRICTS_MAPPING_CACHE = mapping
+        return _DISTRICTS_MAPPING_CACHE
+
+@app.get("/reference/districts")
+async def get_reference_districts(request: Request):
+    """
+    Returns reference state-to-districts mapping computed once from the infrastructure dataset.
+    """
+    mapping = get_state_districts_mapping()
+    return mapping
+
 @app.get("/projects/geo")
 @limiter.limit("120/minute")
 async def get_projects_geo(

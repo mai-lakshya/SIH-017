@@ -1250,21 +1250,57 @@
 
             <div class="grid-3">
               <div class="form-group">
-                <label class="form-label">State</label>
-                <select id="inp-state" class="form-select" onchange="updateDistrictsForState(this.value)">
-                  <option value="Maharashtra">Maharashtra</option>
-                  <option value="Uttar Pradesh">Uttar Pradesh</option>
-                  <option value="Karnataka">Karnataka</option>
-                  <option value="Tamil Nadu">Tamil Nadu</option>
-                  <option value="Rajasthan" selected>Rajasthan</option>
-                  <option value="West Bengal">West Bengal</option>
-                  <option value="Gujarat">Gujarat</option>
+                <label class="form-label" for="inp-state">State / UT (36)</label>
+                <select id="inp-state" class="form-select" onchange="handlePredictorStateChange(this.value)">
+                  <option value="">Select State / UT...</option>
+                  <option value="Andaman and Nicobar Islands">Andaman and Nicobar Islands</option>
+                  <option value="Andhra Pradesh">Andhra Pradesh</option>
+                  <option value="Arunachal Pradesh">Arunachal Pradesh</option>
+                  <option value="Assam">Assam</option>
+                  <option value="Bihar">Bihar</option>
+                  <option value="Chandigarh">Chandigarh</option>
                   <option value="Chhattisgarh">Chhattisgarh</option>
+                  <option value="Dadra and Nagar Haveli and Daman and Diu">Dadra and Nagar Haveli and Daman and Diu</option>
+                  <option value="Delhi">Delhi</option>
+                  <option value="Goa">Goa</option>
+                  <option value="Gujarat">Gujarat</option>
+                  <option value="Haryana">Haryana</option>
+                  <option value="Himachal Pradesh">Himachal Pradesh</option>
+                  <option value="Jammu and Kashmir">Jammu and Kashmir</option>
+                  <option value="Jharkhand">Jharkhand</option>
+                  <option value="Karnataka">Karnataka</option>
+                  <option value="Kerala">Kerala</option>
+                  <option value="Ladakh">Ladakh</option>
+                  <option value="Lakshadweep">Lakshadweep</option>
+                  <option value="Madhya Pradesh">Madhya Pradesh</option>
+                  <option value="Maharashtra">Maharashtra</option>
+                  <option value="Manipur">Manipur</option>
+                  <option value="Meghalaya">Meghalaya</option>
+                  <option value="Mizoram">Mizoram</option>
+                  <option value="Nagaland">Nagaland</option>
+                  <option value="Odisha">Odisha</option>
+                  <option value="Puducherry">Puducherry</option>
+                  <option value="Punjab">Punjab</option>
+                  <option value="Rajasthan" selected>Rajasthan</option>
+                  <option value="Sikkim">Sikkim</option>
+                  <option value="Tamil Nadu">Tamil Nadu</option>
+                  <option value="Telangana">Telangana</option>
+                  <option value="Tripura">Tripura</option>
+                  <option value="Uttar Pradesh">Uttar Pradesh</option>
+                  <option value="Uttarakhand">Uttarakhand</option>
+                  <option value="West Bengal">West Bengal</option>
                 </select>
               </div>
-              <div class="form-group">
-                <label class="form-label">District</label>
-                <input type="text" id="inp-district" class="form-input" value="Banswara" />
+              <div class="form-group" id="district-input-container">
+                <label class="form-label" for="inp-district">District</label>
+                <div id="district-field-wrapper">
+                  <select id="inp-district" class="form-select">
+                    <option value="Banswara" selected>Banswara</option>
+                  </select>
+                </div>
+                <div id="district-fallback-note" style="display: none; font-size: 11px; color: #b45309; margin-top: 4px; line-height: 1.3;">
+                  No district data on file for this state — please enter manually.
+                </div>
               </div>
               <div class="form-group">
                 <label class="form-label">Terrain Type</label>
@@ -3044,8 +3080,7 @@
 
       document.getElementById('inp-project-id').value = selectedProject.project_id || 'NHAI-PROJECT';
       document.getElementById('inp-project-type').value = selectedProject.project_type || 'Highway';
-      document.getElementById('inp-state').value = selectedProject.state || 'Maharashtra';
-      document.getElementById('inp-district').value = selectedProject.district || 'Pune';
+      setPredictorStateAndDistrict(selectedProject.state || 'Maharashtra', selectedProject.district || 'Pune');
       document.getElementById('inp-cost').value = selectedProject.estimated_cost_inr_crore || 1200;
       document.getElementById('inp-land-area').value = selectedProject.land_area_hectares || 150;
 
@@ -3136,13 +3171,93 @@
       }
     }
 
+    // --- State-to-Districts Cascading Logic ---
+    let referenceDistrictsMap = {};
+    window.referenceDistrictsMap = referenceDistrictsMap;
+
+    async function loadReferenceDistricts() {
+      try {
+        const res = await fetch('/reference/districts');
+        if (res.ok) {
+          referenceDistrictsMap = await res.json();
+          window.referenceDistrictsMap = referenceDistrictsMap;
+        }
+      } catch (err) {
+        console.warn('[Predictor] Could not load reference districts mapping:', err);
+      }
+      const curState = document.getElementById('inp-state')?.value || 'Rajasthan';
+      const curDistrict = 'Banswara';
+      populateDistrictField(curState, curDistrict);
+    }
+
+    function handlePredictorStateChange(state) {
+      // Clear district selection when state is changed
+      populateDistrictField(state, '');
+    }
+
+    function setPredictorStateAndDistrict(state, district) {
+      const stateEl = document.getElementById('inp-state');
+      if (stateEl && state) {
+        stateEl.value = state;
+      }
+      populateDistrictField(state, district || '');
+    }
+
+    function populateDistrictField(state, preselectedDistrict) {
+      const wrapper = document.getElementById('district-field-wrapper');
+      const fallbackNote = document.getElementById('district-fallback-note');
+      if (!wrapper) return;
+
+      const cleanState = (state || '').trim();
+      const districts = (cleanState && referenceDistrictsMap[cleanState]) ? referenceDistrictsMap[cleanState] : [];
+
+      if (!cleanState) {
+        wrapper.innerHTML = `
+          <select id="inp-district" class="form-select" disabled>
+            <option value="" selected>Select State First...</option>
+          </select>
+        `;
+        if (fallbackNote) fallbackNote.style.display = 'none';
+        return;
+      }
+
+      if (districts && districts.length > 0) {
+        const hasMatch = preselectedDistrict && districts.some(d => d.toLowerCase() === preselectedDistrict.toLowerCase());
+        const optionsHtml = districts.map(d => {
+          const isSel = preselectedDistrict && (d.toLowerCase() === preselectedDistrict.toLowerCase());
+          return `<option value="${escapeHtml(d)}"${isSel ? ' selected' : ''}>${escapeHtml(d)}</option>`;
+        }).join('');
+
+        wrapper.innerHTML = `
+          <select id="inp-district" class="form-select">
+            <option value="" disabled${!hasMatch ? ' selected' : ''}>Select District (${districts.length})...</option>
+            ${optionsHtml}
+          </select>
+        `;
+        if (fallbackNote) fallbackNote.style.display = 'none';
+
+        if (preselectedDistrict && hasMatch) {
+          const selectEl = document.getElementById('inp-district');
+          if (selectEl) {
+            const found = Array.from(selectEl.options).find(o => o.value.toLowerCase() === preselectedDistrict.toLowerCase());
+            if (found) selectEl.value = found.value;
+          }
+        }
+      } else {
+        // Fallback to manual text input with required note
+        wrapper.innerHTML = `
+          <input type="text" id="inp-district" class="form-input" placeholder="e.g. District name..." value="${escapeHtml(preselectedDistrict || '')}" />
+        `;
+        if (fallbackNote) fallbackNote.style.display = 'block';
+      }
+    }
+
     function loadPresetScenario(presetKey) {
       if (!SCENARIO_PRESETS[presetKey]) return;
       const p = SCENARIO_PRESETS[presetKey];
       document.getElementById('inp-project-id').value = p.id;
       document.getElementById('inp-project-type').value = p.type;
-      document.getElementById('inp-state').value = p.state;
-      document.getElementById('inp-district').value = p.district;
+      setPredictorStateAndDistrict(p.state, p.district);
       document.getElementById('inp-terrain').value = p.terrain;
       document.getElementById('inp-cost').value = p.cost;
       document.getElementById('inp-land-area').value = p.land;
@@ -3167,12 +3282,13 @@
       if (btn) btn.innerHTML = 'Calculating...';
 
       const sec11Val = parseInt(document.getElementById('inp-sec11-days')?.value || 30);
+      const districtVal = (document.getElementById('inp-district')?.value || '').trim() || 'Unknown';
 
       const payload = {
         project_id: document.getElementById('inp-project-id').value,
         project_type: document.getElementById('inp-project-type').value,
         state: document.getElementById('inp-state').value,
-        district: document.getElementById('inp-district').value,
+        district: districtVal,
         terrain_type: document.getElementById('inp-terrain').value,
         estimated_cost_inr_crore: parseFloat(document.getElementById('inp-cost').value),
         land_area_hectares: parseFloat(document.getElementById('inp-land-area').value),
@@ -4008,7 +4124,7 @@
       // Collect current form input payload
       const sec11Val = parseInt(document.getElementById('inp-sec11-days')?.value || 30);
       const state = document.getElementById('inp-state')?.value || 'Rajasthan';
-      const district = document.getElementById('inp-district')?.value || 'Banswara';
+      const district = (document.getElementById('inp-district')?.value || '').trim() || 'Banswara';
       const payload = window.lastPredictorPayload || {
         project_id: document.getElementById('inp-project-id')?.value || 'NHAI-CUSTOM',
         project_type: document.getElementById('inp-project-type')?.value || 'Highway',
@@ -4082,6 +4198,7 @@
       }
 
       // Initial prediction setup
+      loadReferenceDistricts();
       loadPresetScenario('highway');
       executePredictRisk();
 
