@@ -1162,6 +1162,7 @@
               <div class="form-group">
                 <label class="form-label">Sector / Type</label>
                 <select id="inp-project-type" class="form-select">
+                  <option value="">Select Sector / Type...</option>
                   <option value="Highway" selected>Highway</option>
                   <option value="Railway">Railway</option>
                   <option value="Renewable_Energy">Renewable Energy</option>
@@ -1228,6 +1229,7 @@
               <div class="form-group">
                 <label class="form-label">Terrain Type</label>
                 <select id="inp-terrain" class="form-select">
+                  <option value="">Select Terrain Type...</option>
                   <option value="Urban">Urban</option>
                   <option value="Rural_Agri" selected>Rural Agriculture</option>
                   <option value="Forest_Eco_Sensitive">Forest / Eco Sensitive</option>
@@ -1252,6 +1254,7 @@
               <div class="form-group">
                 <label class="form-label">SIA Approval Status</label>
                 <select id="inp-sia-status" class="form-select">
+                  <option value="">Select SIA Status...</option>
                   <option value="Pending" selected>Pending</option>
                   <option value="Approved">Approved</option>
                   <option value="Exempted">Exempted</option>
@@ -1262,6 +1265,7 @@
               <div class="form-group">
                 <label class="form-label">Forest Clearance</label>
                 <select id="inp-forest-status" class="form-select">
+                  <option value="">Select Forest Clearance...</option>
                   <option value="Not_Required" selected>Not Required</option>
                   <option value="Pending">Stage 1 Pending</option>
                   <option value="Approved">Approved</option>
@@ -2740,14 +2744,19 @@
               </span>
             </div>
 
-            <div style="display: flex; gap: 6px; margin-top: 6px;">
-              <button onclick="openInspectorForProject('${p.project_id}')" class="btn-apple-primary" style="flex: 1; font-size: 11px; padding: 7px 10px;">
-                Inspect &rarr;
+            <div style="margin-top: 8px; display: flex; flex-direction: column; gap: 6px;">
+              <button onclick="inspectProjectInRiskPredictor('${p.project_id}')" class="btn-apple-primary" style="width: 100%; font-size: 11px; padding: 7px 10px; display: flex; align-items: center; justify-content: center; gap: 4px;" title="Inspect in Risk Predictor with State, District, and Terrain pre-filled">
+                <span>Inspect in Risk Predictor &rarr;</span>
               </button>
-              <button onclick="openStreetViewModal('${p.project_id}', event)" data-maps-url="https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${p.latitude},${p.longitude}" class="btn-apple-secondary" style="display: inline-flex; align-items: center; justify-content: center; gap: 5px; font-size: 11px; padding: 7px 12px; border-radius: var(--radius-buttons, 980px); border: 1px solid var(--color-border-subtle); color: var(--color-carbon); background: var(--color-frost); font-weight: 500; cursor: pointer;" title="Open Street Map & Ground View">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" style="color: #ea4335;"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
-                <span>Street View</span>
-              </button>
+              <div style="display: flex; gap: 6px;">
+                <button onclick="openInspectorForProject('${p.project_id}')" class="btn-apple-secondary" style="flex: 1; font-size: 11px; padding: 6px 10px;" title="Open Corridor Details Drawer">
+                  Corridor Drawer &rarr;
+                </button>
+                <button onclick="openStreetViewModal('${p.project_id}', event)" data-maps-url="https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${p.latitude},${p.longitude}" class="btn-apple-secondary" style="display: inline-flex; align-items: center; justify-content: center; gap: 5px; font-size: 11px; padding: 6px 10px; border-radius: var(--radius-buttons, 980px); border: 1px solid var(--color-border-subtle); color: var(--color-carbon); background: var(--color-frost); font-weight: 500; cursor: pointer;" title="Open Street Map & Ground View">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" style="color: #ea4335;"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+                  <span>Street View</span>
+                </button>
+              </div>
             </div>
           </div>
         `;
@@ -2808,14 +2817,19 @@
             ${sec11}/365d (${lapseText})
           </span>
         </div>
-        <div style="display: flex; gap: 6px;">
-          <button onclick="openInspectorForProject('${p.project_id}')" class="btn-apple-primary" style="flex: 1; font-size: 11px; padding: 6px 10px;">
-            View Full Analysis &rarr;
+        <div style="margin-top: 8px; display: flex; flex-direction: column; gap: 6px;">
+          <button onclick="inspectProjectInRiskPredictor('${p.project_id}')" class="btn-apple-primary" style="width: 100%; font-size: 11px; padding: 6px 10px;">
+            Inspect in Risk Predictor &rarr;
           </button>
-          <button onclick="openStreetViewModal('${p.project_id}', event)" data-maps-url="https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${p.latitude},${p.longitude}" class="btn-apple-secondary" style="display: inline-flex; align-items: center; justify-content: center; gap: 4px; font-size: 11px; padding: 6px 10px; border-radius: var(--radius-buttons, 980px); border: 1px solid var(--color-border-subtle); color: var(--color-carbon); background: var(--color-frost); font-weight: 500; cursor: pointer;" title="Open Street Map & Ground View">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" style="color: #ea4335;"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
-            <span>Street View</span>
-          </button>
+          <div style="display: flex; gap: 6px;">
+            <button onclick="openInspectorForProject('${p.project_id}')" class="btn-apple-secondary" style="flex: 1; font-size: 11px; padding: 6px 10px;">
+              View Full Analysis &rarr;
+            </button>
+            <button onclick="openStreetViewModal('${p.project_id}', event)" data-maps-url="https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${p.latitude},${p.longitude}" class="btn-apple-secondary" style="display: inline-flex; align-items: center; justify-content: center; gap: 4px; font-size: 11px; padding: 6px 10px; border-radius: var(--radius-buttons, 980px); border: 1px solid var(--color-border-subtle); color: var(--color-carbon); background: var(--color-frost); font-weight: 500; cursor: pointer;" title="Open Street Map & Ground View">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" style="color: #ea4335;"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+              <span>Street View</span>
+            </button>
+          </div>
         </div>
       `;
     }
@@ -3367,11 +3381,18 @@
     };
 
     function updateSec11LapseBadge(val) {
-      const days = parseInt(val || 0);
       const badge = document.getElementById('lapse-badge-pill');
       const hint = document.getElementById('inp-sec11-hint');
       if (!badge || !hint) return;
 
+      if (val === '' || val === null || val === undefined || isNaN(parseInt(val))) {
+        badge.className = 'badge-tier badge-tier-Low';
+        badge.textContent = 'RFCTLARR Sec 11';
+        hint.textContent = 'Sec 11 Days elapsed under RFCTLARR Act 2013 (12-month statutory limit under Sec 19(7)).';
+        return;
+      }
+
+      const days = parseInt(val);
       if (days > 365) {
         badge.className = 'badge-tier badge-tier-High';
         badge.textContent = 'LAPSED (Sec 19(7))';
@@ -3414,13 +3435,248 @@
 
     function setPredictorStateAndDistrict(state, district) {
       const stateEl = document.getElementById('inp-state');
-      if (stateEl && state) {
-        stateEl.value = state;
+      if (stateEl) {
+        if (state) {
+          const targetState = String(state).trim().toLowerCase();
+          let matchedState = '';
+          for (let i = 0; i < stateEl.options.length; i++) {
+            if (stateEl.options[i].value.toLowerCase() === targetState) {
+              matchedState = stateEl.options[i].value;
+              break;
+            }
+          }
+          stateEl.value = matchedState || state;
+        } else {
+          stateEl.value = '';
+        }
       }
       populateDistrictField(state, district || '');
     }
     window.setPredictorStateAndDistrict = setPredictorStateAndDistrict;
     window.populateDistrictField = populateDistrictField;
+
+    function setPredictorTerrain(terrainValue) {
+      const terrainSelect = document.getElementById('inp-terrain');
+      if (!terrainSelect) return;
+      terrainSelect.value = ''; // default unset
+
+      if (!terrainValue) return;
+
+      const raw = String(terrainValue).trim();
+      const clean = raw.toLowerCase().replace(/[\s\-_/]/g, '');
+
+      // 1. Direct value match (case-insensitive)
+      for (let i = 0; i < terrainSelect.options.length; i++) {
+        const opt = terrainSelect.options[i];
+        if (!opt.value) continue;
+        if (opt.value.toLowerCase() === raw.toLowerCase()) {
+          terrainSelect.value = opt.value;
+          return;
+        }
+      }
+
+      // 2. Normalized clean match against value or text
+      for (let i = 0; i < terrainSelect.options.length; i++) {
+        const opt = terrainSelect.options[i];
+        if (!opt.value) continue;
+        const optValClean = opt.value.toLowerCase().replace(/[\s\-_/]/g, '');
+        const optTextClean = opt.text.toLowerCase().replace(/[\s\-_/]/g, '');
+        if (optValClean === clean || optTextClean === clean) {
+          terrainSelect.value = opt.value;
+          return;
+        }
+      }
+
+      // 3. Common domain synonyms
+      const synonyms = {
+        'rural': 'Rural_Agri',
+        'agriculture': 'Rural_Agri',
+        'agri': 'Rural_Agri',
+        'eco': 'Forest_Eco_Sensitive',
+        'forest': 'Forest_Eco_Sensitive',
+        'ecosensitive': 'Forest_Eco_Sensitive',
+        'hills': 'Hilly',
+        'hill': 'Hilly',
+        'tribal': 'Tribal_Schedule_V',
+        'schedulev': 'Tribal_Schedule_V',
+        'city': 'Urban',
+        'metro': 'Urban'
+      };
+      if (synonyms[clean]) {
+        terrainSelect.value = synonyms[clean];
+        return;
+      }
+
+      // 4. Fallback: leave unset gracefully without throwing error
+      terrainSelect.value = '';
+    }
+    window.setPredictorTerrain = setPredictorTerrain;
+
+    function inspectProjectInRiskPredictor(projectId) {
+      let p = (window.allProjects || []).find(item => item.project_id === projectId);
+      if (!p && window.selectedProject && window.selectedProject.project_id === projectId) {
+        p = window.selectedProject;
+      }
+
+      closeInspectorDrawer();
+      switchMainTab('predictor');
+
+      // Clear every other field in the Risk Predictor form to empty/defaults (Requirement 6)
+      const idInp = document.getElementById('inp-project-id');
+      if (idInp) idInp.value = '';
+
+      const typeSelect = document.getElementById('inp-project-type');
+      if (typeSelect) typeSelect.value = '';
+
+      const costInp = document.getElementById('inp-cost');
+      if (costInp) costInp.value = '';
+
+      const landInp = document.getElementById('inp-land-area');
+      if (landInp) landInp.value = '';
+
+      const siaSelect = document.getElementById('inp-sia-status');
+      if (siaSelect) siaSelect.value = '';
+
+      const forestSelect = document.getElementById('inp-forest-status');
+      if (forestSelect) forestSelect.value = '';
+
+      const fundInp = document.getElementById('inp-fund-pct');
+      if (fundInp) fundInp.value = '';
+
+      const sec11Inp = document.getElementById('inp-sec11-days');
+      if (sec11Inp) sec11Inp.value = '';
+
+      const compInp = document.getElementById('inp-comp-mult');
+      if (compInp) compInp.value = '';
+
+      const famInp = document.getElementById('inp-affected-families');
+      if (famInp) famInp.value = '';
+
+      const dispInp = document.getElementById('inp-dispute-rate');
+      if (dispInp) dispInp.value = '';
+
+      const protestCheck = document.getElementById('inp-protest-flag');
+      if (protestCheck) protestCheck.checked = false;
+
+      const presetSel = document.getElementById('preset-selector');
+      if (presetSel) presetSel.value = 'custom';
+
+      updateSec11LapseBadge('');
+
+      if (!p) {
+        fetch(`/projects/geo/${encodeURIComponent(projectId)}`, { headers: getAuthHeaders() })
+          .then(res => res.json())
+          .then(data => {
+            setPredictorStateAndDistrict(data.state || '', data.district || '');
+            setPredictorTerrain(data.terrain_type);
+            showToast(`Pre-filled ${data.project_name || data.project_id} location in Risk Predictor.`);
+          })
+          .catch(err => console.warn('Could not fetch project details for predictor:', err));
+        return;
+      }
+
+      setPredictorStateAndDistrict(p.state || '', p.district || '');
+      setPredictorTerrain(p.terrain_type);
+
+      document.getElementById('view-predictor')?.scrollIntoView({ behavior: 'smooth' });
+      showToast(`Pre-filled State, District, and Terrain for ${p.project_name || p.project_id}.`);
+    }
+    window.inspectProjectInRiskPredictor = inspectProjectInRiskPredictor;
+
+    async function inspectSavedAnalysisInRiskPredictor(analysisId) {
+      let a = (window.savedAnalyses || []).find(item => String(item.id) === String(analysisId));
+
+      closeSavedAnalysesModal();
+
+      if (!a || !a.input_payload) {
+        try {
+          const res = await fetch(`/analyses/${encodeURIComponent(analysisId)}`, { headers: getAuthHeaders() });
+          if (res.ok) {
+            a = await res.json();
+          }
+        } catch (err) {
+          console.warn('Could not fetch saved analysis detail:', err);
+        }
+      }
+
+      if (!a) {
+        showToast('Saved analysis not found.');
+        return;
+      }
+
+      switchMainTab('predictor');
+
+      const payload = (typeof a.input_payload === 'string' ? JSON.parse(a.input_payload) : a.input_payload) || {};
+
+      const idInp = document.getElementById('inp-project-id');
+      if (idInp) idInp.value = payload.project_id || a.project_name || a.project_id || '';
+
+      const typeSelect = document.getElementById('inp-project-type');
+      const targetType = payload.project_type || a.project_type || '';
+      if (typeSelect && targetType) {
+        let matchedType = '';
+        const cleanType = String(targetType).toLowerCase().replace(/[\s\-_]/g, '');
+        for (let i = 0; i < typeSelect.options.length; i++) {
+          const opt = typeSelect.options[i];
+          if (!opt.value) continue;
+          const optVal = opt.value.toLowerCase().replace(/[\s\-_]/g, '');
+          const optText = opt.text.toLowerCase().replace(/[\s\-_]/g, '');
+          if (optVal === cleanType || optText === cleanType || (optVal && cleanType.includes(optVal)) || (optText && cleanType.includes(optText))) {
+            matchedType = opt.value;
+            break;
+          }
+        }
+        typeSelect.value = matchedType || targetType;
+      }
+
+      const stateVal = payload.state || a.state || '';
+      const distVal = payload.district || a.district || '';
+      setPredictorStateAndDistrict(stateVal, distVal);
+
+      setPredictorTerrain(payload.terrain_type || a.terrain_type);
+
+      const costInp = document.getElementById('inp-cost');
+      if (costInp) costInp.value = payload.estimated_cost_inr_crore != null ? payload.estimated_cost_inr_crore : (a.estimated_cost_inr_crore != null ? a.estimated_cost_inr_crore : '');
+
+      const landInp = document.getElementById('inp-land-area');
+      if (landInp) landInp.value = payload.land_area_hectares != null ? payload.land_area_hectares : (a.land_area_hectares != null ? a.land_area_hectares : '');
+
+      const siaSelect = document.getElementById('inp-sia-status');
+      if (siaSelect && payload.sia_approval_status) siaSelect.value = payload.sia_approval_status;
+
+      const forestSelect = document.getElementById('inp-forest-status');
+      if (forestSelect && payload.forest_clearance_status) forestSelect.value = payload.forest_clearance_status;
+
+      const fundInp = document.getElementById('inp-fund-pct');
+      if (fundInp && payload.fund_disbursement_percent != null) fundInp.value = payload.fund_disbursement_percent;
+
+      const sec11Inp = document.getElementById('inp-sec11-days');
+      if (sec11Inp && payload.section_11_notification_days != null) {
+        sec11Inp.value = payload.section_11_notification_days;
+        updateSec11LapseBadge(payload.section_11_notification_days);
+      } else {
+        updateSec11LapseBadge('');
+      }
+
+      const compInp = document.getElementById('inp-comp-mult');
+      if (compInp && payload.compensation_multiplier_demand != null) compInp.value = payload.compensation_multiplier_demand;
+
+      const famInp = document.getElementById('inp-affected-families');
+      if (famInp && payload.affected_families_count != null) famInp.value = payload.affected_families_count;
+
+      const dispInp = document.getElementById('inp-dispute-rate');
+      if (dispInp && payload.title_dispute_rate_percent != null) dispInp.value = payload.title_dispute_rate_percent;
+
+      const protestCheck = document.getElementById('inp-protest-flag');
+      if (protestCheck) protestCheck.checked = !!payload.local_protest_flag;
+
+      const presetSel = document.getElementById('preset-selector');
+      if (presetSel) presetSel.value = 'custom';
+
+      document.getElementById('view-predictor')?.scrollIntoView({ behavior: 'smooth' });
+      showToast(`Pre-filled complete saved analysis for "${a.project_name || a.id}".`);
+    }
+    window.inspectSavedAnalysisInRiskPredictor = inspectSavedAnalysisInRiskPredictor;
 
     function populateDistrictField(state, preselectedDistrict) {
       const wrapper = document.getElementById('district-field-wrapper');
@@ -4671,13 +4927,18 @@
               </div>
             </div>
 
-            <div style="display: flex; gap: 6px; margin-top: 6px;">
-              <button onclick="zoomToSavedAnalysis('${a.id}')" class="btn-apple-primary" style="flex: 1; font-size: 11px; padding: 6px 10px;">
-                Focus &rarr;
+            <div style="margin-top: 8px; display: flex; flex-direction: column; gap: 6px;">
+              <button onclick="inspectSavedAnalysisInRiskPredictor('${a.id}')" class="btn-apple-primary" style="width: 100%; font-size: 11px; padding: 7px 10px; display: flex; align-items: center; justify-content: center; gap: 4px;" title="Inspect in Risk Predictor with all saved inputs pre-filled">
+                <span>Inspect in Risk Predictor &rarr;</span>
               </button>
-              <button onclick="deleteAnalysis('${a.id}', event)" class="btn-apple-secondary" style="font-size: 11px; padding: 6px 10px; color: #ef4444; border-color: rgba(239,68,68,0.3); background: #fef2f2;" title="Delete this saved analysis">
-                Delete
-              </button>
+              <div style="display: flex; gap: 6px;">
+                <button onclick="zoomToSavedAnalysis('${a.id}')" class="btn-apple-secondary" style="flex: 1; font-size: 11px; padding: 6px 10px;">
+                  Focus &rarr;
+                </button>
+                <button onclick="deleteAnalysis('${a.id}', event)" class="btn-apple-secondary" style="font-size: 11px; padding: 6px 10px; color: #ef4444; border-color: rgba(239,68,68,0.3); background: #fef2f2;" title="Delete this saved analysis">
+                  Delete
+                </button>
+              </div>
             </div>
           </div>
         `;
@@ -4784,10 +5045,13 @@
                 </div>
               </div>
               <div style="display: flex; gap: 8px; align-items: center; flex-shrink: 0;">
-                <button onclick="selectSavedAnalysisFromModal('${a.id}')" class="btn-apple-primary" style="font-size: 12px; padding: 7px 14px; display: inline-flex; align-items: center; gap: 5px;" title="Select and focus on map">
-                  <span>Select &amp; Focus Map &rarr;</span>
+                <button onclick="inspectSavedAnalysisInRiskPredictor('${a.id}'); closeSavedAnalysesModal();" class="btn-apple-primary" style="font-size: 12px; padding: 7px 12px; display: inline-flex; align-items: center; gap: 4px;" title="Inspect in Risk Predictor">
+                  <span>Inspect in Risk Predictor &rarr;</span>
                 </button>
-                <button onclick="deleteAnalysis('${a.id}', event)" class="btn-apple-secondary" style="font-size: 12px; padding: 7px 12px; color: #ef4444; border-color: rgba(239,68,68,0.25); background: #fef2f2;" title="Delete this saved analysis">
+                <button onclick="selectSavedAnalysisFromModal('${a.id}')" class="btn-apple-secondary" style="font-size: 12px; padding: 7px 12px; display: inline-flex; align-items: center; gap: 5px;" title="Select and focus on map">
+                  <span>Focus Map &rarr;</span>
+                </button>
+                <button onclick="deleteAnalysis('${a.id}', event)" class="btn-apple-secondary" style="font-size: 12px; padding: 7px 10px; color: #ef4444; border-color: rgba(239,68,68,0.25); background: #fef2f2;" title="Delete this saved analysis">
                   Delete
                 </button>
               </div>

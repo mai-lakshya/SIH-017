@@ -681,6 +681,31 @@ def calculate_prescriptive_actions(result: Dict[str, Any], project_cost_cr: floa
         })
     return prescriptive_actions
 
+def normalize_terrain_type(val: Any) -> str:
+    """
+    Normalizes raw dataset terrain string to match Risk Predictor dropdown options:
+    'Urban', 'Rural_Agri', 'Forest_Eco_Sensitive', 'Hilly', 'Tribal_Schedule_V'.
+    """
+    if not val or pd.isna(val):
+        return "Rural_Agri"
+    s = str(val).strip()
+    clean = s.lower().replace(" ", "_").replace("-", "_").replace("/", "_")
+    mapping = {
+        "urban": "Urban",
+        "rural_agri": "Rural_Agri",
+        "rural": "Rural_Agri",
+        "rural_agriculture": "Rural_Agri",
+        "forest_eco_sensitive": "Forest_Eco_Sensitive",
+        "forest": "Forest_Eco_Sensitive",
+        "eco_sensitive": "Forest_Eco_Sensitive",
+        "hilly": "Hilly",
+        "hilly_difficult": "Hilly",
+        "tribal_schedule_v": "Tribal_Schedule_V",
+        "tribal": "Tribal_Schedule_V",
+        "schedule_v": "Tribal_Schedule_V",
+    }
+    return mapping.get(clean, s)
+
 def get_or_load_geo_cache(max_projects: Optional[int] = None, force_refresh: bool = False) -> List[Dict[str, Any]]:
     """Loads and computes geospatial project predictions across the entire dataset with high-speed vectorized processing and caching."""
     global _GEO_CACHE
@@ -768,7 +793,8 @@ def get_or_load_geo_cache(max_projects: Optional[int] = None, force_refresh: boo
             dispute_pct = float(raw_dict.get('title_dispute_rate_percent', 0.0) or 0.0)
             sia_status = str(raw_dict.get('sia_approval_status', 'Pending')).strip()
             fc_status = str(raw_dict.get('forest_clearance_status', 'Not_Required')).strip()
-            terrain = str(raw_dict.get('terrain_type', 'Rural_Agri')).strip()
+            raw_terrain = raw_dict.get('terrain_type') or raw_dict.get('Terrain_Type') or 'Rural_Agri'
+            terrain = normalize_terrain_type(raw_terrain)
             cost_cr = float(raw_dict.get('estimated_cost_inr_crore', 0.0) or 0.0)
             land_ha = float(raw_dict.get('land_area_hectares', 0.0) or 0.0)
             fund_pct = float(raw_dict.get('fund_disbursement_percent', 10.0) or 10.0)
@@ -1464,14 +1490,26 @@ async def get_saved_analyses(request: Request, user: Any = Depends(get_current_u
         try:
             cur = conn.execute("""
                 SELECT id, project_name, state, district, project_type,
-                       latitude, longitude, delay_probability, risk_tier,
+                       latitude, longitude, input_payload, delay_probability, risk_tier,
                        predicted_delay_days, composite_risk_score, created_at
                 FROM saved_analyses
                 WHERE created_by_email = ?
                 ORDER BY created_at DESC
             """, (user_email,))
             rows = cur.fetchall()
-            return [dict(r) for r in rows]
+            results = []
+            for r in rows:
+                row_dict = dict(r)
+                if row_dict.get("input_payload"):
+                    try:
+                        parsed = json.loads(row_dict["input_payload"]) if isinstance(row_dict["input_payload"], str) else row_dict["input_payload"]
+                        row_dict["input_payload"] = parsed
+                        if "terrain_type" in parsed:
+                            row_dict["terrain_type"] = normalize_terrain_type(parsed["terrain_type"])
+                    except Exception:
+                        pass
+                results.append(row_dict)
+            return results
         finally:
             conn.close()
 
@@ -1501,7 +1539,10 @@ async def get_saved_analysis_detail(request: Request, id: str, user: Any = Depen
                 raise HTTPException(status_code=404, detail="Analysis not found")
 
             try:
-                row_dict["input_payload"] = json.loads(row_dict["input_payload"])
+                parsed = json.loads(row_dict["input_payload"]) if isinstance(row_dict["input_payload"], str) else row_dict["input_payload"]
+                row_dict["input_payload"] = parsed
+                if "terrain_type" in parsed:
+                    row_dict["terrain_type"] = normalize_terrain_type(parsed["terrain_type"])
             except Exception:
                 pass
             row_dict.pop("created_by_email", None)
@@ -1694,7 +1735,7 @@ async def get_project_geo_detail(request: Request, project_id: str, user: Any = 
             metadata = {
                 'project_id': project_id,
                 'estimated_cost_inr_crore': float(raw_dict.get('estimated_cost_inr_crore', 100.0) or 100.0),
-                'terrain_type': str(raw_dict.get('terrain_type', 'Plain')),
+                'terrain_type': normalize_terrain_type(raw_dict.get('terrain_type') or raw_dict.get('Terrain_Type') or 'Rural_Agri'),
                 'sia_approval_status': str(raw_dict.get('sia_approval_status', 'Pending')),
                 'forest_clearance_status': str(raw_dict.get('forest_clearance_status', 'Not_Required')),
                 'title_dispute_rate_percent': float(raw_dict.get('title_dispute_rate_percent', 5.0) or 5.0),
