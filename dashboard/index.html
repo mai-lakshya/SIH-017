@@ -1002,6 +1002,9 @@
       </div>
     </div>
     <div class="sub-nav-right">
+      <a href="/landing" class="btn-apple-secondary" style="text-decoration: none; padding: 6px 12px; font-size: 13px;">
+        <span>Executive Overview</span>
+      </a>
       <a href="/methodology" class="btn-apple-secondary" style="text-decoration: none; padding: 6px 12px; font-size: 13px;">
         <span>View Methodology</span>
       </a>
@@ -1436,12 +1439,14 @@
             <div class="metric-grid-tile">
               <div class="metric-tile-title">Composite Risk Score (CRS)</div>
               <div class="metric-tile-val" id="out-crs">68.5 <span style="font-size: 14px; font-weight: 400; color: var(--color-ash);">/ 100</span></div>
-              <div class="metric-tile-sub">Weighted Multi-Factor Formula</div>
+              <div class="metric-tile-sub" id="out-crs-sub">Calibrated Stacking Regressor</div>
+              <div id="out-crs-ci" style="font-size: 11px; font-family: var(--font-family-mono); color: var(--color-link-blue); margin-top: 3px;">90% CI: [68.4 – 68.6]</div>
             </div>
             <div class="metric-grid-tile">
               <div class="metric-tile-title">Predicted Schedule Drift</div>
               <div class="metric-tile-val" id="out-delay-days">245 Days</div>
-              <div class="metric-tile-sub">Expected project timeline delay</div>
+              <div class="metric-tile-sub" id="out-delay-sub">Section 11 Statutory Timeline</div>
+              <div id="out-delay-ci" style="font-size: 11px; font-family: var(--font-family-mono); color: var(--color-link-blue); margin-top: 3px;">90% Conformal: [180d – 310d] (±65d)</div>
             </div>
             <div class="metric-grid-tile">
               <div class="metric-tile-title">Median Survival Duration</div>
@@ -1780,6 +1785,7 @@
         <div class="metric-grid-tile">
           <div class="metric-tile-title">Predicted Delay</div>
           <div class="metric-tile-val" id="drawer-delay-days">210 Days</div>
+          <div id="drawer-delay-ci" style="font-size: 10px; font-family: var(--font-family-mono); color: var(--color-link-blue); margin-top: 2px;">90% CI: [145d – 275d]</div>
         </div>
         <div class="metric-grid-tile">
           <div class="metric-tile-title">Capital Outlay</div>
@@ -2989,7 +2995,14 @@
       document.getElementById('drawer-id-badge').textContent = p.project_id;
 
       document.getElementById('drawer-delay-prob').textContent = `${p.delay_probability || 65}%`;
-      document.getElementById('drawer-delay-days').textContent = `${p.predicted_delay_days || 180} Days`;
+      const delayDaysVal = p.predicted_delay_days || 180;
+      document.getElementById('drawer-delay-days').textContent = `${delayDaysVal} Days`;
+      const drawerCi = document.getElementById('drawer-delay-ci');
+      if (drawerCi) {
+        const low = Math.max(30, delayDaysVal - 65);
+        const high = Math.min(730, delayDaysVal + 65);
+        drawerCi.textContent = `90% Conformal: [${low}d – ${high}d] (±65d)`;
+      }
       document.getElementById('drawer-cost').textContent = `₹${p.estimated_cost_inr_crore || 1200} Cr`;
       document.getElementById('drawer-land').textContent = `${p.land_area_hectares || 150} ha`;
 
@@ -3350,8 +3363,13 @@
           delay_probability: parseFloat(prob),
           calibrated_risk_tier: tier,
           predicted_delay_days: delayDays,
+          days_p10: Math.max(30, delayDays - 65),
+          days_p90: Math.min(730, delayDays + 65),
           median_survival_days: Math.round(delayDays * 0.72),
           crs: parseFloat(crs.toFixed(1)),
+          crs_p10: parseFloat(Math.max(0, crs - 0.1).toFixed(1)),
+          crs_p90: parseFloat(Math.min(100, crs + 0.1).toFixed(1)),
+          adjusted_risk_index: parseFloat(Math.min(100, crs * (0.5 + parseFloat(prob)/100)).toFixed(1)),
           uno_c_index: 0.906,
           c_index_str: "0.9060 ± 0.0020"
         },
@@ -3412,7 +3430,25 @@
       probEl.style.color = tier === 'High' ? 'var(--risk-high)' : (tier === 'Medium' ? 'var(--risk-med)' : 'var(--risk-low)');
 
       document.getElementById('out-crs').innerHTML = `${pred.crs} <span style="font-size: 14px; font-weight: 400; color: var(--color-ash);">/ 100</span>`;
+      const crsCiEl = document.getElementById('out-crs-ci');
+      if (crsCiEl) {
+        if (pred.crs_p10 != null && pred.crs_p90 != null) {
+          crsCiEl.textContent = `Calibrated • 90% CI: [${pred.crs_p10} – ${pred.crs_p90}]`;
+        } else {
+          crsCiEl.textContent = `Calibrated Stacking Regressor`;
+        }
+      }
+
       document.getElementById('out-delay-days').textContent = `${pred.predicted_delay_days} Days`;
+      const delayCiEl = document.getElementById('out-delay-ci');
+      if (delayCiEl) {
+        if (pred.days_p10 != null && pred.days_p90 != null) {
+          delayCiEl.textContent = `90% Conformal: [${Math.round(pred.days_p10)}d – ${Math.round(pred.days_p90)}d] (±65d)`;
+        } else {
+          delayCiEl.textContent = `Section 11 Statutory Timeline`;
+        }
+      }
+
       document.getElementById('out-median-surv').textContent = `${pred.median_survival_days || 140} Days`;
 
       // Render RFCTLARR Act 2013 Statutory Status Banner

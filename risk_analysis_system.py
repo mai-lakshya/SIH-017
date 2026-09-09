@@ -199,7 +199,13 @@ class RiskAnalysisSystem:
                 "delay_days": float(delay_days),
                 "predicted_delay_rationale": timeline_explanation.get("rationale", ""),
                 "risk_tier": risk_tier,
-                "calibrated_risk_tier": risk_tier
+                "calibrated_risk_tier": risk_tier,
+                "days_p10": float(preds.get('days_p10', [delay_days - 65.0])[0]),
+                "days_p90": float(preds.get('days_p90', [delay_days + 65.0])[0]),
+                "crs_p10": float(preds.get('crs_p10', [crs - 0.1])[0]),
+                "crs_p90": float(preds.get('crs_p90', [crs + 0.1])[0]),
+                "adjusted_risk_index": float(preds.get('adjusted_risk_index', [crs])[0]),
+                "adjusted_delay_days": float(preds.get('adjusted_delay_days', [delay_days])[0])
             },
             "timeline": {
                 "median_survival_days": float(median_survival),

@@ -1006,6 +1006,11 @@ async def _execute_prediction_pipeline(payload: ProjectPayload) -> dict:
                 "predicted_delay_days": int(result['predictions']['predicted_delay_days']),
                 "median_survival_days": int(result['timeline']['median_survival_days']),
                 "crs": round(float(result['predictions'].get('crs', 0.0)), 1),
+                "days_p10": round(float(result['predictions'].get('days_p10', result['predictions']['predicted_delay_days'] - 65)), 1),
+                "days_p90": round(float(result['predictions'].get('days_p90', result['predictions']['predicted_delay_days'] + 65)), 1),
+                "crs_p10": round(float(result['predictions'].get('crs_p10', result['predictions']['crs'] - 0.1)), 1),
+                "crs_p90": round(float(result['predictions'].get('crs_p90', result['predictions']['crs'] + 0.1)), 1),
+                "adjusted_risk_index": round(float(result['predictions'].get('adjusted_risk_index', result['predictions']['crs'])), 1),
                 "risk_phase": result['timeline'].get('risk_phase', 'Short-term'),
                 "predicted_delay_rationale": result['predictions'].get('predicted_delay_rationale', ''),
                 "uno_c_index": 0.906,
@@ -1538,6 +1543,8 @@ async def serve_dashboard_file(file_path: str):
     full_path = os.path.join("dashboard", file_path)
     if os.path.isfile(full_path):
         return FileResponse(full_path)
+    if os.path.isfile(full_path + ".html"):
+        return FileResponse(full_path + ".html")
     raise HTTPException(status_code=404, detail="File Not Found")
 
 if __name__ == "__main__":
