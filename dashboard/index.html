@@ -1424,8 +1424,8 @@
         <div class="apple-card">
           <div class="card-header-clean">
             <div>
-              <h3 class="card-title-clean">Dual-Paradigm Prediction</h3>
-              <p class="card-subtitle-clean">Meta-Learner Probability & Random Survival Forest Timeline</p>
+              <h3 class="card-title-clean">Project Risk Assessment</h3>
+              <p class="card-subtitle-clean">Calibrated delay probability, timeline horizon, and statutory risk index</p>
             </div>
             <div style="display: flex; align-items: center; gap: 8px;">
               <button id="btn-save-analysis" type="button" class="btn-apple-secondary" onclick="openSaveAnalysisModal()" style="display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; padding: 5px 12px; border-radius: 980px; cursor: pointer; border: 1px solid var(--color-border-subtle); background: var(--color-frost); color: var(--color-carbon); transition: all 0.2s;" title="Save this project to database and trigger continuous learning">
@@ -1438,47 +1438,24 @@
           <!-- Top Metrics Grid -->
           <div class="grid-2" style="margin-bottom: 16px;">
             <div class="metric-grid-tile">
-              <div class="metric-tile-title">Delay Probability & Confidence</div>
+              <div class="metric-tile-title">Delay Probability &amp; Confidence</div>
               <div class="metric-tile-val" id="out-prob" style="color: var(--risk-high);">--%</div>
-              <div class="metric-tile-sub" id="out-prob-sub">Platt-Calibrated Stacking Classifier</div>
-              <div id="out-confidence-tag" style="font-size: 11px; font-family: var(--font-family-mono); color: var(--color-link-blue); margin-top: 3px;">Confidence: Calculating...</div>
+              <div id="out-confidence-tag" style="font-size: 11px; font-family: var(--font-family-mono); color: var(--color-link-blue); margin-top: 4px;">Confidence: Calculating...</div>
             </div>
             <div class="metric-grid-tile">
               <div class="metric-tile-title">Composite Risk Score (CRS)</div>
               <div class="metric-tile-val" id="out-crs">-- <span style="font-size: 14px; font-weight: 400; color: var(--color-ash);">/ 100</span></div>
-              <div class="metric-tile-sub" id="out-crs-sub">Calibrated Stacking Regressor (R² = 0.99997)</div>
-              <div id="out-crs-ci" style="font-size: 11px; font-family: var(--font-family-mono); color: var(--color-link-blue); margin-top: 3px;">Error Margin: ±0.05 pts (MAE) • 90% CI: [--]</div>
+              <div id="out-crs-ci" style="font-size: 11px; font-family: var(--font-family-mono); color: var(--color-link-blue); margin-top: 4px;">Error Margin: ±0.05 pts (MAE) • 90% CI: [--]</div>
             </div>
             <div class="metric-grid-tile">
               <div class="metric-tile-title">Predicted Statutory Delay</div>
               <div class="metric-tile-val" id="out-delay-days" style="color: var(--risk-high);">-- Days</div>
-              <div class="metric-tile-sub" id="out-delay-sub">Section 11 Statutory Timeline</div>
-              <div id="out-delay-ci" style="font-size: 11px; font-family: var(--font-family-mono); color: var(--color-link-blue); margin-top: 3px;">Error Margin: ±31.6d (MAE) • 90% CI: [--]</div>
+              <div id="out-delay-ci" style="font-size: 11px; font-family: var(--font-family-mono); color: var(--color-link-blue); margin-top: 4px;">Error Margin: ±31.6d (MAE) • 90% CI: [--]</div>
             </div>
             <div class="metric-grid-tile">
               <div class="metric-tile-title">Median Survival Duration</div>
               <div class="metric-tile-val" id="out-median-surv">-- Days</div>
-              <div class="metric-tile-sub" id="out-surv-sub">Random Survival Forest (Uno's C-Index 0.906)</div>
-              <div id="out-surv-human" style="font-size: 11px; font-family: var(--font-family-mono); color: var(--color-link-blue); margin-top: 3px;">~-- Months Non-Parametric Horizon</div>
-            </div>
-          </div>
-
-          <!-- Verified Model Benchmarks Telemetry Strip -->
-          <div id="model-benchmarks-strip" style="background: #ffffff; border: 1px solid var(--color-border-subtle); border-radius: var(--radius-cards); padding: 10px 14px; margin-bottom: 16px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; font-size: 11px;">
-            <div style="display: flex; align-items: center; gap: 6px;">
-              <span style="display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--risk-low);"></span>
-              <span style="font-weight: 600; color: var(--color-carbon);">AI Model Diagnostics:</span>
-            </div>
-            <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 14px; font-family: var(--font-family-mono); color: var(--color-smoke);">
-              <span>Uno's C-Index: <strong style="color: var(--color-carbon);" id="bench-c-index">0.9060</strong></span>
-              <span>•</span>
-              <span>Timeline R²: <strong style="color: var(--color-carbon);" id="bench-r2">0.9460</strong></span>
-              <span>•</span>
-              <span>MAE: <strong style="color: var(--color-carbon);" id="bench-mae">31.58 Days</strong></span>
-              <span>•</span>
-              <span>MAPE: <strong style="color: var(--color-carbon);" id="bench-mape">11.33%</strong></span>
-              <span>•</span>
-              <span>Accuracy: <strong style="color: var(--color-carbon);" id="bench-acc">100.0%</strong></span>
+              <div id="out-surv-human" style="font-size: 11px; font-family: var(--font-family-mono); color: var(--color-link-blue); margin-top: 4px;">~-- Months Expected Horizon</div>
             </div>
           </div>
 
@@ -3777,7 +3754,7 @@
       const confLabel = pred.confidence_label || (confScore >= 80 ? 'High Certainty' : (confScore >= 65 ? 'Moderate Certainty' : 'Low Certainty'));
       const confTag = document.getElementById('out-confidence-tag');
       if (confTag) {
-        confTag.innerHTML = `Confidence: <strong>${confScore}%</strong> (${confLabel}) • Platt Sigmoid`;
+        confTag.innerHTML = `Confidence: <strong>${confScore}%</strong> (${confLabel})`;
       }
 
       // 2. Composite Risk Score (CRS) & Error Margin
@@ -3797,7 +3774,7 @@
       const humanReadable = pred.delay_human_readable || (daysVal >= 30 ? `~${monthsVal} Months (${weeksVal} Weeks)` : `~${weeksVal} Weeks (${daysVal} Days)`);
       
       const delayEl = document.getElementById('out-delay-days');
-      delayEl.textContent = `${daysVal.toLocaleString()} Days`;
+      delayEl.innerHTML = `${daysVal.toLocaleString()} Days <span style="font-size: 13px; font-weight: 500; color: var(--color-ash); font-family: -apple-system, BlinkMacSystemFont, sans-serif;">(${humanReadable})</span>`;
       if (daysVal > 365) {
         delayEl.style.color = 'var(--risk-critical)';
       } else if (daysVal > 180) {
@@ -3808,11 +3785,6 @@
         delayEl.style.color = 'var(--risk-low)';
       }
 
-      const delaySubEl = document.getElementById('out-delay-sub');
-      if (delaySubEl) {
-        delaySubEl.innerHTML = `<span style="font-weight: 600; color: var(--color-carbon);">${humanReadable}</span> • Section 11 Statutory Timeline`;
-      }
-
       const delayCiEl = document.getElementById('out-delay-ci');
       if (delayCiEl) {
         const maeDays = pred.error_margin_days_mae != null ? pred.error_margin_days_mae : 31.6;
@@ -3821,27 +3793,14 @@
         delayCiEl.innerHTML = `<strong>Error Margin: ±${maeDays}d (MAE)</strong> • 90% CI: [${p10}d – ${p90}d]`;
       }
 
-      // 4. Median Survival Duration & Non-Parametric Horizon
+      // 4. Median Survival Duration & Expected Horizon
       const survDays = Math.round(pred.median_survival_days || 140);
       const survMonths = (survDays / 30.4375).toFixed(1);
       document.getElementById('out-median-surv').textContent = `${survDays} Days`;
       const survHumanEl = document.getElementById('out-surv-human');
       if (survHumanEl) {
-        survHumanEl.textContent = `~${survMonths} Months Non-Parametric Horizon`;
+        survHumanEl.textContent = `~${survMonths} Months Expected Horizon`;
       }
-
-      // 5. Update Model Diagnostics Bar
-      const acc = data.model_accuracy || {};
-      const cIndexEl = document.getElementById('bench-c-index');
-      if (cIndexEl && acc.uno_c_index) cIndexEl.textContent = acc.uno_c_index.toFixed(4);
-      const r2El = document.getElementById('bench-r2');
-      if (r2El && acc.timeline_r2) r2El.textContent = acc.timeline_r2.toFixed(4);
-      const maeEl = document.getElementById('bench-mae');
-      if (maeEl && acc.timeline_mae_days) maeEl.textContent = `${acc.timeline_mae_days.toFixed(2)} Days`;
-      const mapeEl = document.getElementById('bench-mape');
-      if (mapeEl && acc.timeline_mape_pct) mapeEl.textContent = `${acc.timeline_mape_pct.toFixed(2)}%`;
-      const accEl = document.getElementById('bench-acc');
-      if (accEl && acc.classification_accuracy) accEl.textContent = `${acc.classification_accuracy.toFixed(1)}%`;
 
       // Render RFCTLARR Act 2013 Statutory Status Banner
       const larr = data.larr_compliance || {};

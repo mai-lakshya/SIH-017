@@ -14,22 +14,13 @@ async function testPredictionDisplay() {
 
   const requiredElements = [
     'id="out-prob"',
-    'id="out-prob-sub"',
     'id="out-confidence-tag"',
     'id="out-crs"',
-    'id="out-crs-sub"',
     'id="out-crs-ci"',
     'id="out-delay-days"',
-    'id="out-delay-sub"',
     'id="out-delay-ci"',
     'id="out-median-surv"',
     'id="out-surv-human"',
-    'id="model-benchmarks-strip"',
-    'id="bench-c-index"',
-    'id="bench-r2"',
-    'id="bench-mae"',
-    'id="bench-mape"',
-    'id="bench-acc"',
     'id="drawer-delay-prob"',
     'id="drawer-delay-days"',
     'id="drawer-delay-ci"'
@@ -128,7 +119,7 @@ async function testPredictionDisplay() {
 
   if (acc.uno_c_index !== 0.906) throw new Error(`Unexpected c_index: ${acc.uno_c_index}`);
   if (acc.timeline_r2 !== 0.9460) throw new Error(`Unexpected timeline_r2: ${acc.timeline_r2}`);
-  if (acc.classification_accuracy !== 100.0) throw new Error(`Unexpected classification_accuracy: ${acc.classification_accuracy}`);
+  if (acc.classification_accuracy !== 87.22) throw new Error(`Unexpected classification_accuracy: ${acc.classification_accuracy}`);
 
   console.log(`[OK] All verified model benchmarks matched evaluation standards!`);
 

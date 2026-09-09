@@ -171,6 +171,13 @@ class NonLinearTimelinePredictor:
             if hasattr(X, 'shape') and X.shape[1] != expected_dim:
                 if X.shape[1] > expected_dim:
                     return X.iloc[:, :expected_dim] if isinstance(X, pd.DataFrame) else X[:, :expected_dim]
+                elif X.shape[1] < expected_dim:
+                    pad_width = expected_dim - X.shape[1]
+                    if isinstance(X, pd.DataFrame):
+                        pad_df = pd.DataFrame(np.zeros((len(X), pad_width)), index=X.index, columns=[f"_pad_{i}" for i in range(pad_width)])
+                        return pd.concat([X, pad_df], axis=1)
+                    else:
+                        return np.pad(X, ((0, 0), (0, pad_width)), mode='constant', constant_values=0)
         return X
 
     def predict(self, X):

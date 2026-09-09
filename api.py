@@ -430,7 +430,7 @@ def load_artifacts():
     try:
         pipeline_path = 'pipeline.joblib'
         ensemble_path = 'ensemble.joblib'
-        timeline_path = 'timeline.joblib'
+        timeline_path = 'models_new/timeline.joblib' if os.path.exists('models_new/timeline.joblib') and os.path.getsize('models_new/timeline.joblib') > 1000 else 'timeline.joblib'
 
         # Check if files are missing or are 130-byte LFS pointer text files
         needs_retrain = False
@@ -1024,9 +1024,9 @@ async def _execute_prediction_pipeline(payload: ProjectPayload) -> dict:
                 "crs_r2": 0.99997,
                 "crs_mae": 0.047,
                 "crs_mape_pct": 0.09,
-                "classification_accuracy": 100.0,
-                "classification_roc_auc": 1.000,
-                "classification_f1": 1.000,
+                "classification_accuracy": 87.22,
+                "classification_roc_auc": 0.9402,
+                "classification_f1": 0.8417,
                 "conformal_coverage_pct": 90.01
             },
             "timeline": {
@@ -1181,7 +1181,7 @@ async def save_analysis(request: Request, req: SaveAnalysisRequest, user: Any = 
                         system = RiskAnalysisSystem(
                             pipeline_path='pipeline.joblib',
                             ensemble_path='ensemble.joblib',
-                            timeline_path='timeline.joblib'
+                            timeline_path='models_new/timeline.joblib' if os.path.exists('models_new/timeline.joblib') and os.path.getsize('models_new/timeline.joblib') > 1000 else 'timeline.joblib'
                         )
                         logging.info("[RELOADED] Hot-reloaded newly retrained continuous learning model weights into active API serving.")
                     except Exception as hot_err:
@@ -1686,7 +1686,7 @@ async def trigger_retrain(request: Request, user: Any = Depends(get_current_user
                 system = RiskAnalysisSystem(
                     pipeline_path='pipeline.joblib',
                     ensemble_path='ensemble.joblib',
-                    timeline_path='timeline.joblib'
+                    timeline_path='models_new/timeline.joblib' if os.path.exists('models_new/timeline.joblib') and os.path.getsize('models_new/timeline.joblib') > 1000 else 'timeline.joblib'
                 )
                 logging.info("[PROMOTED] Hot-reloaded promoted models into active API serving.")
             except Exception as re_err:
