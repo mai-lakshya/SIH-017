@@ -1364,22 +1364,22 @@
             <div class="metric-grid-tile">
               <div class="metric-tile-title">Delay Probability &amp; Confidence</div>
               <div class="metric-tile-val" id="out-prob" style="color: var(--risk-high);">--%</div>
-              <div id="out-confidence-tag" style="font-size: 11px; font-family: var(--font-family-mono); color: var(--color-link-blue); margin-top: 4px;">Confidence: Calculating...</div>
+              <div id="out-confidence-tag" style="display: none !important;"></div>
             </div>
             <div class="metric-grid-tile">
               <div class="metric-tile-title">Composite Risk Score (CRS)</div>
               <div class="metric-tile-val" id="out-crs">-- <span style="font-size: 14px; font-weight: 400; color: var(--color-ash);">/ 100</span></div>
-              <div id="out-crs-ci" style="font-size: 11px; font-family: var(--font-family-mono); color: var(--color-link-blue); margin-top: 4px;">Error Margin: ±0.05 pts (MAE) • 90% CI: [--]</div>
+              <div id="out-crs-ci" style="display: none !important;"></div>
             </div>
             <div class="metric-grid-tile">
               <div class="metric-tile-title">Predicted Statutory Delay</div>
               <div class="metric-tile-val" id="out-delay-days" style="color: var(--risk-high);">-- Days</div>
-              <div id="out-delay-ci" style="font-size: 11px; font-family: var(--font-family-mono); color: var(--color-link-blue); margin-top: 4px;">Error Margin: ±31.6d (MAE) • 90% CI: [--]</div>
+              <div id="out-delay-ci" style="display: none !important;"></div>
             </div>
             <div class="metric-grid-tile">
               <div class="metric-tile-title">Median Survival Duration</div>
               <div class="metric-tile-val" id="out-median-surv">-- Days</div>
-              <div id="out-surv-human" style="font-size: 11px; font-family: var(--font-family-mono); color: var(--color-link-blue); margin-top: 4px;">~-- Months Expected Horizon</div>
+              <div id="out-surv-human" style="display: none !important;"></div>
             </div>
           </div>
 
@@ -3857,13 +3857,13 @@
       const outSurv = document.getElementById('out-median-surv');
       if (outSurv) outSurv.textContent = '-- Days';
       const outConf = document.getElementById('out-confidence-tag');
-      if (outConf) outConf.textContent = 'Confidence: Awaiting Calculation...';
+      if (outConf) outConf.textContent = '';
       const outCrsCi = document.getElementById('out-crs-ci');
-      if (outCrsCi) outCrsCi.textContent = 'Error Margin: -- • 90% CI: [--]';
+      if (outCrsCi) outCrsCi.textContent = '';
       const outDelayCi = document.getElementById('out-delay-ci');
-      if (outDelayCi) outDelayCi.textContent = 'Error Margin: -- • 90% CI: [--]';
+      if (outDelayCi) outDelayCi.textContent = '';
       const outSurvH = document.getElementById('out-surv-human');
-      if (outSurvH) outSurvH.textContent = '~-- Months Expected Horizon';
+      if (outSurvH) outSurvH.textContent = '';
       const outBadge = document.getElementById('output-badge-tier');
       if (outBadge) { outBadge.className = 'badge-tier'; outBadge.style.background = 'var(--color-frost)'; outBadge.style.color = 'var(--color-ash)'; outBadge.textContent = 'Uncalculated'; }
       const larrBadge = document.getElementById('out-larr-badge');
@@ -4251,19 +4251,12 @@
       const confScore = pred.confidence_score != null ? pred.confidence_score : Math.max(probVal, 100 - probVal).toFixed(1);
       const confLabel = pred.confidence_label || (confScore >= 80 ? 'High Certainty' : (confScore >= 65 ? 'Moderate Certainty' : 'Low Certainty'));
       const confTag = document.getElementById('out-confidence-tag');
-      if (confTag) {
-        confTag.innerHTML = `Confidence: <strong>${confScore}%</strong> (${confLabel})`;
-      }
+      if (confTag) confTag.innerHTML = '';
 
       // 2. Composite Risk Score (CRS) & Error Margin
       document.getElementById('out-crs').innerHTML = `${crsVal.toFixed(1)} <span style="font-size: 14px; font-weight: 400; color: var(--color-ash);">/ 100</span>`;
       const crsCiEl = document.getElementById('out-crs-ci');
-      if (crsCiEl) {
-        const crsMae = pred.error_margin_crs_mae != null ? pred.error_margin_crs_mae : 0.05;
-        const crsP10 = pred.crs_p10 != null ? Number(pred.crs_p10).toFixed(1) : Math.max(0, crsVal - 0.1).toFixed(1);
-        const crsP90 = pred.crs_p90 != null ? Number(pred.crs_p90).toFixed(1) : Math.min(100, crsVal + 0.1).toFixed(1);
-        crsCiEl.innerHTML = `<strong>Error Margin: ±${crsMae} pts (MAE)</strong> • 90% CI: [${crsP10} – ${crsP90}]`;
-      }
+      if (crsCiEl) crsCiEl.innerHTML = '';
 
       // 3. Predicted Statutory Delay (Days, Human-Readable Months/Weeks, & Color Coding)
       const daysVal = Math.round(pred.predicted_delay_days != null ? pred.predicted_delay_days : 0);
@@ -4284,21 +4277,13 @@
       }
 
       const delayCiEl = document.getElementById('out-delay-ci');
-      if (delayCiEl) {
-        const maeDays = pred.error_margin_days_mae != null ? pred.error_margin_days_mae : 31.6;
-        const p10 = Math.round(pred.days_p10 != null ? pred.days_p10 : Math.max(30, daysVal - 65));
-        const p90 = Math.round(pred.days_p90 != null ? pred.days_p90 : Math.min(730, daysVal + 65));
-        delayCiEl.innerHTML = `<strong>Error Margin: ±${maeDays}d (MAE)</strong> • 90% CI: [${p10}d – ${p90}d]`;
-      }
+      if (delayCiEl) delayCiEl.innerHTML = '';
 
       // 4. Median Survival Duration & Expected Horizon
       const survDays = Math.round(pred.median_survival_days || 140);
-      const survMonths = (survDays / 30.4375).toFixed(1);
       document.getElementById('out-median-surv').textContent = `${survDays} Days`;
       const survHumanEl = document.getElementById('out-surv-human');
-      if (survHumanEl) {
-        survHumanEl.textContent = `~${survMonths} Months Expected Horizon`;
-      }
+      if (survHumanEl) survHumanEl.innerHTML = '';
 
       // Render RFCTLARR Act 2013 Statutory Status Banner
       const larr = data.larr_compliance || {};
