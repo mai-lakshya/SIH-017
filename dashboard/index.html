@@ -1186,9 +1186,9 @@
             </div>
             <!-- Heatmap Legend (hidden by default) -->
             <div id="legend-heatmap" class="hidden" style="display: flex; gap: 12px; align-items: center;">
-              <span style="display: flex; align-items: center; gap: 4px;"><span style="width: 14px; height: 8px; background: #10b981; display: inline-block;"></span> Low Risk</span>
-              <span style="display: flex; align-items: center; gap: 4px;"><span style="width: 14px; height: 8px; background: #f59e0b; display: inline-block;"></span> Moderate</span>
-              <span style="display: flex; align-items: center; gap: 4px;"><span style="width: 14px; height: 8px; background: #ef4444; display: inline-block;"></span> Critical</span>
+              <span style="display: flex; align-items: center; gap: 4px;"><span style="width: 14px; height: 8px; background: #10b981; display: inline-block;"></span> Low (&lt;52)</span>
+              <span style="display: flex; align-items: center; gap: 4px;"><span style="width: 14px; height: 8px; background: #f59e0b; display: inline-block;"></span> Moderate (52&ndash;58)</span>
+              <span style="display: flex; align-items: center; gap: 4px;"><span style="width: 14px; height: 8px; background: #ef4444; display: inline-block;"></span> Critical (&gt;58)</span>
               <span style="display: flex; align-items: center; gap: 4px;"><span style="width: 14px; height: 8px; background: #94a3b8; display: inline-block;"></span> No Data</span>
             </div>
           </div>
@@ -2644,9 +2644,9 @@
 
     function getStateColor(stats) {
       if (!stats || stats.count === 0) return '#e2e2e5'; // Pebble gray for No Data
-      if (stats.avgScore <= 33.0) return '#10b981';     // Low risk emerald
-      if (stats.avgScore <= 66.0) return '#f59e0b';     // Medium risk amber
-      return '#ef4444';                                 // High risk red
+      if (stats.avgScore < 52.0) return '#10b981';      // Low risk emerald (< 52)
+      if (stats.avgScore <= 58.0) return '#f59e0b';     // Moderate risk amber (52 - 58)
+      return '#ef4444';                                 // Critical risk red (> 58)
     }
 
     function getStateBorderColor(stats) {

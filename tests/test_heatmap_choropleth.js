@@ -107,9 +107,9 @@ async function runTests() {
 
   function getStateColor(stats) {
     if (!stats || stats.count === 0) return '#374151'; // dark gray
-    if (stats.avgScore <= 33.0) return '#10b981';     // Low risk green
-    if (stats.avgScore <= 66.0) return '#f59e0b';     // Medium risk amber
-    return '#ef4444';                                 // High risk red
+    if (stats.avgScore < 52.0) return '#10b981';      // Low risk green (< 52)
+    if (stats.avgScore <= 58.0) return '#f59e0b';     // Medium risk amber (52 - 58)
+    return '#ef4444';                                 // High risk red (> 58)
   }
 
   const lookup = calculateStateRiskStats(projects);

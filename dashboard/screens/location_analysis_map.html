@@ -279,15 +279,15 @@
         <div class="text-[10px] font-mono text-[#94A3B8] font-semibold uppercase tracking-wider mb-0.5 border-b border-[#1E293B] pb-1">State Avg Risk</div>
         <div class="flex items-center gap-2.5 text-xs font-mono">
           <span class="w-2.5 h-2.5 rounded-sm bg-[#10b981]"></span>
-          <span class="text-white font-medium">Low Avg Risk</span>
+          <span class="text-white font-medium">Low (&lt;52)</span>
         </div>
         <div class="flex items-center gap-2.5 text-xs font-mono">
           <span class="w-2.5 h-2.5 rounded-sm bg-[#f59e0b]"></span>
-          <span class="text-white font-medium">Medium Avg Risk</span>
+          <span class="text-white font-medium">Moderate (52&ndash;58)</span>
         </div>
         <div class="flex items-center gap-2.5 text-xs font-mono">
           <span class="w-2.5 h-2.5 rounded-sm bg-[#ef4444]"></span>
-          <span class="text-white font-medium">High Avg Risk</span>
+          <span class="text-white font-medium">Critical (&gt;58)</span>
         </div>
         <div class="flex items-center gap-2.5 text-xs font-mono">
           <span class="w-2.5 h-2.5 rounded-sm bg-[#374151] border border-[#4b5563]"></span>
@@ -595,15 +595,15 @@
     // Leaflet Choropleth styling functions
     function getStateColor(stats) {
       if (!stats || stats.count === 0) return '#374151'; // Neutral dark gray for No Data
-      if (stats.avgScore <= 33.0) return '#10b981';     // Low risk green
-      if (stats.avgScore <= 66.0) return '#f59e0b';     // Medium risk amber
-      return '#ef4444';                                 // High risk red
+      if (stats.avgScore < 52.0) return '#10b981';      // Low risk green (< 52)
+      if (stats.avgScore <= 58.0) return '#f59e0b';     // Moderate risk amber (52 - 58)
+      return '#ef4444';                                 // Critical risk red (> 58)
     }
 
     function getStateBorderColor(stats) {
       if (!stats || stats.count === 0) return '#4b5563';
-      if (stats.avgScore <= 33.0) return '#34d399';
-      if (stats.avgScore <= 66.0) return '#fbbf24';
+      if (stats.avgScore < 52.0) return '#34d399';
+      if (stats.avgScore <= 58.0) return '#fbbf24';
       return '#f87171';
     }
 
