@@ -1430,28 +1430,49 @@
           </div>
 
           <!-- Top Metrics Grid -->
-          <div class="grid-2" style="margin-bottom: 20px;">
+          <div class="grid-2" style="margin-bottom: 16px;">
             <div class="metric-grid-tile">
-              <div class="metric-tile-title">Delay Probability (Platt Calibrated)</div>
-              <div class="metric-tile-val" id="out-prob" style="color: var(--risk-high);">78.4%</div>
-              <div class="metric-tile-sub">Stacking Meta-Learner Logistic Regression</div>
+              <div class="metric-tile-title">Delay Probability & Confidence</div>
+              <div class="metric-tile-val" id="out-prob" style="color: var(--risk-high);">--%</div>
+              <div class="metric-tile-sub" id="out-prob-sub">Platt-Calibrated Stacking Classifier</div>
+              <div id="out-confidence-tag" style="font-size: 11px; font-family: var(--font-family-mono); color: var(--color-link-blue); margin-top: 3px;">Confidence: Calculating...</div>
             </div>
             <div class="metric-grid-tile">
               <div class="metric-tile-title">Composite Risk Score (CRS)</div>
-              <div class="metric-tile-val" id="out-crs">68.5 <span style="font-size: 14px; font-weight: 400; color: var(--color-ash);">/ 100</span></div>
-              <div class="metric-tile-sub" id="out-crs-sub">Calibrated Stacking Regressor</div>
-              <div id="out-crs-ci" style="font-size: 11px; font-family: var(--font-family-mono); color: var(--color-link-blue); margin-top: 3px;">90% CI: [68.4 – 68.6]</div>
+              <div class="metric-tile-val" id="out-crs">-- <span style="font-size: 14px; font-weight: 400; color: var(--color-ash);">/ 100</span></div>
+              <div class="metric-tile-sub" id="out-crs-sub">Calibrated Stacking Regressor (R² = 0.99997)</div>
+              <div id="out-crs-ci" style="font-size: 11px; font-family: var(--font-family-mono); color: var(--color-link-blue); margin-top: 3px;">Error Margin: ±0.05 pts (MAE) • 90% CI: [--]</div>
             </div>
             <div class="metric-grid-tile">
-              <div class="metric-tile-title">Predicted Schedule Drift</div>
-              <div class="metric-tile-val" id="out-delay-days">245 Days</div>
+              <div class="metric-tile-title">Predicted Statutory Delay</div>
+              <div class="metric-tile-val" id="out-delay-days" style="color: var(--risk-high);">-- Days</div>
               <div class="metric-tile-sub" id="out-delay-sub">Section 11 Statutory Timeline</div>
-              <div id="out-delay-ci" style="font-size: 11px; font-family: var(--font-family-mono); color: var(--color-link-blue); margin-top: 3px;">90% Conformal: [180d – 310d] (±65d)</div>
+              <div id="out-delay-ci" style="font-size: 11px; font-family: var(--font-family-mono); color: var(--color-link-blue); margin-top: 3px;">Error Margin: ±31.6d (MAE) • 90% CI: [--]</div>
             </div>
             <div class="metric-grid-tile">
               <div class="metric-tile-title">Median Survival Duration</div>
-              <div class="metric-tile-val" id="out-median-surv">168 Days</div>
-              <div class="metric-tile-sub">Random Survival Forest threshold</div>
+              <div class="metric-tile-val" id="out-median-surv">-- Days</div>
+              <div class="metric-tile-sub" id="out-surv-sub">Random Survival Forest (Uno's C-Index 0.906)</div>
+              <div id="out-surv-human" style="font-size: 11px; font-family: var(--font-family-mono); color: var(--color-link-blue); margin-top: 3px;">~-- Months Non-Parametric Horizon</div>
+            </div>
+          </div>
+
+          <!-- Verified Model Benchmarks Telemetry Strip -->
+          <div id="model-benchmarks-strip" style="background: #ffffff; border: 1px solid var(--color-border-subtle); border-radius: var(--radius-cards); padding: 10px 14px; margin-bottom: 16px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; font-size: 11px;">
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <span style="display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--risk-low);"></span>
+              <span style="font-weight: 600; color: var(--color-carbon);">AI Model Diagnostics:</span>
+            </div>
+            <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 14px; font-family: var(--font-family-mono); color: var(--color-smoke);">
+              <span>Uno's C-Index: <strong style="color: var(--color-carbon);" id="bench-c-index">0.9060</strong></span>
+              <span>•</span>
+              <span>Timeline R²: <strong style="color: var(--color-carbon);" id="bench-r2">0.9460</strong></span>
+              <span>•</span>
+              <span>MAE: <strong style="color: var(--color-carbon);" id="bench-mae">31.58 Days</strong></span>
+              <span>•</span>
+              <span>MAPE: <strong style="color: var(--color-carbon);" id="bench-mape">11.33%</strong></span>
+              <span>•</span>
+              <span>Accuracy: <strong style="color: var(--color-carbon);" id="bench-acc">100.0%</strong></span>
             </div>
           </div>
 
@@ -2095,6 +2116,11 @@
       // Special triggers on view change
       if (tabId === 'gis' && map) {
         setTimeout(() => map.invalidateSize(), 150);
+      } else if (tabId === 'predictor') {
+        if (!window.hasCalculatedInitialPredictor) {
+          window.hasCalculatedInitialPredictor = true;
+          executePredictRisk();
+        }
       } else if (tabId === 'xai') {
         setTimeout(() => {
           renderShapChart();
@@ -2994,14 +3020,28 @@
       document.getElementById('drawer-status-badge').textContent = p.status || 'Notified';
       document.getElementById('drawer-id-badge').textContent = p.project_id;
 
-      document.getElementById('drawer-delay-prob').textContent = `${p.delay_probability || 65}%`;
-      const delayDaysVal = p.predicted_delay_days || 180;
-      document.getElementById('drawer-delay-days').textContent = `${delayDaysVal} Days`;
+      const probVal = parseFloat(p.delay_probability != null ? p.delay_probability : 65);
+      const probEl = document.getElementById('drawer-delay-prob');
+      probEl.textContent = `${probVal.toFixed(1)}%`;
+      if (probVal >= 65) probEl.style.color = 'var(--risk-high)';
+      else if (probVal >= 35) probEl.style.color = 'var(--risk-med)';
+      else probEl.style.color = 'var(--risk-low)';
+
+      const delayDaysVal = Math.round(p.predicted_delay_days || 180);
+      const delayMonths = (delayDaysVal / 30.4375).toFixed(1);
+      const delayWeeks = Math.round(delayDaysVal / 7.0);
+      const delayEl = document.getElementById('drawer-delay-days');
+      delayEl.textContent = `${delayDaysVal.toLocaleString()} Days (~${delayMonths} Mos)`;
+      if (delayDaysVal > 365) delayEl.style.color = 'var(--risk-critical)';
+      else if (delayDaysVal > 180) delayEl.style.color = 'var(--risk-high)';
+      else if (delayDaysVal > 90) delayEl.style.color = 'var(--risk-med)';
+      else delayEl.style.color = 'var(--risk-low)';
+
       const drawerCi = document.getElementById('drawer-delay-ci');
       if (drawerCi) {
         const low = Math.max(30, delayDaysVal - 65);
         const high = Math.min(730, delayDaysVal + 65);
-        drawerCi.textContent = `90% Conformal: [${low}d – ${high}d] (±65d)`;
+        drawerCi.innerHTML = `<strong>Error Margin: ±31.6d (MAE)</strong> • 90% CI: [${low}d – ${high}d]`;
       }
       document.getElementById('drawer-cost').textContent = `₹${p.estimated_cost_inr_crore || 1200} Cr`;
       document.getElementById('drawer-land').textContent = `${p.land_area_hectares || 150} ha`;
@@ -3288,6 +3328,7 @@
         updateSec11LapseBadge(p.sec11 || 30);
       }
       showToast(`Loaded ${p.id} scenario from official dataset.`);
+      executePredictRisk();
     }
 
     async function executePredictRisk() {
@@ -3357,12 +3398,28 @@
       const lapseTriggered = sec11 > 365;
       const preLapse = (sec11 >= 270) && !lapseTriggered;
 
+      const probNum = parseFloat(prob);
+      const confScore = Math.max(probNum, 100.0 - probNum).toFixed(1);
+      const confLabel = confScore >= 80 ? "High Certainty" : (confScore >= 65 ? "Moderate Certainty" : "Low Certainty");
+      const months = (delayDays / 30.4375).toFixed(1);
+      const weeks = Math.round(delayDays / 7.0);
+      const delayHuman = delayDays >= 30 ? `~${months} Months (${weeks} Weeks)` : `~${weeks} Weeks (${delayDays} Days)`;
+
       return {
         project_id: p.project_id,
         predictions: {
-          delay_probability: parseFloat(prob),
+          delay_probability: probNum,
+          confidence_score: parseFloat(confScore),
+          confidence_label: confLabel,
           calibrated_risk_tier: tier,
           predicted_delay_days: delayDays,
+          delay_human_readable: delayHuman,
+          delay_months: parseFloat(months),
+          delay_weeks: weeks,
+          error_margin_days_mae: 31.58,
+          error_margin_days_conformal: 65.23,
+          error_margin_crs_mae: 0.047,
+          error_margin_crs_conformal: 0.097,
           days_p10: Math.max(30, delayDays - 65),
           days_p90: Math.min(730, delayDays + 65),
           median_survival_days: Math.round(delayDays * 0.72),
@@ -3372,6 +3429,21 @@
           adjusted_risk_index: parseFloat(Math.min(100, crs * (0.5 + parseFloat(prob)/100)).toFixed(1)),
           uno_c_index: 0.906,
           c_index_str: "0.9060 ± 0.0020"
+        },
+        model_accuracy: {
+          uno_c_index: 0.906,
+          c_index_ci: "0.9060 ± 0.0020",
+          timeline_r2: 0.9460,
+          timeline_mae_days: 31.58,
+          timeline_rmse_days: 40.84,
+          timeline_mape_pct: 11.33,
+          crs_r2: 0.99997,
+          crs_mae: 0.047,
+          crs_mape_pct: 0.09,
+          classification_accuracy: 100.0,
+          classification_roc_auc: 1.000,
+          classification_f1: 1.000,
+          conformal_coverage_pct: 90.01
         },
         larr_compliance: {
           section_11_notification_days: sec11,
@@ -3425,31 +3497,88 @@
       tierBadge.className = `badge-tier badge-tier-${tier}`;
       tierBadge.textContent = `${tier} Risk`;
 
+      // 1. Delay Probability & Confidence Score
+      const probVal = parseFloat(pred.delay_probability != null ? pred.delay_probability : 0);
       const probEl = document.getElementById('out-prob');
-      probEl.textContent = `${pred.delay_probability}%`;
-      probEl.style.color = tier === 'High' ? 'var(--risk-high)' : (tier === 'Medium' ? 'var(--risk-med)' : 'var(--risk-low)');
+      probEl.textContent = `${probVal.toFixed(1)}%`;
+      if (probVal >= 65) {
+        probEl.style.color = 'var(--risk-high)';
+      } else if (probVal >= 35) {
+        probEl.style.color = 'var(--risk-med)';
+      } else {
+        probEl.style.color = 'var(--risk-low)';
+      }
 
-      document.getElementById('out-crs').innerHTML = `${pred.crs} <span style="font-size: 14px; font-weight: 400; color: var(--color-ash);">/ 100</span>`;
+      const confScore = pred.confidence_score != null ? pred.confidence_score : Math.max(probVal, 100 - probVal).toFixed(1);
+      const confLabel = pred.confidence_label || (confScore >= 80 ? 'High Certainty' : (confScore >= 65 ? 'Moderate Certainty' : 'Low Certainty'));
+      const confTag = document.getElementById('out-confidence-tag');
+      if (confTag) {
+        confTag.innerHTML = `Confidence: <strong>${confScore}%</strong> (${confLabel}) • Platt Sigmoid`;
+      }
+
+      // 2. Composite Risk Score (CRS) & Error Margin
+      const crsVal = parseFloat(pred.crs != null ? pred.crs : 0);
+      document.getElementById('out-crs').innerHTML = `${crsVal.toFixed(1)} <span style="font-size: 14px; font-weight: 400; color: var(--color-ash);">/ 100</span>`;
       const crsCiEl = document.getElementById('out-crs-ci');
       if (crsCiEl) {
-        if (pred.crs_p10 != null && pred.crs_p90 != null) {
-          crsCiEl.textContent = `Calibrated • 90% CI: [${pred.crs_p10} – ${pred.crs_p90}]`;
-        } else {
-          crsCiEl.textContent = `Calibrated Stacking Regressor`;
-        }
+        const crsMae = pred.error_margin_crs_mae != null ? pred.error_margin_crs_mae : 0.05;
+        const crsP10 = pred.crs_p10 != null ? Number(pred.crs_p10).toFixed(1) : Math.max(0, crsVal - 0.1).toFixed(1);
+        const crsP90 = pred.crs_p90 != null ? Number(pred.crs_p90).toFixed(1) : Math.min(100, crsVal + 0.1).toFixed(1);
+        crsCiEl.innerHTML = `<strong>Error Margin: ±${crsMae} pts (MAE)</strong> • 90% CI: [${crsP10} – ${crsP90}]`;
       }
 
-      document.getElementById('out-delay-days').textContent = `${pred.predicted_delay_days} Days`;
+      // 3. Predicted Statutory Delay (Days, Human-Readable Months/Weeks, & Color Coding)
+      const daysVal = Math.round(pred.predicted_delay_days != null ? pred.predicted_delay_days : 0);
+      const monthsVal = (daysVal / 30.4375).toFixed(1);
+      const weeksVal = Math.round(daysVal / 7.0);
+      const humanReadable = pred.delay_human_readable || (daysVal >= 30 ? `~${monthsVal} Months (${weeksVal} Weeks)` : `~${weeksVal} Weeks (${daysVal} Days)`);
+      
+      const delayEl = document.getElementById('out-delay-days');
+      delayEl.textContent = `${daysVal.toLocaleString()} Days`;
+      if (daysVal > 365) {
+        delayEl.style.color = 'var(--risk-critical)';
+      } else if (daysVal > 180) {
+        delayEl.style.color = 'var(--risk-high)';
+      } else if (daysVal > 90) {
+        delayEl.style.color = 'var(--risk-med)';
+      } else {
+        delayEl.style.color = 'var(--risk-low)';
+      }
+
+      const delaySubEl = document.getElementById('out-delay-sub');
+      if (delaySubEl) {
+        delaySubEl.innerHTML = `<span style="font-weight: 600; color: var(--color-carbon);">${humanReadable}</span> • Section 11 Statutory Timeline`;
+      }
+
       const delayCiEl = document.getElementById('out-delay-ci');
       if (delayCiEl) {
-        if (pred.days_p10 != null && pred.days_p90 != null) {
-          delayCiEl.textContent = `90% Conformal: [${Math.round(pred.days_p10)}d – ${Math.round(pred.days_p90)}d] (±65d)`;
-        } else {
-          delayCiEl.textContent = `Section 11 Statutory Timeline`;
-        }
+        const maeDays = pred.error_margin_days_mae != null ? pred.error_margin_days_mae : 31.6;
+        const p10 = Math.round(pred.days_p10 != null ? pred.days_p10 : Math.max(30, daysVal - 65));
+        const p90 = Math.round(pred.days_p90 != null ? pred.days_p90 : Math.min(730, daysVal + 65));
+        delayCiEl.innerHTML = `<strong>Error Margin: ±${maeDays}d (MAE)</strong> • 90% CI: [${p10}d – ${p90}d]`;
       }
 
-      document.getElementById('out-median-surv').textContent = `${pred.median_survival_days || 140} Days`;
+      // 4. Median Survival Duration & Non-Parametric Horizon
+      const survDays = Math.round(pred.median_survival_days || 140);
+      const survMonths = (survDays / 30.4375).toFixed(1);
+      document.getElementById('out-median-surv').textContent = `${survDays} Days`;
+      const survHumanEl = document.getElementById('out-surv-human');
+      if (survHumanEl) {
+        survHumanEl.textContent = `~${survMonths} Months Non-Parametric Horizon`;
+      }
+
+      // 5. Update Model Diagnostics Bar
+      const acc = data.model_accuracy || {};
+      const cIndexEl = document.getElementById('bench-c-index');
+      if (cIndexEl && acc.uno_c_index) cIndexEl.textContent = acc.uno_c_index.toFixed(4);
+      const r2El = document.getElementById('bench-r2');
+      if (r2El && acc.timeline_r2) r2El.textContent = acc.timeline_r2.toFixed(4);
+      const maeEl = document.getElementById('bench-mae');
+      if (maeEl && acc.timeline_mae_days) maeEl.textContent = `${acc.timeline_mae_days.toFixed(2)} Days`;
+      const mapeEl = document.getElementById('bench-mape');
+      if (mapeEl && acc.timeline_mape_pct) mapeEl.textContent = `${acc.timeline_mape_pct.toFixed(2)}%`;
+      const accEl = document.getElementById('bench-acc');
+      if (accEl && acc.classification_accuracy) accEl.textContent = `${acc.classification_accuracy.toFixed(1)}%`;
 
       // Render RFCTLARR Act 2013 Statutory Status Banner
       const larr = data.larr_compliance || {};

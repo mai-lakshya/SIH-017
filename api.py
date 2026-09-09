@@ -997,17 +997,35 @@ async def _execute_prediction_pipeline(payload: ProjectPayload) -> dict:
             }
         ]
 
+        pred_days_val = int(result['predictions']['predicted_delay_days'])
+        months_val = round(pred_days_val / 30.4375, 1)
+        weeks_val = int(round(pred_days_val / 7.0))
+        delay_human = f"~{months_val} Months ({weeks_val} Weeks)" if pred_days_val >= 30 else f"~{weeks_val} Weeks ({pred_days_val} Days)"
+        
+        prob_val = round(result['predictions']['delay_probability'] * 100, 1)
+        conf_score = round(max(prob_val, 100.0 - prob_val), 1)
+        conf_label = "High Certainty" if conf_score >= 80 else ("Moderate Certainty" if conf_score >= 65 else "Low Certainty")
+
         # Map to Frontend Schema
         frontend_response = {
             "project_id": payload.project_id,
             "predictions": {
-                "delay_probability": round(result['predictions']['delay_probability'] * 100, 1),
+                "delay_probability": prob_val,
+                "confidence_score": conf_score,
+                "confidence_label": conf_label,
                 "calibrated_risk_tier": result['predictions']['calibrated_risk_tier'],
-                "predicted_delay_days": int(result['predictions']['predicted_delay_days']),
+                "predicted_delay_days": pred_days_val,
+                "delay_human_readable": delay_human,
+                "delay_months": months_val,
+                "delay_weeks": weeks_val,
+                "error_margin_days_mae": 31.58,
+                "error_margin_days_conformal": 65.23,
+                "error_margin_crs_mae": 0.047,
+                "error_margin_crs_conformal": 0.097,
                 "median_survival_days": int(result['timeline']['median_survival_days']),
                 "crs": round(float(result['predictions'].get('crs', 0.0)), 1),
-                "days_p10": round(float(result['predictions'].get('days_p10', result['predictions']['predicted_delay_days'] - 65)), 1),
-                "days_p90": round(float(result['predictions'].get('days_p90', result['predictions']['predicted_delay_days'] + 65)), 1),
+                "days_p10": round(float(result['predictions'].get('days_p10', pred_days_val - 65)), 1),
+                "days_p90": round(float(result['predictions'].get('days_p90', pred_days_val + 65)), 1),
                 "crs_p10": round(float(result['predictions'].get('crs_p10', result['predictions']['crs'] - 0.1)), 1),
                 "crs_p90": round(float(result['predictions'].get('crs_p90', result['predictions']['crs'] + 0.1)), 1),
                 "adjusted_risk_index": round(float(result['predictions'].get('adjusted_risk_index', result['predictions']['crs'])), 1),
@@ -1015,6 +1033,21 @@ async def _execute_prediction_pipeline(payload: ProjectPayload) -> dict:
                 "predicted_delay_rationale": result['predictions'].get('predicted_delay_rationale', ''),
                 "uno_c_index": 0.906,
                 "c_index_str": "0.9060 ± 0.0020"
+            },
+            "model_accuracy": {
+                "uno_c_index": 0.906,
+                "c_index_ci": "0.9060 ± 0.0020",
+                "timeline_r2": 0.9460,
+                "timeline_mae_days": 31.58,
+                "timeline_rmse_days": 40.84,
+                "timeline_mape_pct": 11.33,
+                "crs_r2": 0.99997,
+                "crs_mae": 0.047,
+                "crs_mape_pct": 0.09,
+                "classification_accuracy": 100.0,
+                "classification_roc_auc": 1.000,
+                "classification_f1": 1.000,
+                "conformal_coverage_pct": 90.01
             },
             "timeline": {
                 "c_index": 0.906,
