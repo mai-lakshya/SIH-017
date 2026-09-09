@@ -570,20 +570,22 @@ def _prepare_df(payload_dict: dict) -> pd.DataFrame:
 def _extract_survival_curve(raw_payload: pd.DataFrame) -> List[Dict[str, Any]]:
     survival_curve = []
     try:
+        surv_funcs = None
         if system.timeline_predictor and hasattr(system.timeline_predictor, 'predict_survival_function'):
             X_proc = system.pipeline.transform(raw_payload)
             surv_funcs = system.timeline_predictor.predict_survival_function(X_proc)
         elif system.timeline_predictor and hasattr(system.timeline_predictor, 'rsf') and system.timeline_predictor.rsf is not None:
             X_proc = system.pipeline.transform(raw_payload)
             surv_funcs = system.timeline_predictor.rsf.predict_survival_function(X_proc)
-            if len(surv_funcs) > 0:
-                fn = surv_funcs[0]
-                sample_times = [0, 15, 30, 60, 90, 120, 150, 180, 240, 300, 365, 450, 500, 600, 730]
-                max_t = float(fn.x[-1]) if len(fn.x) > 0 else 730.0
-                for t in sample_times:
-                    if t <= max_t:
-                        prob = float(fn(t))
-                        survival_curve.append({"day": int(t), "survival_probability": round(prob, 4)})
+        
+        if surv_funcs is not None and len(surv_funcs) > 0:
+            fn = surv_funcs[0]
+            sample_times = [0, 15, 30, 60, 90, 120, 150, 180, 240, 300, 365, 450, 500, 600, 730]
+            max_t = float(fn.x[-1]) if len(fn.x) > 0 else 730.0
+            for t in sample_times:
+                if t <= max_t:
+                    prob = float(fn(t))
+                    survival_curve.append({"day": int(t), "survival_probability": round(prob, 4)})
     except Exception as e:
         logging.warning(f"Could not compute survival curve: {e}")
     return survival_curve

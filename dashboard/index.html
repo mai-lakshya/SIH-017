@@ -1535,21 +1535,15 @@
     <section id="view-xai" class="tab-view hidden">
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
         
-        <!-- Left: TreeSHAP Feature Attribution Waterfall (Plain Language Default, Technical Details Behind Toggle) -->
+        <!-- Left: Why This Risk Score (Plain Language Feature Drivers) -->
         <div class="apple-card">
           <div class="card-header-clean">
             <div>
               <h3 class="card-title-clean" id="shap-card-title">Why This Risk Score</h3>
               <p class="card-subtitle-clean" id="shap-card-subtitle">The factors pushing this project's risk up or down</p>
             </div>
-            <div style="display: flex; align-items: center; gap: 10px;">
-              <span id="shap-fidelity-badge" class="btn-apple-subtle hidden" style="font-size: 11px;">Additive Fidelity 95.3%</span>
-              <button id="shap-tech-toggle" onclick="toggleShapTechnicalMode()" style="background: none; border: none; font-size: 11px; color: var(--color-link-blue); cursor: pointer; text-decoration: underline; padding: 0;">
-                Show Technical Details
-              </button>
-            </div>
           </div>
-          <!-- Task 2: Project-Specific Dynamic Plain-English Summary -->
+          <!-- Project-Specific Dynamic Plain-English Summary -->
           <div id="shap-dynamic-summary" style="margin-bottom: 14px; padding: 10px 14px; background: var(--color-ice); border-left: 3px solid var(--color-apple-blue); border-radius: var(--radius-tags); font-size: 13px; color: var(--color-carbon); line-height: 1.45;">
             <!-- Auto-generated summary sentence populated by renderShapChart -->
           </div>
@@ -1557,24 +1551,23 @@
             <canvas id="shapChart"></canvas>
           </div>
           <div style="margin-top: 16px; font-size: 12px; color: var(--color-ash); line-height: 1.5;" id="shap-caption">
-            <strong style="color: var(--color-carbon);" id="shap-caption-label">How to read this:</strong> <span id="shap-caption-text">Red bars are making this project riskier. Green bars are working in its favor. Longer bars matter more.</span>
+            <strong style="color: var(--color-carbon);">How to read this:</strong> Red bars are making this project riskier. Green bars are working in its favor. Longer bars matter more.
           </div>
         </div>
 
-        <!-- Right: Random Survival Forest Curve -->
+        <!-- Right: When Is This Project Most Likely to Stall? -->
         <div class="apple-card">
           <div class="card-header-clean">
             <div>
-              <h3 class="card-title-clean">RSF Survival Function $S(t)$</h3>
-              <p class="card-subtitle-clean">Probability of project milestone survival over 730 days</p>
+              <h3 class="card-title-clean">When Is This Project Most Likely to Stall?</h3>
+              <p class="card-subtitle-clean">Likelihood this project stays on track over the next 2 years</p>
             </div>
-            <span class="btn-apple-subtle" style="font-size: 11px;">Uno C-Index 0.9060 ± 0.0020</span>
           </div>
           <div style="height: 380px; position: relative;">
             <canvas id="survivalChart"></canvas>
           </div>
           <div style="margin-top: 16px; font-size: 12px; color: var(--color-ash); line-height: 1.5;">
-            <strong style="color: var(--color-carbon);">Survival Dynamics:</strong> Steep downward drops indicate high-risk hazard inflection points where acquisition disputes or statutory clearance delays most frequently materialize.
+            <strong style="color: var(--color-carbon);">Survival Dynamics:</strong> The steepest drop shows when this project is most likely to face major delays.
           </div>
         </div>
 
@@ -3911,36 +3904,6 @@
     // =========================================================================
     // CHARTS: TreeSHAP, RSF Survival, Calibration, Drift
     // =========================================================================
-    window.shapTechnicalMode = false;
-
-    function toggleShapTechnicalMode() {
-      window.shapTechnicalMode = !window.shapTechnicalMode;
-      const toggleBtn = document.getElementById('shap-tech-toggle');
-      const badge = document.getElementById('shap-fidelity-badge');
-      const title = document.getElementById('shap-card-title');
-      const subtitle = document.getElementById('shap-card-subtitle');
-      const captionLabel = document.getElementById('shap-caption-label');
-      const captionText = document.getElementById('shap-caption-text');
-
-      if (window.shapTechnicalMode) {
-        if (toggleBtn) toggleBtn.textContent = 'Hide Technical Details';
-        if (badge) badge.classList.remove('hidden');
-        if (title) title.textContent = 'TreeSHAP Feature Drivers';
-        if (subtitle) subtitle.textContent = 'Signed local feature contributions to delay probability';
-        if (captionLabel) captionLabel.textContent = 'Fidelity Interpretation:';
-        if (captionText) captionText.textContent = 'Bars extending to the right (red) indicate features accelerating delay risk. Bars to the left (green) indicate protective factors cushioning schedule drift. Raw TreeSHAP decimal contributions shown in tooltips.';
-      } else {
-        if (toggleBtn) toggleBtn.textContent = 'Show Technical Details';
-        if (badge) badge.classList.add('hidden');
-        if (title) title.textContent = 'Why This Risk Score';
-        if (subtitle) subtitle.textContent = "The factors pushing this project's risk up or down";
-        if (captionLabel) captionLabel.textContent = 'How to read this:';
-        if (captionText) captionText.textContent = 'Red bars are making this project riskier. Green bars are working in its favor. Longer bars matter more.';
-      }
-
-      renderShapChart();
-    }
-
     function generateShapDynamicSummary(parsedDrivers) {
       const summaryEl = document.getElementById('shap-dynamic-summary');
       if (!summaryEl) return;
@@ -4020,9 +3983,6 @@
             tooltip: {
               callbacks: {
                 label: (c) => {
-                  if (window.shapTechnicalMode) {
-                    return `SHAP Impact: ${c.raw > 0 ? '+' : ''}${c.raw.toFixed(4)}`;
-                  }
                   const pts = Math.round(Math.abs(c.raw) * 100);
                   if (pts === 0) return `${c.label}: Changes risk by < 1 point`;
                   return c.raw >= 0 ? `Increases risk by ~${pts} points` : `Reduces risk by ~${pts} points`;
@@ -4035,14 +3995,13 @@
               grid: { color: '#e5e5ea' },
               title: {
                 display: true,
-                text: window.shapTechnicalMode ? 'SHAP Contribution Value (Decimal)' : 'Impact on Risk Score (~Points)',
+                text: 'Impact on Risk Score (~Points)',
                 font: { family: 'Inter', size: 11, weight: '500' },
                 color: '#64748b'
               },
               ticks: {
                 font: { family: 'Inter', size: 11 },
                 callback: (val) => {
-                  if (window.shapTechnicalMode) return val.toFixed(2);
                   const pts = Math.round(val * 100);
                   return pts > 0 ? `+${pts}` : `${pts}`;
                 }
@@ -4062,7 +4021,7 @@
       if (!ctx) return;
       if (survivalChart) survivalChart.destroy();
 
-      const rawCurve = window.currentPredictionData?.survival_curve;
+      const rawCurve = window.currentPredictionData?.survival_curve || window.currentPredictionData?.predictions?.survival_curve;
       const curve = (rawCurve && rawCurve.length > 0) ? rawCurve : [
         { day: 0, survival_probability: 1.0 },
         { day: 30, survival_probability: 0.96 },
@@ -4077,12 +4036,106 @@
         { day: 730, survival_probability: 0.04 }
       ];
 
+      // Dynamically compute the steepest decline segment where survival drops fastest
+      let maxDropRate = -1;
+      let steepestIdx = 0;
+      for (let i = 0; i < curve.length - 1; i++) {
+        const dt = (curve[i + 1].day - curve[i].day) || 1;
+        const ds = (curve[i].survival_probability || 0) - (curve[i + 1].survival_probability || 0);
+        const rate = ds / dt;
+        if (rate > maxDropRate) {
+          maxDropRate = rate;
+          steepestIdx = i;
+        }
+      }
+
+      const highestRiskPlugin = {
+        id: 'highestRiskBand',
+        beforeDatasetsDraw(chart) {
+          const { ctx, chartArea, scales: { x } } = chart;
+          if (!chartArea || !x || steepestIdx === undefined || steepestIdx < 0 || steepestIdx >= curve.length - 1) return;
+          const { top, bottom } = chartArea;
+          
+          const xStart = x.getPixelForValue(steepestIdx);
+          const xEnd = x.getPixelForValue(steepestIdx + 1);
+          if (isNaN(xStart) || isNaN(xEnd)) return;
+
+          ctx.save();
+          // Light shaded vertical band highlighting steepest decline
+          ctx.fillStyle = 'rgba(239, 68, 68, 0.09)';
+          ctx.fillRect(xStart, top, xEnd - xStart, bottom - top);
+
+          // Subtle boundary dashed lines
+          ctx.strokeStyle = 'rgba(239, 68, 68, 0.35)';
+          ctx.lineWidth = 1.5;
+          ctx.setLineDash([4, 4]);
+
+          ctx.beginPath();
+          ctx.moveTo(xStart, top);
+          ctx.lineTo(xStart, bottom);
+          ctx.stroke();
+
+          ctx.beginPath();
+          ctx.moveTo(xEnd, top);
+          ctx.lineTo(xEnd, bottom);
+          ctx.stroke();
+
+          ctx.restore();
+        },
+        afterDatasetsDraw(chart) {
+          const { ctx, chartArea, scales: { x } } = chart;
+          if (!chartArea || !x || steepestIdx === undefined || steepestIdx < 0 || steepestIdx >= curve.length - 1) return;
+          const { top, left, right } = chartArea;
+
+          const xStart = x.getPixelForValue(steepestIdx);
+          const xEnd = x.getPixelForValue(steepestIdx + 1);
+          if (isNaN(xStart) || isNaN(xEnd)) return;
+
+          ctx.save();
+          const midX = (xStart + xEnd) / 2;
+          const badgeText = 'Highest risk period';
+          
+          ctx.font = '600 11px Inter, -apple-system, sans-serif';
+          const textWidth = ctx.measureText(badgeText).width;
+          const badgeWidth = textWidth + 18;
+          const badgeHeight = 22;
+          let badgeX = midX - badgeWidth / 2;
+          const badgeY = top + 14;
+
+          // Clamp badgeX within chart bounds
+          if (badgeX < left + 6) badgeX = left + 6;
+          if (badgeX + badgeWidth > right - 6) badgeX = right - 6 - badgeWidth;
+
+          // Pill badge background
+          ctx.fillStyle = 'rgba(254, 242, 242, 0.95)';
+          ctx.strokeStyle = 'rgba(239, 68, 68, 0.45)';
+          ctx.lineWidth = 1;
+
+          ctx.beginPath();
+          if (typeof ctx.roundRect === 'function') {
+            ctx.roundRect(badgeX, badgeY, badgeWidth, badgeHeight, 4);
+          } else {
+            ctx.rect(badgeX, badgeY, badgeWidth, badgeHeight);
+          }
+          ctx.fill();
+          ctx.stroke();
+
+          // Pill badge text
+          ctx.fillStyle = '#dc2626';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(badgeText, badgeX + badgeWidth / 2, badgeY + badgeHeight / 2);
+
+          ctx.restore();
+        }
+      };
+
       survivalChart = new Chart(ctx, {
         type: 'line',
         data: {
           labels: curve.map(c => `Day ${c.day}`),
           datasets: [{
-            label: 'Survival Probability S(t)',
+            label: 'Likelihood of Staying on Track',
             data: curve.map(c => c.survival_probability),
             borderColor: '#0071e3',
             backgroundColor: 'rgba(0, 113, 227, 0.08)',
@@ -4100,16 +4153,36 @@
             legend: { display: false },
             tooltip: {
               callbacks: {
-                label: (c) => `P(Survival > t): ${(c.raw * 100).toFixed(1)}%`
+                title: (items) => items[0]?.label || '',
+                label: (c) => `Likelihood of staying on track: ${(c.raw * 100).toFixed(0)}%`
               }
             }
           },
           scales: {
-            x: { grid: { color: '#e5e5ea' }, ticks: { font: { family: 'Inter', size: 11 } } },
-            y: { min: 0, max: 1.05, grid: { color: '#e5e5ea' }, ticks: { font: { family: 'Inter', size: 11 } } }
+            x: {
+              grid: { color: '#e5e5ea' },
+              ticks: { font: { family: 'Inter', size: 11 } }
+            },
+            y: {
+              min: 0,
+              max: 1.05,
+              grid: { color: '#e5e5ea' },
+              title: {
+                display: true,
+                text: 'Likelihood of Staying on Track',
+                font: { family: 'Inter', size: 11, weight: '500' },
+                color: '#64748b'
+              },
+              ticks: {
+                font: { family: 'Inter', size: 11 },
+                callback: (val) => `${Math.round(val * 100)}%`
+              }
+            }
           }
-        }
+        },
+        plugins: [highestRiskPlugin]
       });
+      window.survivalChart = survivalChart;
     }
 
     function renderCalibrationChart() {
