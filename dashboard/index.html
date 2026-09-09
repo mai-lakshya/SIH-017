@@ -132,80 +132,15 @@
       overflow-x: hidden;
     }
 
-    /* Global Header */
-    .apple-global-nav {
-      background-color: var(--color-carbon);
-      color: var(--color-frost);
-      padding: 10px 24px;
-      font-size: var(--text-caption);
-      letter-spacing: var(--tracking-caption);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-bottom: 1px solid #333333;
-      position: sticky;
-      top: 0;
-      z-index: 1000;
-    }
-
-    .nav-brand-group {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .apple-badge-icon {
-      width: 24px;
-      height: 24px;
-      background: var(--color-apple-blue);
-      color: #fff;
-      border-radius: 6px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 700;
-      font-size: 13px;
-    }
-
-    .nav-title {
-      font-weight: 600;
-      font-size: 13px;
-      color: #ffffff;
-      letter-spacing: -0.2px;
-    }
-
-    .nav-status-cluster {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-    }
-
-    .nav-status-badge {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      color: #a1a1a6;
-      font-family: var(--font-family-mono);
-      font-size: 11px;
-    }
-
-    .status-dot {
-      width: 7px;
-      height: 7px;
-      border-radius: 50%;
-      background-color: #34d399;
-      display: inline-block;
-    }
-
-    /* Sticky Mini-Nav (Sub-navigation for views - Single Unified Row) */
+    /* Sticky Mini-Nav (Main Navigation Bar - Single Unified Row) */
     .apple-sub-nav {
       background-color: rgba(255, 255, 255, 0.95);
       backdrop-filter: saturate(180%) blur(20px);
       -webkit-backdrop-filter: saturate(180%) blur(20px);
       border-bottom: 1px solid var(--color-border);
       position: sticky;
-      top: 40px;
-      z-index: 900;
+      top: 0;
+      z-index: 1000;
       padding: 8px 16px;
       display: flex;
       justify-content: space-between;
@@ -957,25 +892,7 @@
 </head>
 <body>
 
-  <!-- 1. Apple Global Navigation Bar -->
-  <header class="apple-global-nav">
-    <div class="nav-brand-group">
-      <div class="apple-badge-icon" style="font-size: 11px; font-weight: 700; letter-spacing: -0.5px;">NX</div>
-      <span class="nav-title">NEXUS-XAI // LandIntel Infrastructure Risk & Timeline Engine</span>
-    </div>
-    <div class="nav-status-cluster">
-      <div class="nav-status-badge">
-        <span class="status-dot"></span>
-        <span>Dual-Paradigm ML Online • RSF 0.906 C-Index • RFCTLARR 2013 Statutory Engine</span>
-      </div>
-      <span style="color: #474747;">|</span>
-      <div class="nav-status-badge">
-        <span>Survey of India GIS Live (36 States/UTs)</span>
-      </div>
-    </div>
-  </header>
-
-  <!-- 2. Apple Sticky Mini-Nav (Sub-navigation for views) -->
+  <!-- Main Navigation Bar (Views & Actions) -->
   <nav class="apple-sub-nav">
     <div class="sub-nav-left">
       <div class="sub-nav-product-name">
