@@ -1,0 +1,144 @@
+{
+  "dataset_metadata": {
+    "name": "indian_infrastructure_projects_dataset.csv",
+    "total_records": 13532,
+    "raw_features_count": 24,
+    "transformed_features_count": 28,
+    "class_distribution": {
+      "on_time_count": 7871,
+      "on_time_pct": 58.165829145728644,
+      "delayed_count": 5661,
+      "delayed_pct": 41.834170854271356
+    }
+  },
+  "model_architecture": {
+    "type": "Multi-Task Hybrid Ensemble & Survival Analysis",
+    "classification": "StackingClassifier (LightGBM, XGBoost, CatBoost, ExtraTrees) + Platt CalibratedClassifierCV (Sigmoid)",
+    "regression_crs": "StackingRegressor (LightGBM, XGBoost, CatBoost, ExtraTrees) + RidgeCV Meta-Learner",
+    "regression_notification_days": "StackingRegressor (LightGBM, XGBoost, CatBoost, ExtraTrees) + RidgeCV Meta-Learner",
+    "survival_timeline": "NonLinearTimelinePredictor (Random Survival Forest + DeepSurv Cox-MLP)"
+  },
+  "deployed_model_performance": {
+    "classification": {
+      "accuracy": 1.0,
+      "balanced_accuracy": 1.0,
+      "precision_binary": 1.0,
+      "precision_macro": 1.0,
+      "precision_weighted": 1.0,
+      "recall_binary (sensitivity)": 1.0,
+      "recall_macro": 1.0,
+      "recall_weighted": 1.0,
+      "specificity": 1.0,
+      "f1_binary": 1.0,
+      "f1_macro": 1.0,
+      "f1_weighted": 1.0,
+      "confusion_matrix": {
+        "true_negatives": 7871,
+        "false_positives": 0,
+        "false_negatives": 0,
+        "true_positives": 5661
+      },
+      "roc_auc": 1.0,
+      "pr_auc": 1.0,
+      "brier_score": 1.2865359418376498e-07,
+      "log_loss": 0.00029148536747973736,
+      "expected_calibration_error": 0.0002914210126506591
+    },
+    "regression_crs": {
+      "mae": 0.047115665815882855,
+      "mse": 0.004985295963073687,
+      "rmse": 0.07060662832251435,
+      "mape": 0.000938943204211844,
+      "r2": 0.9999691351670333,
+      "adjusted_r2": 0.9999690711653061,
+      "median_absolute_error": 0.03565836130331235,
+      "max_error": 2.317766958756806,
+      "explained_variance": 0.9999691492958377
+    },
+    "regression_notification_days": {
+      "mae": 31.580708577469654,
+      "mse": 1667.9330181958378,
+      "rmse": 40.840335676826136,
+      "mape": 0.11329159418067103,
+      "r2": 0.9459770079351468,
+      "adjusted_r2": 0.9458649851418552,
+      "median_absolute_error": 25.53538276197574,
+      "max_error": 240.54118640564343,
+      "explained_variance": 0.9459780286330665
+    },
+    "adjusted_risk_index": {
+      "mae": 25.0055919545533,
+      "mse": 651.4047494850755,
+      "rmse": 25.5226321033916,
+      "mape": 0.47854235433784503,
+      "r2": -3.0329599156197373,
+      "adjusted_r2": -3.041322714822681,
+      "median_absolute_error": 25.233316998987284,
+      "max_error": 44.59478687012503,
+      "explained_variance": -2.9637560820562254
+    },
+    "adjusted_delay_days": {
+      "mae": 138.74808966495152,
+      "mse": 24935.372011919193,
+      "rmse": 157.90937911320907,
+      "mape": 0.4339356703705115,
+      "r2": 0.19236360834730726,
+      "adjusted_r2": 0.19068888280733287,
+      "median_absolute_error": 137.52753272627479,
+      "max_error": 363.0,
+      "explained_variance": 0.1933896707959929
+    },
+    "conformal_uncertainty": {
+      "conformal_confidence_level": 0.9,
+      "statutory_days_empirical_coverage_pct": 90.00886786875554,
+      "statutory_days_avg_width": 130.46979664306608,
+      "statutory_days_p10_p90_margin": 65.23489832153304,
+      "crs_empirical_coverage_pct": 90.00886786875554,
+      "crs_avg_width": 0.1936426933392681,
+      "crs_p10_p90_margin": 0.09682134666963405,
+      "calibration_method": "Finite-sample corrected split conformal prediction"
+    },
+    "survival_analysis": {
+      "c_index_rsf": 0.7965518197189292,
+      "n_estimators": 200,
+      "hazard_method": "RandomSurvivalForest + DeepSurv"
+    }
+  },
+  "cross_validation_generalization": {
+    "cv_folds": 5,
+    "classification": {
+      "accuracy_mean": 1.0,
+      "accuracy_std": 0.0,
+      "f1_mean": 1.0,
+      "f1_std": 0.0,
+      "roc_auc_mean": 1.0,
+      "roc_auc_std": 0.0,
+      "pr_auc_mean": 1.0,
+      "pr_auc_std": 0.0
+    },
+    "regression_notification_days": {
+      "mae_mean": 50.38280821241436,
+      "mae_std": 0.619340414117807,
+      "rmse_mean": 65.18293083354918,
+      "rmse_std": 0.8012977784479426,
+      "r2_mean": 0.8623470798945669,
+      "r2_std": 0.002470938390396754,
+      "adjusted_r2_mean": 0.8609073033675023
+    }
+  },
+  "nlp_llm_module_notes": {
+    "module_name": "ai_advisor.py",
+    "type": "Domain-grounded statutory risk advice engine with security guardrails",
+    "metrics_applicability": "BLEU, ROUGE, and Perplexity evaluate sequence-to-sequence text generation against reference corpuses. In this system, advice is generated via deterministic rule templates and LLM synthesis with PromptSecurityValidator and DomainGroundingValidator."
+  },
+  "artifact_visualizations": [
+    "evaluation_artifacts\\01_confusion_matrix.png",
+    "evaluation_artifacts\\02_roc_curve.png",
+    "evaluation_artifacts\\03_precision_recall_curve.png",
+    "evaluation_artifacts\\04_calibration_curve.png",
+    "evaluation_artifacts\\05_predicted_vs_actual_crs.png",
+    "evaluation_artifacts\\06_predicted_vs_actual_days.png",
+    "evaluation_artifacts\\07_residual_analysis.png",
+    "evaluation_artifacts\\08_subgroup_fairness.png"
+  ]
+}
