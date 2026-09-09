@@ -1766,7 +1766,7 @@
       
       <!-- Key Meta Badges -->
       <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 20px; flex-wrap: wrap;">
-        <span id="drawer-tier-badge" class="badge-tier badge-tier-High">High Risk</span>
+        <span id="drawer-tier-badge" class="badge-tier badge-tier-High">High Risk (&gt;50)</span>
         <span id="drawer-type-badge" class="badge-tier" style="background: var(--color-frost); color: var(--color-smoke); border: 1px solid var(--color-border);">Highway</span>
         <span id="drawer-status-badge" class="badge-tier" style="background: var(--color-frost); color: var(--color-smoke); border: 1px solid var(--color-border);">Notified</span>
         <span id="drawer-id-badge" class="badge-tier" style="font-family: var(--font-family-mono); background: var(--color-ice); color: var(--color-link-blue); border: 1px solid rgba(0,113,227,0.2);">NHAI-001</span>
@@ -1774,6 +1774,14 @@
 
       <!-- Primary Metrics -->
       <div class="grid-2" style="margin-bottom: 20px;">
+        <div class="metric-grid-tile" style="grid-column: span 2; border-left: 3px solid var(--color-apple-blue); background: var(--color-ice);">
+          <div style="display: flex; justify-content: space-between; align-items: baseline;">
+            <div class="metric-tile-title" style="color: var(--color-link-blue); font-weight: 600;">Composite Risk Score (CRS)</div>
+            <span id="drawer-crs-tier" class="badge-tier badge-tier-High" style="font-size: 10px; padding: 2px 8px;">High Risk (&gt;50)</span>
+          </div>
+          <div class="metric-tile-val" id="drawer-crs" style="color: var(--risk-high); font-family: var(--font-family-mono); font-size: 24px; margin-top: 4px;">76.5 <span style="font-size: 13px; font-weight: 400; color: var(--color-ash);">/ 100</span></div>
+          <div id="drawer-crs-range" style="font-size: 10px; color: var(--color-ash); margin-top: 2px;">Calibrated Risk Legend: High (&gt;50) • Med (26-50) • Low (&le;25)</div>
+        </div>
         <div class="metric-grid-tile">
           <div class="metric-tile-title">Delay Probability</div>
           <div class="metric-tile-val" id="drawer-delay-prob" style="color: var(--risk-high);">74.5%</div>
@@ -2498,8 +2506,10 @@
           subtitle.textContent = `${p.district ? p.district + ', ' : ''}${p.state || 'India'} • Lat: ${p.latitude != null ? p.latitude.toFixed(4) : 'N/A'}, Lon: ${p.longitude != null ? p.longitude.toFixed(4) : 'N/A'}`;
         }
         if (tierBadge) {
-          tierBadge.className = `badge-tier badge-tier-${p.risk_tier || 'High'}`;
-          tierBadge.textContent = `${p.risk_tier || 'High'} Risk`;
+          const tier = getProjectRiskTier(p);
+          const tierRange = tier === 'High' ? '>50' : (tier === 'Medium' ? '26-50' : '≤25');
+          tierBadge.className = `badge-tier badge-tier-${tier}`;
+          tierBadge.textContent = `${tier} Risk (${tierRange})`;
         }
 
         const lat = p.latitude != null ? p.latitude : 28.6139;
@@ -2800,11 +2810,15 @@
             ${sameLocBadge}
             
             <div style="display: flex; gap: 6px; margin: 8px 0; align-items: center;">
-              <span class="badge-tier badge-tier-${p.risk_tier}">${p.risk_tier} Risk</span>
+              <span class="badge-tier badge-tier-${p.risk_tier}">${p.risk_tier} Risk (${p.risk_tier === 'High' ? '>50' : (p.risk_tier === 'Medium' ? '26-50' : '≤25')})</span>
               <span style="font-size: 11px; font-family: var(--font-family-mono); background: var(--color-frost); padding: 2px 6px; border-radius: 4px;">${escapeHtml(p.project_type)}</span>
             </div>
 
             <div style="display: flex; justify-content: space-between; font-size: 11px; border-top: 1px solid var(--color-border-subtle); padding-top: 6px; margin-bottom: 6px;">
+              <span style="color: var(--color-ash);">Risk Score (CRS):</span>
+              <strong style="color: ${color}; font-family: var(--font-family-mono); font-weight: 700;">${p.composite_risk_score} <span style="font-size: 10px; font-weight: normal; color: var(--color-ash);">/ 100</span></strong>
+            </div>
+            <div style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 6px;">
               <span style="color: var(--color-ash);">Delay Probability:</span>
               <strong style="color: var(--color-carbon); font-family: var(--font-family-mono);">${p.delay_probability}%</strong>
             </div>
@@ -2862,12 +2876,23 @@
       const sec11 = p.section_11_notification_days || 30;
       const lapseClass = sec11 > 365 ? 'badge-tier-High' : (sec11 >= 270 ? 'badge-tier-Medium' : 'badge-tier-Low');
       const lapseText = sec11 > 365 ? 'Statutorily Lapsed' : (sec11 >= 270 ? 'Pre-Lapse Urgent' : 'Compliant');
+      const tier = getProjectRiskTier(p);
+      const color = getProjectRiskColor(p);
+      const tierRange = tier === 'High' ? '>50' : (tier === 'Medium' ? '26-50' : '≤25');
       const content = document.getElementById('quick-card-content');
       content.innerHTML = `
         <div style="font-weight: 600; color: var(--color-carbon); margin-bottom: 4px;">${escapeHtml(p.project_name)}</div>
         <div style="font-size: 11px; color: var(--color-ash); margin-bottom: 6px;">${escapeHtml(p.district || '')}, ${escapeHtml(p.state)}</div>
+        <div style="display: flex; gap: 6px; margin-bottom: 6px; align-items: center;">
+          <span class="badge-tier badge-tier-${tier}">${tier} Risk (${tierRange})</span>
+          <span style="font-size: 11px; font-family: var(--font-family-mono); background: var(--color-frost); padding: 2px 6px; border-radius: 4px;">${escapeHtml(p.project_type || 'Infrastructure')}</span>
+        </div>
         <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px;">
-          <span>Delay Probability:</span>
+          <span style="color: var(--color-ash);">Risk Score (CRS):</span>
+          <strong style="color: ${color}; font-family: var(--font-family-mono); font-weight: 700;">${p.composite_risk_score != null ? p.composite_risk_score : '--'} <span style="font-size: 10px; font-weight: normal; color: var(--color-ash);">/ 100</span></strong>
+        </div>
+        <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px;">
+          <span style="color: var(--color-ash);">Delay Probability:</span>
           <strong>${p.delay_probability}%</strong>
         </div>
         <div style="display: flex; justify-content: space-between; align-items: center; font-size: 11px; margin-bottom: 8px;">
@@ -3224,12 +3249,32 @@
         }
       }
 
+      const tier = getProjectRiskTier(p);
+      const tierRange = tier === 'High' ? '>50' : (tier === 'Medium' ? '26-50' : '≤25');
+      const tierColor = getProjectRiskColor(p);
+      const crsVal = p.composite_risk_score != null ? p.composite_risk_score : 50.0;
+
       document.getElementById('drawer-project-name').textContent = p.project_name || p.project_id;
-      document.getElementById('drawer-tier-badge').className = `badge-tier badge-tier-${p.risk_tier || 'High'}`;
-      document.getElementById('drawer-tier-badge').textContent = `${p.risk_tier || 'High'} Risk`;
+      document.getElementById('drawer-tier-badge').className = `badge-tier badge-tier-${tier}`;
+      document.getElementById('drawer-tier-badge').textContent = `${tier} Risk (${tierRange})`;
       document.getElementById('drawer-type-badge').textContent = (p.project_type || 'Highway').replace(/_/g, ' ');
       document.getElementById('drawer-status-badge').textContent = p.status || 'Notified';
       document.getElementById('drawer-id-badge').textContent = p.project_id;
+
+      const crsEl = document.getElementById('drawer-crs');
+      if (crsEl) {
+        crsEl.innerHTML = `${crsVal} <span style="font-size: 13px; font-weight: 400; color: var(--color-ash);">/ 100</span>`;
+        crsEl.style.color = tierColor;
+      }
+      const crsTierEl = document.getElementById('drawer-crs-tier');
+      if (crsTierEl) {
+        crsTierEl.className = `badge-tier badge-tier-${tier}`;
+        crsTierEl.textContent = `${tier} Risk (${tierRange})`;
+      }
+      const crsRangeEl = document.getElementById('drawer-crs-range');
+      if (crsRangeEl) {
+        crsRangeEl.textContent = `Calibrated Risk Legend: ${tier} Risk (${tierRange}) • Reference Dataset`;
+      }
 
       const probVal = parseFloat(p.delay_probability != null ? p.delay_probability : 65);
       const probEl = document.getElementById('drawer-delay-prob');
@@ -3458,6 +3503,7 @@
       // Clear district selection when state is changed
       populateDistrictField(state, '');
     }
+    window.handlePredictorStateChange = handlePredictorStateChange;
 
     function setPredictorStateAndDistrict(state, district) {
       const stateEl = document.getElementById('inp-state');
@@ -3466,6 +3512,8 @@
       }
       populateDistrictField(state, district || '');
     }
+    window.setPredictorStateAndDistrict = setPredictorStateAndDistrict;
+    window.populateDistrictField = populateDistrictField;
 
     function populateDistrictField(state, preselectedDistrict) {
       const wrapper = document.getElementById('district-field-wrapper');
@@ -3702,11 +3750,16 @@
 
     function renderPredictionResults(data) {
       const pred = data.predictions || {};
-      const tier = pred.calibrated_risk_tier || 'Medium';
+      const crsVal = parseFloat(pred.crs != null ? pred.crs : 0);
+      let tier = pred.calibrated_risk_tier;
+      if (!tier || tier === 'Critical') {
+        tier = crsVal > 50.0 ? 'High' : (crsVal > 25.0 ? 'Medium' : 'Low');
+      }
+      const tierRange = tier === 'High' ? '>50' : (tier === 'Medium' ? '26-50' : '≤25');
 
       const tierBadge = document.getElementById('output-badge-tier');
       tierBadge.className = `badge-tier badge-tier-${tier}`;
-      tierBadge.textContent = `${tier} Risk`;
+      tierBadge.textContent = `${tier} Risk (${tierRange})`;
 
       // 1. Delay Probability & Confidence Score
       const probVal = parseFloat(pred.delay_probability != null ? pred.delay_probability : 0);
@@ -3728,7 +3781,6 @@
       }
 
       // 2. Composite Risk Score (CRS) & Error Margin
-      const crsVal = parseFloat(pred.crs != null ? pred.crs : 0);
       document.getElementById('out-crs').innerHTML = `${crsVal.toFixed(1)} <span style="font-size: 14px; font-weight: 400; color: var(--color-ash);">/ 100</span>`;
       const crsCiEl = document.getElementById('out-crs-ci');
       if (crsCiEl) {
@@ -4376,23 +4428,23 @@
           <div style="min-width: 250px; font-family: var(--font-family-sans);">
             <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 5px;">
               <span style="font-size: 10px; font-weight: 700; color: var(--color-apple-blue); text-transform: uppercase; letter-spacing: 0.5px; background: rgba(0,113,227,0.1); padding: 2px 6px; border-radius: 4px;">♦ Your Saved Analysis</span>
-              <span class="badge-tier badge-tier-${a.risk_tier}">${a.risk_tier} Risk</span>
+              <span class="badge-tier badge-tier-${a.risk_tier}">${a.risk_tier} Risk (${a.risk_tier === 'High' ? '>50' : (a.risk_tier === 'Medium' ? '26-50' : '≤25')})</span>
             </div>
             <div style="font-weight: 700; font-size: 14px; color: var(--color-carbon); line-height: 1.3; margin-top: 4px;">${escapeHtml(a.project_name)}</div>
             <div style="font-size: 11px; color: var(--color-ash); margin-top: 2px;">${escapeHtml(a.district || 'District')}, ${escapeHtml(a.state)} (${escapeHtml(a.project_type || 'Infrastructure')})</div>
 
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin: 10px 0 8px 0; background: var(--color-frost); padding: 8px; border-radius: 6px; border: 1px solid var(--color-border-subtle);">
               <div>
+                <div style="font-size: 10px; color: var(--color-ash);">Risk Score (CRS)</div>
+                <strong style="font-size: 13px; color: ${color}; font-family: var(--font-family-mono); font-weight: 700;">${a.composite_risk_score} <span style="font-size: 10px; font-weight: normal; color: var(--color-ash);">/ 100</span></strong>
+              </div>
+              <div>
                 <div style="font-size: 10px; color: var(--color-ash);">Delay Probability</div>
-                <strong style="font-size: 13px; color: ${color}; font-family: var(--font-family-mono);">${a.delay_probability}%</strong>
+                <strong style="font-size: 13px; color: var(--color-carbon); font-family: var(--font-family-mono);">${a.delay_probability}%</strong>
               </div>
               <div>
                 <div style="font-size: 10px; color: var(--color-ash);">Predicted Delay</div>
                 <strong style="font-size: 13px; color: var(--color-carbon); font-family: var(--font-family-mono);">${a.predicted_delay_days}d</strong>
-              </div>
-              <div>
-                <div style="font-size: 10px; color: var(--color-ash);">Risk Score (CRS)</div>
-                <strong style="font-size: 13px; color: var(--color-carbon); font-family: var(--font-family-mono);">${a.composite_risk_score}</strong>
               </div>
               <div>
                 <div style="font-size: 10px; color: var(--color-ash);">Saved Date</div>
@@ -4501,7 +4553,7 @@
                 <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                   <span style="display: inline-flex; width: 10px; height: 10px; background: ${color}; transform: rotate(45deg); border-radius: 1.5px;"></span>
                   <h4 style="font-size: 15px; font-weight: 700; color: var(--color-carbon); margin: 0;">${escapeHtml(a.project_name)}</h4>
-                  <span class="badge-tier badge-tier-${a.risk_tier}" style="font-size: 10px; padding: 2px 7px;">${a.risk_tier} Risk</span>
+                  <span class="badge-tier badge-tier-${a.risk_tier}" style="font-size: 10px; padding: 2px 7px;">${a.risk_tier} Risk (${a.risk_tier === 'High' ? '&gt;50' : (a.risk_tier === 'Medium' ? '26-50' : '&le;25')})</span>
                   <span style="font-size: 11px; font-family: var(--font-family-mono); background: var(--color-frost); color: var(--color-ash); padding: 1px 6px; border-radius: 4px;">${escapeHtml(a.project_type || 'Infrastructure')}</span>
                 </div>
                 <div style="font-size: 12px; color: var(--color-ash); margin-top: 4px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
@@ -4623,8 +4675,9 @@
       const tierEl = document.getElementById('save-modal-tier');
       if (tierEl && window.currentPredictionData && window.currentPredictionData.predictions) {
         const tier = window.currentPredictionData.predictions.calibrated_risk_tier || 'Medium';
+        const tierRange = tier === 'High' ? '>50' : (tier === 'Medium' ? '26-50' : '≤25');
         tierEl.className = `badge-tier badge-tier-${tier}`;
-        tierEl.textContent = `${tier} Risk`;
+        tierEl.textContent = `${tier} Risk (${tierRange})`;
       }
 
       const modal = document.getElementById('save-analysis-modal');

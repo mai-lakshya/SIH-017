@@ -149,7 +149,7 @@ class RiskAnalysisSystem:
                 delay_prob = float(np.clip(delay_prob + (delta_sia * 0.22) + (delta_fc * 0.18), 0.05, 0.98))
                 crs = float(np.clip(crs + (delta_sia * 24.0) + (delta_fc * 20.0), 5.0, 98.0))
             
-            risk_tier = "Critical" if crs > 75 else "High" if crs > 50 else "Medium" if crs > 25 else "Low"
+            risk_tier = "High" if crs > 50.0 else ("Medium" if crs > 25.0 else "Low")
         except Exception as e:
             raise ValueError(f"Error during hybrid model prediction: {e}")
 

@@ -171,17 +171,17 @@
       <div>
         <label class="block text-[11px] font-mono font-semibold uppercase tracking-wider text-[#94A3B8] mb-1.5">Risk Level</label>
         <div class="grid grid-cols-3 gap-2" id="risk-chips">
-          <button id="chip-low" class="h-8 border border-[#10b981] bg-[#10b981]/15 text-[#10b981] flex items-center justify-center gap-1.5 text-xs font-mono font-semibold transition-colors cursor-pointer">
+          <button id="chip-low" class="h-8 border border-[#10b981] bg-[#10b981]/15 text-[#10b981] flex items-center justify-center gap-1.5 text-[11px] font-mono font-semibold transition-colors cursor-pointer">
             <span class="w-2 h-2 rounded-full bg-[#10b981]"></span>
-            <span>Low</span>
+            <span>Low (&le;25)</span>
           </button>
-          <button id="chip-med" class="h-8 border border-[#f59e0b] bg-[#f59e0b]/15 text-[#f59e0b] flex items-center justify-center gap-1.5 text-xs font-mono font-semibold transition-colors cursor-pointer">
+          <button id="chip-med" class="h-8 border border-[#f59e0b] bg-[#f59e0b]/15 text-[#f59e0b] flex items-center justify-center gap-1.5 text-[11px] font-mono font-semibold transition-colors cursor-pointer">
             <span class="w-2 h-2 rounded-full bg-[#f59e0b]"></span>
-            <span>Medium</span>
+            <span>Med (26-50)</span>
           </button>
-          <button id="chip-high" class="h-8 border border-[#ef4444] bg-[#ef4444]/15 text-[#ef4444] flex items-center justify-center gap-1.5 text-xs font-mono font-semibold transition-colors cursor-pointer">
+          <button id="chip-high" class="h-8 border border-[#ef4444] bg-[#ef4444]/15 text-[#ef4444] flex items-center justify-center gap-1.5 text-[11px] font-mono font-semibold transition-colors cursor-pointer">
             <span class="w-2 h-2 rounded-full bg-[#ef4444]"></span>
-            <span>High</span>
+            <span>High (&gt;50)</span>
           </button>
         </div>
       </div>
@@ -262,15 +262,15 @@
       <div id="legend-markers" class="flex flex-col gap-2">
         <div class="flex items-center gap-2.5 text-xs font-mono">
           <span class="w-2.5 h-2.5 rounded-full bg-[#10b981]"></span>
-          <span class="text-white font-medium">Low Risk</span>
+          <span class="text-white font-medium">Low (&le;25)</span>
         </div>
         <div class="flex items-center gap-2.5 text-xs font-mono">
           <span class="w-2.5 h-2.5 rounded-full bg-[#f59e0b]"></span>
-          <span class="text-white font-medium">Medium Risk</span>
+          <span class="text-white font-medium">Med (26-50)</span>
         </div>
         <div class="flex items-center gap-2.5 text-xs font-mono">
           <span class="w-2.5 h-2.5 rounded-full bg-[#ef4444]"></span>
-          <span class="text-white font-medium">High Risk</span>
+          <span class="text-white font-medium">High (&gt;50)</span>
         </div>
       </div>
 
@@ -480,10 +480,15 @@
               <div class="text-[11px] text-[#94A3B8] mt-0.5">${escapeHtml(p.district || 'Unknown')}, ${escapeHtml(p.state)}</div>
             </div>
             <div class="flex items-center gap-1.5 flex-wrap">
+              <span class="px-1.5 py-0.5 text-[10px] font-mono font-semibold" style="background: ${color}20; color: ${color}; border: 1px solid ${color}40;">${p.risk_tier} Risk (${p.risk_tier === 'High' ? '&gt;50' : (p.risk_tier === 'Medium' ? '26-50' : '&le;25')})</span>
               <span class="px-1.5 py-0.5 text-[10px] font-mono bg-[#1E293B] text-brand-cyan border border-[#252d3a]">${escapeHtml(p.project_type)}</span>
               <span class="px-1.5 py-0.5 text-[10px] font-mono bg-[#1E293B] text-white border border-[#252d3a]">${escapeHtml(p.status)}</span>
             </div>
             <div class="border-t border-[#1E293B] pt-2 space-y-1 text-xs font-mono">
+              <div class="flex justify-between items-center">
+                <span class="text-[#94A3B8]">Risk Score (CRS):</span>
+                <span class="font-bold" style="color: ${color};">${p.composite_risk_score} / 100</span>
+              </div>
               <div class="flex justify-between items-center">
                 <span class="text-[#94A3B8]">Delay Probability:</span>
                 <span class="font-bold text-white">${p.delay_probability}%</span>

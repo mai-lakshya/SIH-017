@@ -721,31 +721,6 @@ def get_or_load_geo_cache(max_projects: Optional[int] = None, force_refresh: boo
         total_rows = len(df)
         logging.info("Vectorizing complete dataset (%d projects) for /projects/geo from %s...", total_rows, csv_path)
 
-        # High-fidelity batch inference on the benchmark set (first 200 projects)
-        batch_df = df.head(200).copy()
-        for col in ['C_r', 'F_r', 'H_r', 'W_r', 'P_r']:
-            if col not in batch_df.columns:
-                batch_df[col] = 0.5
-            else:
-                batch_df[col] = batch_df[col].fillna(0.5)
-        if 'section_11_notification_days' in batch_df.columns:
-            feat_df = batch_df.drop(columns=['section_11_notification_days'])
-        else:
-            feat_df = batch_df
-
-        try:
-            X_proc = system.pipeline.transform(feat_df)
-            preds = system.hybrid_model.predict(X_proc, blend_monotonicity=True)
-            try:
-                median_times = system.timeline_predictor.get_dynamic_risk_threshold(X_proc)
-            except Exception as te:
-                logging.warning("Batch timeline prediction fallback: %s", te)
-                median_times = [180.0] * len(batch_df)
-        except Exception as e:
-            logging.error("Batch inference failed: %s", e)
-            preds = None
-            median_times = [180.0] * len(batch_df)
-
         records = df.to_dict('records')
         results = []
         details_by_id = {}
@@ -773,23 +748,16 @@ def get_or_load_geo_cache(max_projects: Optional[int] = None, force_refresh: boo
             status = derive_project_status(raw_dict)
             lat, lon = derive_coordinates(raw_dict, proj_id, state, district, intra_idx)
 
-            if preds is not None and idx < len(batch_df):
-                prob_val = float(preds['delay_probability'][idx])
-                crs_val = float(preds['crs'][idx])
-                delay_days_val = float(preds['delay_days'][idx])
-                crs_rounded = round(crs_val, 1)
-                tier_val = "High" if crs_rounded > 50.0 else ("Medium" if crs_rounded > 25.0 else "Low")
-                med_surv = int(round(float(median_times[idx])))
-            else:
-                raw_crs = raw_dict.get('CRS')
-                crs_val = float(raw_crs) if raw_crs is not None and not pd.isna(raw_crs) else 50.0
-                crs_rounded = round(crs_val, 1)
-                # Directly calibrate risk tier from CRS to match map legend:
-                # Low: <= 25.0, Medium: 25.0-50.0, High: > 50.0
-                tier_val = "High" if crs_rounded > 50.0 else ("Medium" if crs_rounded > 25.0 else "Low")
-                prob_val = 1.0 / (1.0 + math.exp(-0.06 * (crs_val - 48.0)))
-                delay_days_val = max(0.0, crs_val * 2.8 - 30.0)
-                med_surv = max(60, int(round(180 + (crs_val - 50) * 1.5)))
+            raw_crs = raw_dict.get('CRS')
+            crs_val = float(raw_crs) if raw_crs is not None and not pd.isna(raw_crs) else 50.0
+            crs_rounded = round(crs_val, 1)
+
+            # Strictly calibrated on the Risk Legend:
+            # Low: <= 25.0, Med: 26-50 (25.0 < CRS <= 50.0), High: > 50.0
+            tier_val = "High" if crs_rounded > 50.0 else ("Medium" if crs_rounded > 25.0 else "Low")
+            prob_val = 1.0 / (1.0 + math.exp(-0.06 * (crs_rounded - 48.0)))
+            delay_days_val = max(0.0, crs_rounded * 2.8 - 30.0)
+            med_surv = max(60, int(round(180 + (crs_rounded - 50) * 1.5)))
 
             delay_prob = round(prob_val * 100, 1)
             predicted_delay_days = int(round(delay_days_val))
@@ -1015,6 +983,9 @@ async def _execute_prediction_pipeline(payload: ProjectPayload) -> dict:
         conf_score = round(max(prob_val, 100.0 - prob_val), 1)
         conf_label = "High Certainty" if conf_score >= 80 else ("Moderate Certainty" if conf_score >= 65 else "Low Certainty")
 
+        crs_val = round(float(result['predictions'].get('crs', 0.0)), 1)
+        calibrated_tier = "High" if crs_val > 50.0 else ("Medium" if crs_val > 25.0 else "Low")
+
         # Map to Frontend Schema
         frontend_response = {
             "project_id": payload.project_id,
@@ -1022,7 +993,7 @@ async def _execute_prediction_pipeline(payload: ProjectPayload) -> dict:
                 "delay_probability": prob_val,
                 "confidence_score": conf_score,
                 "confidence_label": conf_label,
-                "calibrated_risk_tier": result['predictions']['calibrated_risk_tier'],
+                "calibrated_risk_tier": calibrated_tier,
                 "predicted_delay_days": pred_days_val,
                 "delay_human_readable": delay_human,
                 "delay_months": months_val,
@@ -1032,7 +1003,7 @@ async def _execute_prediction_pipeline(payload: ProjectPayload) -> dict:
                 "error_margin_crs_mae": 0.047,
                 "error_margin_crs_conformal": 0.097,
                 "median_survival_days": int(result['timeline']['median_survival_days']),
-                "crs": round(float(result['predictions'].get('crs', 0.0)), 1),
+                "crs": crs_val,
                 "days_p10": round(float(result['predictions'].get('days_p10', pred_days_val - 65)), 1),
                 "days_p90": round(float(result['predictions'].get('days_p90', pred_days_val + 65)), 1),
                 "crs_p10": round(float(result['predictions'].get('crs_p10', result['predictions']['crs'] - 0.1)), 1),
