@@ -1535,20 +1535,29 @@
     <section id="view-xai" class="tab-view hidden">
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
         
-        <!-- Left: TreeSHAP Feature Attribution Waterfall -->
+        <!-- Left: TreeSHAP Feature Attribution Waterfall (Plain Language Default, Technical Details Behind Toggle) -->
         <div class="apple-card">
           <div class="card-header-clean">
             <div>
-              <h3 class="card-title-clean">TreeSHAP Feature Drivers</h3>
-              <p class="card-subtitle-clean">Signed local feature contributions to delay probability</p>
+              <h3 class="card-title-clean" id="shap-card-title">Why This Risk Score</h3>
+              <p class="card-subtitle-clean" id="shap-card-subtitle">The factors pushing this project's risk up or down</p>
             </div>
-            <span class="btn-apple-subtle" style="font-size: 11px;">Additive Fidelity 95.3%</span>
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <span id="shap-fidelity-badge" class="btn-apple-subtle hidden" style="font-size: 11px;">Additive Fidelity 95.3%</span>
+              <button id="shap-tech-toggle" onclick="toggleShapTechnicalMode()" style="background: none; border: none; font-size: 11px; color: var(--color-link-blue); cursor: pointer; text-decoration: underline; padding: 0;">
+                Show Technical Details
+              </button>
+            </div>
           </div>
-          <div style="height: 380px; position: relative;">
+          <!-- Task 2: Project-Specific Dynamic Plain-English Summary -->
+          <div id="shap-dynamic-summary" style="margin-bottom: 14px; padding: 10px 14px; background: var(--color-ice); border-left: 3px solid var(--color-apple-blue); border-radius: var(--radius-tags); font-size: 13px; color: var(--color-carbon); line-height: 1.45;">
+            <!-- Auto-generated summary sentence populated by renderShapChart -->
+          </div>
+          <div style="height: 350px; position: relative;">
             <canvas id="shapChart"></canvas>
           </div>
-          <div style="margin-top: 16px; font-size: 12px; color: var(--color-ash); line-height: 1.5;">
-            <strong style="color: var(--color-carbon);">Fidelity Interpretation:</strong> Bars extending to the right (red) indicate features accelerating delay risk. Bars to the left (green) indicate protective factors cushioning schedule drift.
+          <div style="margin-top: 16px; font-size: 12px; color: var(--color-ash); line-height: 1.5;" id="shap-caption">
+            <strong style="color: var(--color-carbon);" id="shap-caption-label">How to read this:</strong> <span id="shap-caption-text">Red bars are making this project riskier. Green bars are working in its favor. Longer bars matter more.</span>
           </div>
         </div>
 
@@ -3844,6 +3853,8 @@
 
       // Store in global for XAI charts & mitigations
       window.currentPredictionData = data;
+      renderShapChart();
+      renderSurvivalChart();
     }
 
     function renderMilestonesBreakdown(milestones) {
@@ -3900,6 +3911,61 @@
     // =========================================================================
     // CHARTS: TreeSHAP, RSF Survival, Calibration, Drift
     // =========================================================================
+    window.shapTechnicalMode = false;
+
+    function toggleShapTechnicalMode() {
+      window.shapTechnicalMode = !window.shapTechnicalMode;
+      const toggleBtn = document.getElementById('shap-tech-toggle');
+      const badge = document.getElementById('shap-fidelity-badge');
+      const title = document.getElementById('shap-card-title');
+      const subtitle = document.getElementById('shap-card-subtitle');
+      const captionLabel = document.getElementById('shap-caption-label');
+      const captionText = document.getElementById('shap-caption-text');
+
+      if (window.shapTechnicalMode) {
+        if (toggleBtn) toggleBtn.textContent = 'Hide Technical Details';
+        if (badge) badge.classList.remove('hidden');
+        if (title) title.textContent = 'TreeSHAP Feature Drivers';
+        if (subtitle) subtitle.textContent = 'Signed local feature contributions to delay probability';
+        if (captionLabel) captionLabel.textContent = 'Fidelity Interpretation:';
+        if (captionText) captionText.textContent = 'Bars extending to the right (red) indicate features accelerating delay risk. Bars to the left (green) indicate protective factors cushioning schedule drift. Raw TreeSHAP decimal contributions shown in tooltips.';
+      } else {
+        if (toggleBtn) toggleBtn.textContent = 'Show Technical Details';
+        if (badge) badge.classList.add('hidden');
+        if (title) title.textContent = 'Why This Risk Score';
+        if (subtitle) subtitle.textContent = "The factors pushing this project's risk up or down";
+        if (captionLabel) captionLabel.textContent = 'How to read this:';
+        if (captionText) captionText.textContent = 'Red bars are making this project riskier. Green bars are working in its favor. Longer bars matter more.';
+      }
+
+      renderShapChart();
+    }
+
+    function generateShapDynamicSummary(parsedDrivers) {
+      const summaryEl = document.getElementById('shap-dynamic-summary');
+      if (!summaryEl) return;
+
+      const positive = parsedDrivers.filter(d => d.val > 0).sort((a, b) => b.val - a.val);
+      const negative = parsedDrivers.filter(d => d.val < 0).sort((a, b) => a.val - b.val);
+
+      const SIGNIFICANCE_THRESHOLD = 0.02; // ~2 risk points
+      const topPos = positive.length > 0 && positive[0].val >= SIGNIFICANCE_THRESHOLD ? positive[0] : null;
+      const topNeg = negative.length > 0 && Math.abs(negative[0].val) >= SIGNIFICANCE_THRESHOLD ? negative[0] : null;
+
+      let summaryText = "";
+      if (!topPos && !topNeg) {
+        summaryText = "This project's risk factors are fairly balanced, with no single dominant driver.";
+      } else if (topPos && topNeg) {
+        summaryText = `This project's risk is being driven mainly by <strong>${escapeHtml(topPos.name)}</strong>. Its <strong>${escapeHtml(topNeg.name)}</strong> is currently working in its favor.`;
+      } else if (topPos && !topNeg) {
+        summaryText = `This project's risk is being driven mainly by <strong>${escapeHtml(topPos.name)}</strong>, with no significant protective factors currently identified.`;
+      } else if (!topPos && topNeg) {
+        summaryText = `This project currently shows no major risk-driving factors. <strong>${escapeHtml(topNeg.name)}</strong> is the strongest protective factor.`;
+      }
+
+      summaryEl.innerHTML = `<span style="font-weight: 600; color: var(--color-apple-blue); margin-right: 6px;">Executive Summary:</span> ${summaryText}`;
+    }
+
     function renderShapChart() {
       const ctx = document.getElementById('shapChart')?.getContext('2d');
       if (!ctx) return;
@@ -3916,12 +3982,23 @@
         { feature_label: 'Historical State Promptness (H_r)', shap_impact: -0.07 }
       ];
 
-      const labels = drivers.map(d => d.feature_label || d.feature || '');
-      const values = drivers.map(d => {
-        if (d.shap_impact !== undefined) return parseFloat(d.shap_impact);
-        const score = parseFloat(d.impact_score || 0);
-        return d.direction === 'decreases_delay' ? -score : score;
+      const parsedDrivers = drivers.map(d => {
+        let val;
+        if (d.shap_impact !== undefined) {
+          val = parseFloat(d.shap_impact);
+        } else {
+          const score = parseFloat(d.impact_score || 0);
+          val = d.direction === 'decreases_delay' ? -score : score;
+        }
+        const name = d.feature_label || d.feature || 'Unknown Factor';
+        return { name, val };
       });
+
+      // Generate dynamic plain-English summary above chart
+      generateShapDynamicSummary(parsedDrivers);
+
+      const labels = parsedDrivers.map(d => d.name);
+      const values = parsedDrivers.map(d => d.val);
       const backgroundColors = values.map(v => v >= 0 ? 'rgba(239, 68, 68, 0.85)' : 'rgba(16, 185, 129, 0.85)');
 
       shapChart = new Chart(ctx, {
@@ -3942,14 +4019,34 @@
             legend: { display: false },
             tooltip: {
               callbacks: {
-                label: (c) => `SHAP Impact: ${c.raw > 0 ? '+' : ''}${c.raw.toFixed(4)}`
+                label: (c) => {
+                  if (window.shapTechnicalMode) {
+                    return `SHAP Impact: ${c.raw > 0 ? '+' : ''}${c.raw.toFixed(4)}`;
+                  }
+                  const pts = Math.round(Math.abs(c.raw) * 100);
+                  if (pts === 0) return `${c.label}: Changes risk by < 1 point`;
+                  return c.raw >= 0 ? `Increases risk by ~${pts} points` : `Reduces risk by ~${pts} points`;
+                }
               }
             }
           },
           scales: {
             x: {
               grid: { color: '#e5e5ea' },
-              ticks: { font: { family: 'Inter', size: 11 } }
+              title: {
+                display: true,
+                text: window.shapTechnicalMode ? 'SHAP Contribution Value (Decimal)' : 'Impact on Risk Score (~Points)',
+                font: { family: 'Inter', size: 11, weight: '500' },
+                color: '#64748b'
+              },
+              ticks: {
+                font: { family: 'Inter', size: 11 },
+                callback: (val) => {
+                  if (window.shapTechnicalMode) return val.toFixed(2);
+                  const pts = Math.round(val * 100);
+                  return pts > 0 ? `+${pts}` : `${pts}`;
+                }
+              }
             },
             y: {
               grid: { display: false },
