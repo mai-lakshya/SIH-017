@@ -1392,31 +1392,31 @@
           <div id="ai-delay-explanation-section" style="border-top: 1px solid var(--color-border-subtle); padding-top: 16px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
               <div style="display: flex; align-items: center; gap: 8px;">
-                <span style="display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 6px; background: rgba(0,113,227,0.1); color: var(--color-apple-blue);">
+                <span style="display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 6px; background: transparent; color: var(--color-apple-blue); border: 1px solid var(--color-border-subtle);">
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 1 0 10 10H12V2z"></path><path d="M12 12 2.1 7.1"></path><path d="M12 12v10"></path></svg>
                 </span>
                 <h4 style="font-size: 14px; font-weight: 700; color: var(--color-carbon); margin: 0;">AI Delay Causation Diagnostics</h4>
               </div>
-              <span id="ai-delay-status-badge" class="badge-tier badge-tier-Medium" style="font-size: 10px; padding: 2px 8px; border-radius: 980px;">
+              <span id="ai-delay-status-badge" style="font-size: 11px; font-weight: 500; padding: 2px 10px; border-radius: 980px; background: transparent; color: var(--color-carbon); border: 1px solid var(--color-border-subtle);">
                 Statutory RFCTLARR &amp; ML Causation
               </span>
             </div>
 
             <!-- Dynamic AI Narrative Container -->
-            <div id="ai-delay-explanation-content" style="background: var(--color-frost); border: 1px solid var(--color-border-subtle); border-radius: var(--radius-cards); padding: 14px 16px; margin-bottom: 12px; transition: all 0.25s ease;">
+            <div id="ai-delay-explanation-content" style="background: transparent; border: 1px solid var(--color-border-subtle); border-radius: var(--radius-cards); padding: 16px 18px; margin-bottom: 12px;">
               <!-- Executive Narrative Paragraphs -->
-              <div id="ai-delay-narrative-text" style="font-size: 12.5px; color: var(--color-smoke); line-height: 1.6; margin-bottom: 12px;">
+              <div id="ai-delay-narrative-text" style="font-size: 13.5px; color: var(--color-carbon); line-height: 1.65; margin-bottom: 14px;">
                 Analyzing project statutory milestones, land acquisition clearance logs, and predictive risk drivers...
               </div>
 
               <!-- Causal Factor Decomposition Grid -->
-              <div id="ai-delay-causal-grid" style="display: grid; grid-template-columns: 1fr; gap: 8px; margin-bottom: 10px;">
+              <div id="ai-delay-causal-grid" style="display: grid; grid-template-columns: 1fr; gap: 8px; margin-bottom: 12px;">
                 <!-- Dynamically populated causal pills -->
               </div>
 
               <!-- Statutory Hazard Footnote -->
-              <div id="ai-delay-statutory-note" style="font-size: 11px; color: var(--color-ash); border-top: 1px solid var(--color-border-subtle); padding-top: 8px; display: flex; align-items: baseline; gap: 6px;">
-                <strong style="color: var(--color-carbon); font-family: var(--font-family-mono);">Governing Framework:</strong>
+              <div id="ai-delay-statutory-note" style="font-size: 12px; color: var(--color-ash); border-top: 1px solid var(--color-border-subtle); padding-top: 10px; display: flex; align-items: baseline; gap: 6px;">
+                <strong style="color: var(--color-carbon);">Governing Framework:</strong>
                 <span id="ai-delay-statutory-act">RFCTLARR Act 2013 &amp; Forest Conservation Act 1980</span>
               </div>
             </div>
@@ -3793,45 +3793,30 @@
       const crsVal = parseFloat(pred.crs != null ? pred.crs : (exp.schedule_impact?.composite_risk_score || 0));
       const tier = pred.calibrated_risk_tier || exp.schedule_impact?.risk_tier || (crsVal > 50 ? 'High' : (crsVal > 25 ? 'Medium' : 'Low'));
 
-      // 1. Status Badge
+      // 1. Status Badge - clean, simple, readable
       if (badgeEl) {
         const primary = exp.primary_bottleneck || '';
         let badgeText = `${tier} Delay Risk`;
-        let badgeClass = 'badge-tier-Medium';
-
         if (primary.includes('Lapse') || (exp.contributing_factors || []).some(f => f.severity === 'Critical')) {
           badgeText = 'Critical Statutory Hazard';
-          badgeClass = 'badge-tier-High';
         } else if (tier === 'High') {
           badgeText = 'High Delay Causation';
-          badgeClass = 'badge-tier-High';
         } else if (tier === 'Low') {
           badgeText = 'Compliant / Low Delay';
-          badgeClass = 'badge-tier-Low';
         }
-        badgeEl.className = `badge-tier ${badgeClass}`;
+        badgeEl.className = '';
+        badgeEl.style.cssText = 'font-size: 11px; font-weight: 500; padding: 2px 10px; border-radius: 980px; background: transparent; color: var(--color-carbon); border: 1px solid var(--color-border-subtle);';
         badgeEl.textContent = badgeText;
       }
 
-      // 2. Container Border & Visual Framing
+      // 2. Container Border & Visual Framing - NO RED BORDER, NO BACKGROUND COLORS
       if (boxEl) {
-        const isCritical = (exp.contributing_factors || []).some(f => f.severity === 'Critical') || (exp.primary_bottleneck && exp.primary_bottleneck.includes('Lapse'));
-        if (isCritical) {
-          boxEl.style.borderLeft = '4px solid var(--risk-critical)';
-          boxEl.style.background = '#fff8f8';
-        } else if (tier === 'High') {
-          boxEl.style.borderLeft = '4px solid var(--risk-high)';
-          boxEl.style.background = 'var(--color-frost)';
-        } else if (tier === 'Medium') {
-          boxEl.style.borderLeft = '4px solid var(--risk-med)';
-          boxEl.style.background = 'var(--color-frost)';
-        } else {
-          boxEl.style.borderLeft = '4px solid var(--risk-low)';
-          boxEl.style.background = 'var(--color-frost)';
-        }
+        boxEl.style.border = '1px solid var(--color-border-subtle)';
+        boxEl.style.borderLeft = '1px solid var(--color-border-subtle)';
+        boxEl.style.background = 'transparent';
       }
 
-      // 3. Dynamic AI Narrative
+      // 3. Dynamic AI Narrative - Simple and Readable
       if (narrativeEl) {
         const formatMd = (txt) => {
           if (!txt) return '';
@@ -3847,13 +3832,13 @@
         let calloutHtml = '';
         if (exp.primary_bottleneck) {
           calloutHtml = `
-            <div style="margin: 10px 0; padding: 10px 14px; background: rgba(0, 113, 227, 0.05); border-left: 3px solid var(--color-apple-blue); border-radius: 6px; font-size: 11.5px; line-height: 1.5;">
+            <div style="margin: 12px 0; padding: 10px 14px; border: 1px solid var(--color-border-subtle); border-radius: 6px; font-size: 13px; line-height: 1.6; background: transparent;">
               <div style="margin-bottom: 4px;">
-                <strong style="text-transform: uppercase; font-size: 10px; letter-spacing: 0.5px; color: var(--color-apple-blue);">Critical-Path Bottleneck:</strong>
-                <span style="font-weight: 600; color: var(--color-carbon); margin-left: 4px;">${escapeHtml(exp.primary_bottleneck)}</span>
+                <strong style="color: var(--color-carbon);">Critical-Path Bottleneck:</strong>
+                <span style="color: var(--color-carbon); margin-left: 4px;">${escapeHtml(exp.primary_bottleneck)}</span>
               </div>
               <div>
-                <strong style="text-transform: uppercase; font-size: 10px; letter-spacing: 0.5px; color: var(--risk-high);">Statutory Consequence:</strong>
+                <strong style="color: var(--color-carbon);">Statutory Consequence:</strong>
                 <span style="color: var(--color-smoke); margin-left: 4px;">${escapeHtml(exp.legal_hazard || '')}</span>
               </div>
             </div>
@@ -3861,42 +3846,39 @@
         }
 
         narrativeEl.innerHTML = `
-          <div style="margin-bottom: 6px;">${introHtml}</div>
+          <div style="margin-bottom: 8px; font-size: 13.5px; line-height: 1.65; color: var(--color-carbon);">${introHtml}</div>
           ${calloutHtml}
-          <div style="margin-top: 6px; font-size: 12px; color: var(--color-smoke);">${statutoryHtml}</div>
-          <div style="margin-top: 8px; font-size: 11.5px; padding-top: 8px; border-top: 1px dashed var(--color-border-subtle); color: var(--color-carbon);">${strategyHtml}</div>
+          <div style="margin-top: 8px; font-size: 13px; line-height: 1.6; color: var(--color-smoke);">${statutoryHtml}</div>
+          <div style="margin-top: 10px; font-size: 12.5px; line-height: 1.6; padding-top: 10px; border-top: 1px dashed var(--color-border-subtle); color: var(--color-carbon);">${strategyHtml}</div>
         `;
       }
 
-      // 4. Causal Factor Decomposition Cards
+      // 4. Causal Factor Decomposition Cards - Simple, readable, no colored text or backgrounds
       if (gridEl) {
         const factors = exp.contributing_factors || [];
         if (factors.length === 0) {
           gridEl.innerHTML = `
-            <div style="font-size: 11.5px; color: var(--color-ash); font-style: italic; padding: 6px 0;">
+            <div style="font-size: 12px; color: var(--color-ash); font-style: italic; padding: 6px 0;">
               No critical delay bottlenecks detected. Clearance schedule is operating on track.
             </div>
           `;
         } else {
           gridEl.innerHTML = factors.map(f => {
-            const isCrit = f.severity === 'Critical';
-            const isHigh = f.severity === 'High';
-            const badgeClass = isCrit || isHigh ? 'badge-tier-High' : (f.severity === 'Medium' ? 'badge-tier-Medium' : 'badge-tier-Low');
-            const impactColor = isCrit ? 'var(--risk-critical)' : (isHigh ? 'var(--risk-high)' : (f.severity === 'Medium' ? 'var(--risk-med)' : 'var(--risk-low)'));
-
             return `
-              <div style="background: #ffffff; border: 1px solid var(--color-border-subtle); border-radius: 8px; padding: 9px 12px; display: flex; justify-content: space-between; align-items: center; gap: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.02);">
+              <div style="background: transparent; border: 1px solid var(--color-border-subtle); border-radius: 6px; padding: 9px 12px; display: flex; justify-content: space-between; align-items: center; gap: 12px;">
                 <div style="flex: 1;">
                   <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 2px;">
-                    <span class="badge-tier ${badgeClass}" style="font-size: 9px; padding: 1px 6px;">${escapeHtml(f.severity || 'Risk')}</span>
-                    <strong style="font-size: 12px; color: var(--color-carbon);">${escapeHtml(f.label)}</strong>
+                    <span style="font-size: 10px; font-weight: 600; padding: 1px 6px; border-radius: 4px; border: 1px solid var(--color-border-subtle); color: var(--color-carbon); background: transparent;">
+                      ${escapeHtml(f.severity || 'Factor')}
+                    </span>
+                    <strong style="font-size: 12.5px; color: var(--color-carbon);">${escapeHtml(f.label)}</strong>
                   </div>
-                  <div style="font-size: 11px; color: var(--color-ash); font-family: var(--font-family-mono);">
+                  <div style="font-size: 11.5px; color: var(--color-ash);">
                     Observation: <span style="color: var(--color-smoke);">${escapeHtml(f.value)}</span>
                   </div>
                 </div>
                 <div style="text-align: right; flex-shrink: 0;">
-                  <span style="font-weight: 700; font-size: 12px; color: ${impactColor}; font-family: var(--font-family-mono); display: block;">
+                  <span style="font-weight: 600; font-size: 12.5px; color: var(--color-carbon); display: block;">
                     ${escapeHtml(f.impact)}
                   </span>
                 </div>
