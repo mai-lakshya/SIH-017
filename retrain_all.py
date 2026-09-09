@@ -17,12 +17,12 @@ def main():
     # Feature matrix & targets
     X = df.drop(columns=[
         'delay_binary_label', 'Actual_Delay_Days', 'CRS', 'project_index',
-        'delay_risk_tier', 'CRS_tier', 'section_11_notification_days'
+        'delay_risk_tier', 'CRS_tier', 'section_11_notification_days', 'project_id'
     ], errors='ignore')
     
-    y_binary = df['delay_binary_label'].values
-    y_crs = df.get('CRS', df['delay_binary_label'] * 100).values
-    y_days = df.get('Actual_Delay_Days', df['delay_binary_label'] * 90).values
+    y_binary = df['delay_binary_label'].astype(int).values
+    y_crs = df['CRS'].astype(float).values
+    y_days = df['section_11_notification_days'].astype(float).clip(lower=30.0, upper=730.0).values
     
     print("[2/5] Fitting leak-free preprocessing pipeline...")
     pipeline = get_preprocessing_pipeline()
@@ -47,8 +47,8 @@ def main():
     predictor.save(ensemble_path)
     
     print("[5/5] Training Non-Linear Timeline Survival Engine (RSF + DeepSurv)...")
-    # Section 11 duration or Actual_Delay_Days
-    durations = df.get('section_11_notification_days', df.get('Actual_Delay_Days', 180)).replace(0, 180).values
+    # Section 11 statutory notification duration
+    durations = df['section_11_notification_days'].astype(float).clip(lower=30.0, upper=730.0).values
     
     timeline = NonLinearTimelinePredictor()
     timeline.fit(X_tf, y_binary, durations)

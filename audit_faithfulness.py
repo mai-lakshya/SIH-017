@@ -25,7 +25,10 @@ def run_faithfulness_audit():
     timeline = joblib.load('timeline.joblib')
     df = pd.read_csv('indian_infrastructure_projects_dataset.csv')
 
-    X = df.drop(columns=['delay_binary_label', 'Actual_Delay_Days', 'CRS', 'project_index'], errors='ignore')
+    X = df.drop(columns=[
+        'delay_binary_label', 'Actual_Delay_Days', 'CRS', 'project_index',
+        'project_id', 'delay_risk_tier', 'CRS_tier', 'section_11_notification_days'
+    ], errors='ignore')
     X_tf = pipeline.transform(X.head(500))
     feature_names = X_tf.columns.tolist()
 

@@ -24,7 +24,7 @@ SELECTED_SURVIVAL_FEATURES = [
 ]
 
 BASE_PIPELINE_FEATURES = [
-    'project_id', 'project_type', 'state', 'district', 'terrain_type',
+    'project_type', 'state', 'district', 'terrain_type',
     'land_area_hectares', 'estimated_cost_inr_crore', 'project_start_year',
     'affected_families_count', 'title_dispute_rate_percent', 'local_protest_flag',
     'compensation_multiplier_demand', 'sia_approval_status', 'forest_clearance_status',

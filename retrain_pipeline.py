@@ -21,18 +21,19 @@ def run_continuous_learning():
     version_tag = datetime.datetime.now().strftime("v%Y.%m.%d")
     logging.info(f"Starting Continuous Learning Retraining Pipeline ({version_tag})...")
     
-    # 1. Pull Latest Data (Simulated)
+    # 1. Pull Latest Data
+    data_file = 'indian_infrastructure_projects_dataset.csv' if os.path.exists('indian_infrastructure_projects_dataset.csv') else 'Revolution-main/indian_infrastructure_projects_dataset.csv'
     try:
-        df = pd.read_csv('Revolution-main/indian_infrastructure_projects_dataset.csv')
-        logging.info(f"Loaded {len(df)} records for retraining.")
+        df = pd.read_csv(data_file)
+        logging.info(f"Loaded {len(df)} records for retraining from {data_file}.")
     except Exception as e:
         logging.error(f"Failed to load data: {e}")
         return
         
-    X = df.drop(columns=['delay_binary_label', 'Actual_Delay_Days', 'CRS', 'project_index'], errors='ignore')
-    y_cls = df['delay_binary_label']
-    y_crs = df['CRS']
-    y_days = df['Actual_Delay_Days']
+    X = df.drop(columns=['delay_binary_label', 'Actual_Delay_Days', 'CRS', 'project_index', 'delay_risk_tier', 'CRS_tier', 'section_11_notification_days', 'project_id'], errors='ignore')
+    y_cls = df['delay_binary_label'].astype(int)
+    y_crs = df['CRS'].astype(float)
+    y_days = df['section_11_notification_days'].astype(float).clip(lower=30.0, upper=730.0)
     
     # 2. Build Pipeline
     cat_cols = ['state', 'district', 'project_type', 'terrain_type', 'sia_approval_status', 'forest_clearance_status']
@@ -52,7 +53,7 @@ def run_continuous_learning():
     final_hybrid.fit(X_tf, y_cls, y_crs, y_days)
     
     final_timeline = NonLinearTimelinePredictor()
-    final_timeline.fit(X_tf, y_days, y_cls)
+    final_timeline.fit(X_tf, y_cls, y_days)
     
     # 5. Versioning and Serialization
     save_dir = f"models/{version_tag}"

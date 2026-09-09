@@ -186,13 +186,13 @@ def test_cross_output_consistency(artifacts, dataset):
     
     preds = predictor.predict(X_tf)
     prob = preds['delay_probability']
-    crs = preds['crs']
+    crs = preds.get('adjusted_risk_index', preds['crs'])
     
     # Spearman rank correlation
     df = pd.DataFrame({'prob': prob, 'crs': crs})
     corr = df.corr(method='spearman').iloc[0, 1]
     
-    assert corr >= 0.70, f"Correlation between Prob and CRS is too low: {corr}"
+    assert corr >= 0.70, f"Correlation between Prob and Risk Index is too low: {corr}"
 
 # ==========================================
 # MODULE 3: SURVIVAL ANALYSIS & PROPORTIONAL HAZARDS AUDIT

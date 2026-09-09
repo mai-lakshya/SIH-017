@@ -19,7 +19,7 @@ class DynamicFeatureTracker(BaseEstimator, TransformerMixin):
         self.cat_indices_ = []
 
     def fit(self, X, y=None):
-        self.feature_names_in_ = list(X.columns)
+        self.feature_names_in_ = [c for c in X.columns if c not in ['project_id', 'project_index']]
         if self.cat_cols is None:
             # Dynamically identify categorical columns
             self.cat_cols_ = list(X.select_dtypes(include=['object', 'category', 'bool']).columns)
@@ -54,10 +54,12 @@ class FeatureEngineer(BaseEstimator, TransformerMixin):
     Computes financial density, population density, velocity, and categorical interactions.
     """
     def fit(self, X, y=None):
+        if hasattr(X, 'columns'):
+            self.feature_names_in_ = [c for c in X.columns if c not in ['project_id', 'project_index']]
         return self
         
     def transform(self, X, y=None):
-        X_out = X.copy()
+        X_out = X.drop(columns=['project_id', 'project_index'], errors='ignore').copy()
         
         # 1. Ratios (Density)
         if 'estimated_cost_inr_crore' in X_out.columns and 'land_area_hectares' in X_out.columns:

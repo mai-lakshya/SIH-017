@@ -29,10 +29,23 @@ def test_hybrid_risk_predictor_fit_predict(sample_data):
     
     assert 'delay_probability' in preds
     assert 'crs' in preds
+    assert 'raw_crs' in preds
+    assert 'predicted_crs' in preds
+    assert 'adjusted_risk_index' in preds
     assert 'delay_days' in preds
+    assert 'predicted_delay_days' in preds
+    assert 'days_p10' in preds
+    assert 'days_p90' in preds
+    assert 'crs_p10' in preds
+    assert 'crs_p90' in preds
+    assert 'confidence_interval_90' in preds
     
-    # Check bounds
+    # Check probability bounds
     assert np.all((preds['delay_probability'] >= 0.0) & (preds['delay_probability'] <= 1.0))
+    # Check CRS bounds
+    assert np.all((preds['crs'] >= 0.0) & (preds['crs'] <= 100.0))
+    # Check statutory days bounds
+    assert np.all((preds['delay_days'] >= 30.0) & (preds['delay_days'] <= 730.0))
     
 def test_hybrid_risk_predictor_monotonicity_blend(sample_data):
     X, y_cls, y_crs, y_days = sample_data
@@ -40,14 +53,37 @@ def test_hybrid_risk_predictor_monotonicity_blend(sample_data):
     predictor = HybridRiskPredictor(random_state=42)
     predictor.fit(X, y_cls, y_crs, y_days)
     
-    preds_unblended = predictor.predict(X, blend_monotonicity=False)
-    preds_blended = predictor.predict(X, blend_monotonicity=True)
+    preds = predictor.predict(X)
     
-    # Simple check to ensure blending mathematically applies
-    # pred_days = pred_days * (0.5 + delay_prob)
-    expected_blended_days = preds_unblended['delay_days'] * (0.5 + preds_unblended['delay_probability'])
+    # Check that calibrated crs is preserved and raw_crs is uncorrupted
+    assert 'adjusted_risk_index' in preds
+    assert 'crs' in preds
+    assert 'predicted_crs' in preds
+    np.testing.assert_allclose(preds['crs'], preds['raw_crs'])
     
-    # There's a maximum(0, ...) clip in the blending
-    expected_blended_days = np.maximum(0, expected_blended_days)
+    # Check that adjusted_risk_index applies the heuristic scaling
+    expected_adjusted_risk = np.clip(preds['raw_crs'] * (0.5 + preds['delay_probability']), 0.0, 100.0)
+    np.testing.assert_allclose(preds['adjusted_risk_index'], expected_adjusted_risk, rtol=1e-5)
     
-    np.testing.assert_allclose(preds_blended['delay_days'], expected_blended_days, rtol=1e-5)
+    # Check that adjusted_delay_days applies heuristic scaling
+    expected_adjusted_days = np.clip(preds['raw_delay_days'] * (0.5 + preds['delay_probability']), 30.0, 730.0)
+    np.testing.assert_allclose(preds['adjusted_delay_days'], expected_adjusted_days, rtol=1e-5)
+    
+    # Check conformal bounds (P10 <= prediction <= P90)
+    assert np.all(preds['days_p10'] <= preds['delay_days'] + 1e-5)
+    assert np.all(preds['delay_days'] <= preds['days_p90'] + 1e-5)
+    assert np.all(preds['crs_p10'] <= preds['crs'] + 1e-5)
+    assert np.all(preds['crs'] <= preds['crs_p90'] + 1e-5)
+
+def test_feature_leakage_guard():
+    from survival_features import BASE_PIPELINE_FEATURES, SELECTED_SURVIVAL_FEATURES
+    assert 'project_id' not in BASE_PIPELINE_FEATURES, "project_id must not be in BASE_PIPELINE_FEATURES"
+    assert 'project_id' not in SELECTED_SURVIVAL_FEATURES, "project_id must not be in SELECTED_SURVIVAL_FEATURES"
+    assert len(BASE_PIPELINE_FEATURES) == 27, f"Expected 27 features, got {len(BASE_PIPELINE_FEATURES)}"
+    
+    import joblib
+    pipeline = joblib.load('pipeline.joblib')
+    feature_names = getattr(pipeline, 'feature_names_in_', [])
+    assert 'project_id' not in feature_names, "pipeline.joblib feature_names_in_ must not contain project_id"
+
+
