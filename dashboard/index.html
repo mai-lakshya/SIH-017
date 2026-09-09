@@ -267,6 +267,30 @@
       transform: scale(0.98);
     }
 
+    .btn-apple-secondary:disabled,
+    .btn-apple-secondary[disabled] {
+      opacity: 0.45;
+      cursor: not-allowed;
+      border-color: var(--color-ash, #86868b);
+      color: var(--color-ash, #86868b);
+      background-color: transparent;
+      transform: none !important;
+      transition: none !important;
+      box-shadow: none !important;
+      outline: none !important;
+    }
+
+    .btn-apple-secondary:disabled:hover,
+    .btn-apple-secondary[disabled]:hover,
+    .btn-apple-secondary:disabled:active,
+    .btn-apple-secondary[disabled]:active {
+      background-color: transparent !important;
+      border-color: var(--color-ash, #86868b) !important;
+      color: var(--color-ash, #86868b) !important;
+      transform: none !important;
+      cursor: not-allowed !important;
+    }
+
     .btn-apple-subtle {
       border-radius: var(--radius-buttons);
       background-color: var(--color-pebble);
@@ -950,13 +974,10 @@
       </div>
     </div>
     <div class="sub-nav-right">
-      <a href="/landing" class="btn-apple-secondary" style="text-decoration: none; padding: 6px 12px; font-size: 13px;">
-        <span>Executive Overview</span>
-      </a>
       <a href="/methodology" class="btn-apple-secondary" style="text-decoration: none; padding: 6px 12px; font-size: 13px;">
         <span>View Methodology</span>
       </a>
-      <button class="btn-apple-secondary" onclick="exportExecutiveSummary()" style="padding: 6px 12px; font-size: 13px;">
+      <button class="btn-apple-secondary" disabled style="padding: 6px 12px; font-size: 13px;">
         <span>Export Summary</span>
       </button>
       <button class="btn-apple-primary" onclick="runAnalysisFromActiveView()" style="padding: 6px 14px; font-size: 13px;">
