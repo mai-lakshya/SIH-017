@@ -831,6 +831,222 @@ async def get_ai_advisory(request: Request, req: AIAdvisoryRequest, user: Any = 
     res = await run_in_threadpool(advisor.generate_advisory, req.query, req.context, req.project_metadata)
     return res
 
+def generate_statutory_delay_explanation(
+    payload: ProjectPayload,
+    pred_days: int,
+    prob_pct: float,
+    crs_val: float,
+    tier: str,
+    milestones: List[Dict[str, Any]],
+    sec11_days: int,
+    lapse_triggered: bool,
+    pre_lapse_urgent: bool,
+    days_to_lapse: int
+) -> Dict[str, Any]:
+    project_name = payload.project_id or "Project"
+    state = payload.state or "State"
+    district = payload.district or "District"
+    p_type = (payload.project_type or "Infrastructure").replace("_", " ")
+    terrain = (payload.terrain_type or "General").replace("_", " ")
+    cost = payload.estimated_cost_inr_crore or 0.0
+    land = payload.land_area_hectares or 0.0
+    pafs = payload.affected_families_count or 0
+    comp_mult = payload.compensation_multiplier_demand or 1.0
+    dispute_rate = payload.title_dispute_rate_percent or 0.0
+    sia_status = payload.sia_approval_status or "Not_Required"
+    fc_status = payload.forest_clearance_status or "Not_Required"
+    fund_pct = payload.fund_disbursement_percent or 0.0
+    protest = payload.local_protest_flag or False
+
+    contributing_factors = []
+    primary_bottleneck = ""
+    critical_milestone = ""
+    statutory_act = ""
+    legal_hazard = ""
+
+    # 1. Evaluate Critical Path & Statutory Bottlenecks
+    if lapse_triggered:
+        primary_bottleneck = "Statutory Section 19(7) Acquisition Lapse (Exceeded 365 Days)"
+        critical_milestone = "Section 11 Notification Aging & Sec 19 Declaration"
+        statutory_act = "RFCTLARR Act 2013, Section 19(7)"
+        legal_hazard = f"Exceeded statutory 12-month limit ({sec11_days} days elapsed). Proceedings legally lapsed under Sec 19(7); fresh Section 11 gazette notification and socio-economic surveys required."
+        contributing_factors.append({
+            "label": "Sec 19(7) Clock Lapsed",
+            "value": f"{sec11_days}d / 365d limit",
+            "impact": "+140d statutory reset",
+            "severity": "Critical"
+        })
+    elif pre_lapse_urgent:
+        primary_bottleneck = f"Pre-Lapse Section 19 Declaration Deadline Imminent ({days_to_lapse} Days Left)"
+        critical_milestone = "Section 19 Declaration Publication"
+        statutory_act = "RFCTLARR Act 2013, Section 19(7)"
+        legal_hazard = f"Only {days_to_lapse} days remaining in the 365-day statutory window. Failure to issue Section 19 declaration forces statutory lapse under Section 19(7)."
+        contributing_factors.append({
+            "label": "Imminent Statutory Lapse",
+            "value": f"{days_to_lapse}d left",
+            "impact": "+65d acceleration pressure",
+            "severity": "High"
+        })
+
+    if fc_status in ["Pending", "Stage_1_Pending"]:
+        severity = "High" if terrain in ["Forest_Eco_Sensitive", "Hilly"] else "Medium"
+        if not primary_bottleneck or terrain == "Forest_Eco_Sensitive":
+            primary_bottleneck = "MoEF&CC Stage-1 Forest Clearance Deadlock on Parivesh"
+            critical_milestone = "Forest & Environmental Clearances"
+            statutory_act = "Forest (Conservation) Act 1980 & EIA 2006 Notification"
+            legal_hazard = "Pending non-forest compensatory afforestation (CA) land mutation and tree enumeration NOCs on Parivesh portal hold back statutory possession."
+        contributing_factors.append({
+            "label": "Forest Clearance Status",
+            "value": fc_status.replace("_", " "),
+            "impact": "+50d clearance queue",
+            "severity": severity
+        })
+
+    if protest or comp_mult > 1.8:
+        if not primary_bottleneck or protest:
+            primary_bottleneck = "Landowner Compensation Disparity & Public Resistance"
+            critical_milestone = "Compensation & Rehabilitation Settlement"
+            statutory_act = "RFCTLARR Act 2013, Section 23 & 30 (Award & 100% Solatium)"
+            legal_hazard = f"Disparity in landowner expectations ({comp_mult:.2f}x multiplier demand) and community protests prevent smooth disbursement of awards and halt Section 38 possession handover."
+        contributing_factors.append({
+            "label": "Compensation Demand",
+            "value": f"{comp_mult:.2f}x Multiplier",
+            "impact": "+35d negotiation friction",
+            "severity": "High" if comp_mult > 2.0 or protest else "Medium"
+        })
+        if protest:
+            contributing_factors.append({
+                "label": "Local Community Protests",
+                "value": "Active Resistance Flagged",
+                "impact": "+30d public hearing stalemate",
+                "severity": "High"
+            })
+
+    if dispute_rate > 15.0:
+        if not primary_bottleneck:
+            primary_bottleneck = "Cadastral Title Disputes & LARRA Judicial References"
+            critical_milestone = "Land Title Dispute Adjudication"
+            statutory_act = "RFCTLARR Act 2013, Section 15 & 64 (Tribunal References)"
+            legal_hazard = f"High title dispute rate ({dispute_rate:.1f}%) in {district} district triggers Section 15 objection hearings and statutory references to the LARRA Authority under Section 64."
+        contributing_factors.append({
+            "label": "Title Dispute Rate",
+            "value": f"{dispute_rate:.1f}% contested parcels",
+            "impact": f"+{round(dispute_rate * 2.5)}d judicial delay",
+            "severity": "High" if dispute_rate > 25.0 else "Medium"
+        })
+
+    if sia_status == "Pending":
+        if not primary_bottleneck:
+            primary_bottleneck = "Social Impact Assessment (SIA) Appraisal Incomplete"
+            critical_milestone = "Social Impact Assessment (SIA)"
+            statutory_act = "RFCTLARR Act 2013, Section 4 & 7"
+            legal_hazard = "Statutory Expert Group recommendation under Section 7 is pending, barring District Collector from proceeding with Section 11 gazette notification."
+        contributing_factors.append({
+            "label": "SIA Review Status",
+            "value": "Pending Expert Appraisal",
+            "impact": "+45d pre-notification freeze",
+            "severity": "Medium"
+        })
+
+    if fund_pct < 40.0 and cost > 100.0:
+        contributing_factors.append({
+            "label": "Capital Disbursement",
+            "value": f"{fund_pct:.1f}% disbursed",
+            "impact": "Impairs 100% Solatium liquidity",
+            "severity": "Medium" if fund_pct < 25.0 else "Low"
+        })
+
+    if not primary_bottleneck:
+        primary_bottleneck = "Procedural Statutory Milestone Progression"
+        critical_milestone = "Standard Administrative Cadastral Verification"
+        statutory_act = "RFCTLARR Act 2013, Section 11 & 19"
+        legal_hazard = "No statutory violations detected. Normal procedural timelines apply for revenue record verification."
+        contributing_factors.append({
+            "label": "Statutory Milestones",
+            "value": "Compliant Schedule",
+            "impact": "Nominal timeline",
+            "severity": "Low"
+        })
+
+    # 2. Build Rich Contextual Narrative
+    para1 = (
+        f"For the **{project_name}** ({p_type}) spanning **{land:.1f} hectares** across **{district}, {state}** "
+        f"({terrain} terrain), the predictive engine forecasts a delay probability of **{prob_pct:.1f}%** "
+        f"with a timeline extension of **{pred_days} days** (Composite Risk Score: **{crs_val:.1f} / 100**, {tier} Risk). "
+        f"The primary critical path bottleneck stalling project commissioning is **{primary_bottleneck}**."
+    )
+
+    p2_parts = []
+    if lapse_triggered:
+        p2_parts.append(
+            f"Under **Section 19(7) of the RFCTLARR Act 2013**, preliminary notifications legally lapse if the Section 19 "
+            f"declaration is not gazetted within 12 months. Having reached **{sec11_days} days** since preliminary publication, "
+            f"the acquisition is statutorily deadlocked, risking voiding of previous socio-economic surveys and necessitating a fresh gazette notice."
+        )
+    elif pre_lapse_urgent:
+        p2_parts.append(
+            f"With **{sec11_days} days** elapsed and merely **{days_to_lapse} days remaining** before statutory lapse under Section 19(7), "
+            f"the Competent Authority faces intense procedural compression to settle objections and issue the final Section 19 declaration."
+        )
+
+    if fc_status in ["Pending", "Stage_1_Pending"]:
+        p2_parts.append(
+            f"Environmental review under the **Forest (Conservation) Act 1980** remains active at Stage-1 on the MoEF&CC Parivesh portal. "
+            f"Because the corridor traverses {terrain} terrain, non-forest compensatory afforestation demarcation and Gram Sabha clearances under FRA 2006 "
+            f"represent mandatory pre-conditions before physical possession can be transferred to the executing agency."
+        )
+
+    if comp_mult > 1.8 or protest:
+        p2_parts.append(
+            f"Compensation expectations from **{pafs:,} affected families** stand elevated at **{comp_mult:.2f}x multiplier** (against statutory rural baseline). "
+            f"{'Coupled with active grassroots protests, ' if protest else ''}"
+            f"this creates substantial deadlock during Section 23 award determination and threatens voluntary handover under Section 38."
+        )
+
+    if dispute_rate > 15.0:
+        p2_parts.append(
+            f"Furthermore, a **{dispute_rate:.1f}% title dispute rate** in {district} cadastral records indicates widespread co-tenancy and mutation conflicts, "
+            f"leading to statutory reference petitions before the Land Acquisition Authority (LARRA) under Section 64 and prolonging award finalization."
+        )
+
+    if not p2_parts:
+        p2_parts.append(
+            f"The project maintains compliant statutory milestone velocity ({sec11_days}/365 days elapsed). "
+            f"Clearances for SIA ({sia_status}) and Forest ({fc_status}) show minimal critical-path friction, keeping the corridor on-track."
+        )
+
+    para2 = " ".join(p2_parts)
+
+    para3 = (
+        f"**Statutory Resolution Strategy:** Mitigating this risk requires addressing **{statutory_act}**. "
+        f"Prioritizing {'immediate Section 19 gazette declaration issuance' if (lapse_triggered or pre_lapse_urgent) else ''}"
+        f"{', expedited Parivesh nodal file tracking' if fc_status in ['Pending', 'Stage_1_Pending'] else ''}"
+        f"{', structured Gram Sabha ombudsman dialogue on compensation' if (comp_mult > 1.8 or protest) else ''}"
+        f"{' and digital cadastral title reconciliation' if dispute_rate > 15.0 else ''} "
+        f"can recover an estimated **{min(pred_days - 10, max(20, int(pred_days * 0.4)))} days** of statutory drift."
+    )
+
+    full_narrative = f"{para1}\n\n{para2}\n\n{para3}"
+
+    return {
+        "headline": f"{tier} Risk Delay Diagnosis: {primary_bottleneck}",
+        "primary_bottleneck": primary_bottleneck,
+        "critical_milestone": critical_milestone,
+        "statutory_act": statutory_act,
+        "legal_hazard": legal_hazard,
+        "narrative": full_narrative,
+        "paragraph_intro": para1,
+        "paragraph_statutory": para2,
+        "paragraph_strategy": para3,
+        "contributing_factors": contributing_factors[:4],
+        "schedule_impact": {
+            "predicted_delay_days": pred_days,
+            "delay_probability_pct": prob_pct,
+            "composite_risk_score": crs_val,
+            "risk_tier": tier
+        }
+    }
+
 async def _execute_prediction_pipeline(payload: ProjectPayload) -> dict:
     if not system:
         raise HTTPException(status_code=500, detail="Models not loaded")
@@ -986,9 +1202,23 @@ async def _execute_prediction_pipeline(payload: ProjectPayload) -> dict:
         crs_val = round(float(result['predictions'].get('crs', 0.0)), 1)
         calibrated_tier = "High" if crs_val > 50.0 else ("Medium" if crs_val > 25.0 else "Low")
 
+        ai_delay_explanation = generate_statutory_delay_explanation(
+            payload=payload,
+            pred_days=pred_days_val,
+            prob_pct=prob_val,
+            crs_val=crs_val,
+            tier=calibrated_tier,
+            milestones=milestones,
+            sec11_days=sec11_days,
+            lapse_triggered=lapse_triggered,
+            pre_lapse_urgent=pre_lapse_urgent,
+            days_to_lapse=days_to_lapse
+        )
+
         # Map to Frontend Schema
         frontend_response = {
             "project_id": payload.project_id,
+            "ai_delay_explanation": ai_delay_explanation,
             "predictions": {
                 "delay_probability": prob_val,
                 "confidence_score": conf_score,
