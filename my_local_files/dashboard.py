@@ -13,7 +13,7 @@ from monitor import ModelMonitor
 # Page configuration
 st.set_page_config(
     page_title="AI Land Acquisition & Infrastructure Risk Predictor",
-    page_icon="⚡",
+    page_icon=None,
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -85,14 +85,14 @@ system = load_system()
 monitor = load_monitor()
 
 # Header
-st.title("⚡ AI Land Acquisition Risk & Delay Predictor")
+st.title("AI Land Acquisition Risk & Delay Predictor")
 st.markdown("Next-generation dual-paradigm machine learning predictor for infrastructure project delay probabilities, schedule drift, and prescriptive mitigations.")
 
 # Navigation Tabs
 tab_predictor, tab_analytics, tab_monitor = st.tabs([
-    "🔮 Interactive Risk Predictor", 
-    "📊 Optuna Pareto & Model Analytics", 
-    "🛡️ Live System Health & Drift Monitor"
+    "Interactive Risk Predictor", 
+    "Optuna Pareto & Model Analytics", 
+    "Live System Health & Drift Monitor"
 ])
 
 # -------------------------------------------------------------
@@ -103,13 +103,13 @@ with tab_predictor:
 
     # Preset Selection
     preset_choice = st.selectbox(
-        "⚡ Quick Load Preset Project Scenario",
+        "Quick Load Preset Project Scenario",
         [
             "Custom User Configuration",
-            "🛣️ Urban Highway Expansion (High Dispute, Pending Forest Clearance)",
-            "🚇 Metro Rail Transit Corridor (High Density, High Budget)",
-            "🌲 Eco-Sensitive Forest Rail Link (High Environmental Sensitivity)",
-            "☀️ Greenfield Solar Energy Park (Low Dispute, Fast-Track)"
+            "Urban Highway Expansion (High Dispute, Pending Forest Clearance)",
+            "Metro Rail Transit Corridor (High Density, High Budget)",
+            "Eco-Sensitive Forest Rail Link (High Environmental Sensitivity)",
+            "Greenfield Solar Energy Park (Low Dispute, Fast-Track)"
         ]
     )
 
@@ -238,7 +238,7 @@ with tab_predictor:
             comp_multiplier = st.number_input("Compensation Multiplier Demanded (x)", min_value=1.0, max_value=5.0, value=float(defaults["compensation_multiplier_demand"]), step=0.1)
             protest_flag = st.checkbox("Active Local Protest / Litigation Ongoing", value=defaults["local_protest_flag"])
 
-        submit_btn = st.form_submit_button("🚀 Run AI Risk & Timeline Prediction", use_container_width=True)
+        submit_btn = st.form_submit_button("Run AI Risk & Timeline Prediction", use_container_width=True)
 
     # Process and Render Results
     if submit_btn or 'prediction_result' not in st.session_state:
@@ -267,7 +267,7 @@ with tab_predictor:
     result = st.session_state.get('prediction_result')
     if result:
         st.markdown("---")
-        st.subheader("🎯 Executive Risk Assessment & Predictions")
+        st.subheader("Executive Risk Assessment & Predictions")
 
         p = result['predictions']
         t = result['timeline']
@@ -320,7 +320,7 @@ with tab_predictor:
         c1, c2 = st.columns([1.3, 1])
 
         with c1:
-            st.subheader("🧠 Top Delay Drivers (TreeSHAP Dual-Paradigm)")
+            st.subheader("Top Delay Drivers (TreeSHAP Dual-Paradigm)")
             if exp and 'risk_drivers' in exp:
                 drivers = exp['risk_drivers'][:6]
                 df_drivers = pd.DataFrame(drivers)
@@ -350,7 +350,7 @@ with tab_predictor:
                 st.plotly_chart(fig_bar, use_container_width=True)
 
         with c2:
-            st.subheader("📁 Category Risk Breakdown")
+            st.subheader("Category Risk Breakdown")
             if exp and 'category_breakdown' in exp:
                 cat_data = exp['category_breakdown']
                 labels = [k.replace('_', ' ').title() for k in cat_data.keys()]
@@ -373,7 +373,7 @@ with tab_predictor:
 
         # Prescriptive Recommendations
         st.markdown("---")
-        st.subheader("💡 Prescriptive Mitigation Engine & Strategic Interventions")
+        st.subheader("Prescriptive Mitigation Engine & Strategic Interventions")
         if recs:
             for idx, rec in enumerate(recs[:4], 1):
                 prio = rec.get('priority', 'Medium')

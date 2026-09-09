@@ -11,7 +11,7 @@ async function verifyDashboard() {
   }
 
   const html = fs.readFileSync(htmlPath, 'utf-8');
-  console.log(`✔ dashboard/index.html found (${html.length} bytes)`);
+  console.log(`[OK] dashboard/index.html found (${html.length} bytes)`);
 
   // 1. Verify Apple Design Tokens
   const requiredTokens = [
@@ -28,7 +28,7 @@ async function verifyDashboard() {
     if (!html.includes(token)) {
       throw new Error(`Missing Apple Design System token: ${token}`);
     }
-    console.log(`✔ Found token: ${token}`);
+    console.log(`[OK] Found token: ${token}`);
   });
 
   // 2. Verify Tab Navigation
@@ -44,7 +44,7 @@ async function verifyDashboard() {
     if (!html.includes(tab)) {
       throw new Error(`Missing Navigation Tab: ${tab}`);
     }
-    console.log(`✔ Found Tab: ${tab}`);
+    console.log(`[OK] Found Tab: ${tab}`);
   });
 
   // 3. Verify GIS Infrastructure Elements
@@ -73,7 +73,7 @@ async function verifyDashboard() {
     if (!html.includes(el)) {
       throw new Error(`Missing GIS Element: ${el}`);
     }
-    console.log(`✔ Found GIS Element: ${el}`);
+    console.log(`[OK] Found GIS Element: ${el}`);
   });
 
   // 4. Verify Predictor, XAI & Simulator Elements
@@ -98,7 +98,7 @@ async function verifyDashboard() {
     if (!html.includes(el)) {
       throw new Error(`Missing AI Element: ${el}`);
     }
-    console.log(`✔ Found AI Element: ${el}`);
+    console.log(`[OK] Found AI Element: ${el}`);
   });
 
   // 5. Test Live API Connection
@@ -108,18 +108,18 @@ async function verifyDashboard() {
     });
     if (res.ok) {
       const projects = await res.json();
-      console.log(`✔ Successfully connected to API: ${projects.length} GIS projects retrieved.`);
+      console.log(`[OK] Successfully connected to API: ${projects.length} GIS projects retrieved.`);
     } else {
-      console.log(`⚠ Warning: API returned HTTP ${res.status}`);
+      console.log(`[WARN] Warning: API returned HTTP ${res.status}`);
     }
   } catch (err) {
-    console.log(`⚠ Warning: Live API fetch skipped (${err.message})`);
+    console.log(`[WARN] Warning: Live API fetch skipped (${err.message})`);
   }
 
-  console.log('\n✔ ALL APPLE DASHBOARD VERIFICATIONS PASSED SUCCESSFULLY!\n');
+  console.log('\n[OK] ALL APPLE DASHBOARD VERIFICATIONS PASSED SUCCESSFULLY!\n');
 }
 
 verifyDashboard().catch(err => {
-  console.error('❌ Verification Failed:', err);
+  console.error('[FAIL] Verification Failed:', err);
   process.exit(1);
 });

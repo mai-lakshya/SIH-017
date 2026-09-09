@@ -123,7 +123,7 @@ async function main() {
   }
 
   const projectsCount = await client.eval(`window.allProjects.length`);
-  console.log(`✓ Reference projects loaded: ${projectsCount}`);
+  console.log(`[OK] Reference projects loaded: ${projectsCount}`);
 
   // Test Task 3: Save Flow on Predictor Tab
   console.log('\n2. Testing Predictor Save Flow...');
@@ -131,7 +131,7 @@ async function main() {
   await sleep(600);
 
   const saveBtnVisible = await client.eval(`Boolean(document.getElementById('btn-save-analysis'))`);
-  console.log(`✓ 'Save This Analysis' button present: ${saveBtnVisible}`);
+  console.log(`[OK] 'Save This Analysis' button present: ${saveBtnVisible}`);
 
   // Open Save Modal
   await client.eval(`openSaveAnalysisModal()`);
@@ -139,7 +139,7 @@ async function main() {
 
   const modalDisplay = await client.eval(`document.getElementById('save-analysis-modal').style.display`);
   const prefilledName = await client.eval(`document.getElementById('save-project-name-input').value`);
-  console.log(`✓ Modal opened (display: ${modalDisplay}), prefilled name: "${prefilledName}"`);
+  console.log(`[OK] Modal opened (display: ${modalDisplay}), prefilled name: "${prefilledName}"`);
 
   // Set custom project name and submit
   const projName1 = "Banswara Solar & Highway Corridor";
@@ -148,7 +148,7 @@ async function main() {
   await sleep(1500);
 
   const toastText1 = await client.eval(`document.getElementById('toast-message').textContent`);
-  console.log(`✓ Save submitted, toast message: "${toastText1}"`);
+  console.log(`[OK] Save submitted, toast message: "${toastText1}"`);
 
   // Save 2 more analyses directly via POST /analyses/save
   console.log('\n3. Saving 2 more diverse test analyses (Maharashtra & Assam)...');
@@ -219,24 +219,24 @@ async function main() {
 
   const savedCount = await client.eval(`window.savedAnalyses.length`);
   const savedMarkerCount = await client.eval(`window.savedAnalysesMarkersLayer.getLayers().length`);
-  console.log(`✓ Total saved analyses retrieved: ${savedCount}`);
-  console.log(`✓ Diamond markers on map: ${savedMarkerCount}`);
+  console.log(`[OK] Total saved analyses retrieved: ${savedCount}`);
+  console.log(`[OK] Diamond markers on map: ${savedMarkerCount}`);
 
   // Check legend note
   const legendDistinction = await client.eval(`Boolean(document.getElementById('legend-distinction'))`);
   const legendText = await client.eval(`document.getElementById('legend-distinction').textContent`);
-  console.log(`✓ Legend note present: ${legendDistinction} ("${legendText.trim().replace(/\\s+/g, ' ')}")`);
+  console.log(`[OK] Legend note present: ${legendDistinction} ("${legendText.trim().replace(/\\s+/g, ' ')}")`);
 
   // Check custom diamond DOM elements on Leaflet map
   const diamondElementsCount = await client.eval(`document.querySelectorAll('.custom-diamond-marker').length`);
-  console.log(`✓ Custom diamond DOM elements rendered on map: ${diamondElementsCount}`);
+  console.log(`[OK] Custom diamond DOM elements rendered on map: ${diamondElementsCount}`);
 
   // Verify Task 5: Sidebar List & Badge
   console.log('\n5. Verifying Sidebar Saved Analyses List & Controls...');
   const badgeVal = await client.eval(`document.getElementById('saved-analyses-badge').textContent`);
   const listRowsCount = await client.eval(`document.querySelectorAll('.saved-analysis-row').length`);
-  console.log(`✓ Sidebar badge count: ${badgeVal}`);
-  console.log(`✓ Sidebar list item rows rendered: ${listRowsCount}`);
+  console.log(`[OK] Sidebar badge count: ${badgeVal}`);
+  console.log(`[OK] Sidebar list item rows rendered: ${listRowsCount}`);
 
   // Test zoomToSavedAnalysis & Popup inspection
   console.log('\n6. Testing Marker Click & Popup Inspection...');
@@ -247,7 +247,7 @@ async function main() {
   const popupContent = await client.eval(`document.querySelector('.leaflet-popup-content')?.textContent || ''`);
   const hasSavedLabel = popupContent.includes('Your Saved Analysis');
   const hasDeleteBtn = Boolean(await client.eval(`Boolean(document.querySelector('.leaflet-popup-content button[onclick*="deleteAnalysis"]'))`));
-  console.log(`✓ Popup opened: contains 'Your Saved Analysis': ${hasSavedLabel}, has Delete button: ${hasDeleteBtn}`);
+  console.log(`[OK] Popup opened: contains 'Your Saved Analysis': ${hasSavedLabel}, has Delete button: ${hasDeleteBtn}`);
 
   // Test Deletion
   console.log('\n7. Testing Deletion on one saved analysis...');
@@ -259,7 +259,7 @@ async function main() {
 
   const countAfterDelete = await client.eval(`window.savedAnalyses.length`);
   const markersAfterDelete = await client.eval(`window.savedAnalysesMarkersLayer.getLayers().length`);
-  console.log(`✓ Count after delete: ${countAfterDelete} (markers on map: ${markersAfterDelete})`);
+  console.log(`[OK] Count after delete: ${countAfterDelete} (markers on map: ${markersAfterDelete})`);
 
   // Fly to all India view to showcase both circular reference markers and diamond markers
   await client.eval(`(() => { map.setView([22.5937, 78.9629], 5); return true; })()`);
@@ -270,7 +270,7 @@ async function main() {
   const screenshot = await client.send('Page.captureScreenshot', { format: 'png' });
   const outPath = path.join(__dirname, 'saved_analyses_map_markers.png');
   fs.writeFileSync(outPath, Buffer.from(screenshot.data, 'base64'));
-  console.log(`✓ Screenshot saved to: ${outPath}`);
+  console.log(`[OK] Screenshot saved to: ${outPath}`);
 
   // Close browser and cleanup
   try {

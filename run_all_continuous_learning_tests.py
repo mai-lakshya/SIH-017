@@ -161,9 +161,9 @@ def run_test_1_ingestion() -> Tuple[str, str]:
         assert res.get("status") == "success", "Expected status == success"
         assert res.get("ingested_count") == 50, "Expected 50 ingested records"
 
-        print("✔ Schema validated successfully")
-        print("✔ Pipeline preprocessing transformation dry-run passed")
-        print("✔ Records successfully appended to data store")
+        print("[OK] Schema validated successfully")
+        print("[OK] Pipeline preprocessing transformation dry-run passed")
+        print("[OK] Records successfully appended to data store")
         return "PASS", f"Successfully ingested 50 records ({count_before} -> {count_after})"
     except Exception as e:
         traceback.print_exc()
@@ -220,7 +220,7 @@ def run_test_2_drift() -> Tuple[str, str]:
         with open(log_path, "r", encoding="utf-8") as f:
             log_data = json.load(f)
         assert "timestamp" in log_data and "max_psi" in log_data, "Invalid drift log structure"
-        print(f"\n✔ Drift log saved to {log_path} with timestamp {log_data['timestamp']}")
+        print(f"\n[OK] Drift log saved to {log_path} with timestamp {log_data['timestamp']}")
 
         return "PASS", f"No-drift max PSI={rep_no_drift['max_psi']:.4f} (<0.10); Skewed drift max PSI={rep_drift['max_psi']:.4f} (>0.20)"
     except Exception as e:

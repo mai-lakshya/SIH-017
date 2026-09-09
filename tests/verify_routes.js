@@ -40,7 +40,7 @@ async function verifyAllRoutes() {
   if (!textLanding.includes('RFCTLARR')) {
     throw new Error('FAIL: Landing page must reference RFCTLARR Act 2013 statutory engine!');
   }
-  console.log('✔ Landing page verified: Independent, 13,532 projects, RFCTLARR Act 2013, Uno C-Index 0.906.');
+  console.log('[OK] Landing page verified: Independent, 13,532 projects, RFCTLARR Act 2013, Uno C-Index 0.906.');
 
   // 2. Verify Methodology Page (Route /methodology)
   console.log('\n2. Checking Methodology Page (http://127.0.0.1:8000/methodology)...');
@@ -65,7 +65,7 @@ async function verifyAllRoutes() {
   if (!textMeth.includes('RFCTLARR Act 2013')) {
     throw new Error('FAIL: Methodology page must reference RFCTLARR Act 2013 statutory rules!');
   }
-  console.log('✔ Methodology page verified: Independent, 13,532 projects, RFCTLARR Act 2013, Uno C-Index 0.906.');
+  console.log('[OK] Methodology page verified: Independent, 13,532 projects, RFCTLARR Act 2013, Uno C-Index 0.906.');
 
   // 3. Verify Dashboard Page (Route /dashboard)
   console.log('\n3. Checking Dashboard Page (http://127.0.0.1:8000/dashboard)...');
@@ -96,7 +96,7 @@ async function verifyAllRoutes() {
   if (!textDash.includes('milestones-breakdown-container')) {
     throw new Error('FAIL: Dashboard page must contain milestones-breakdown-container!');
   }
-  console.log('✔ Dashboard page verified: Standalone with tabs, 13,532 projects, RFCTLARR controls, Uno C-Index 0.906.');
+  console.log('[OK] Dashboard page verified: Standalone with tabs, 13,532 projects, RFCTLARR controls, Uno C-Index 0.906.');
 
   // 4. Verify Static Assets
   console.log('\n4. Checking Static GeoJSON Assets...');
@@ -104,7 +104,7 @@ async function verifyAllRoutes() {
   if (resGeo.status !== 200) {
     throw new Error(`GeoJSON asset returned HTTP ${resGeo.status}`);
   }
-  console.log('✔ Static GeoJSON assets are accessible.');
+  console.log('[OK] Static GeoJSON assets are accessible.');
 
   // 5. Verify /predict API endpoint for RFCTLARR compliance and Uno C-Index
   console.log('\n5. Checking /predict API Endpoint...');
@@ -146,7 +146,7 @@ async function verifyAllRoutes() {
   if (!predData.milestones || predData.milestones.length !== 5) {
     throw new Error(`FAIL: /predict milestones count is ${predData.milestones?.length}, expected 5`);
   }
-  console.log('✔ /predict verified: Returns Uno C-Index 0.906, full RFCTLARR 2013 telemetry, and 5 statutory milestones.');
+  console.log('[OK] /predict verified: Returns Uno C-Index 0.906, full RFCTLARR 2013 telemetry, and 5 statutory milestones.');
 
   // 6. Verify /projects/geo API endpoint vectorization and LARR fields
   console.log('\n6. Checking /projects/geo API Endpoint...');
@@ -167,14 +167,14 @@ async function verifyAllRoutes() {
   if (sample.section_11_notification_days == null || sample.solatium_percentage !== 100.0 || !sample.larr_lapse_status) {
     throw new Error('FAIL: /projects/geo item missing RFCTLARR fields');
   }
-  console.log(`✔ /projects/geo verified: Sample project ${sample.project_id} has Section 11 (${sample.section_11_notification_days}d), 100% Solatium, and status ${sample.larr_lapse_status}.`);
+  console.log(`[OK] /projects/geo verified: Sample project ${sample.project_id} has Section 11 (${sample.section_11_notification_days}d), 100% Solatium, and status ${sample.larr_lapse_status}.`);
 
   console.log('\n================================================================');
-  console.log('✔ ALL VERIFICATION TESTS PASSED 100% ACCORDING TO NEW MODEL AND LARR ACT!');
+  console.log('[OK] ALL VERIFICATION TESTS PASSED 100% ACCORDING TO NEW MODEL AND LARR ACT!');
   console.log('================================================================\n');
 }
 
 verifyAllRoutes().catch(err => {
-  console.error('❌ Verification Failed:', err.message);
+  console.error('[FAIL] Verification Failed:', err.message);
   process.exit(1);
 });

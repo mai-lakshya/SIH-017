@@ -77,7 +77,7 @@ async function captureScreen(client, filename) {
   const screenshot = await client.send('Page.captureScreenshot', { format: 'png' });
   const buf = Buffer.from(screenshot.data, 'base64');
   fs.writeFileSync(path.join(ARTIFACT_DIR, filename), buf);
-  console.log(`✔ Saved ${filename} (${buf.length} bytes)`);
+  console.log(`[OK] Saved ${filename} (${buf.length} bytes)`);
 }
 
 async function main() {
@@ -120,7 +120,7 @@ async function main() {
     throw new Error('Could not find WebSocket debugger URL on port ' + PORT);
   }
 
-  console.log('✔ Connected to Edge debugger');
+  console.log('[OK] Connected to Edge debugger');
   const client = new CDPClient(wsUrl);
   await client.ready();
   await client.send('Page.enable');
@@ -132,7 +132,7 @@ async function main() {
     await sleep(500);
     const count = await client.eval('typeof allProjects !== "undefined" ? allProjects.length : (window.allProjects ? window.allProjects.length : 0)');
     if (count >= 1000) {
-      console.log(`✔ Geo projects loaded in DOM: ${count} projects`);
+      console.log(`[OK] Geo projects loaded in DOM: ${count} projects`);
       break;
     }
     if (i % 5 === 0) console.log(`Polling DOM projects count (iteration ${i}): ${count}`);
@@ -210,7 +210,7 @@ async function main() {
   await captureScreen(client, 'apple_prescriptive_ai_view.png');
 
   edge.kill();
-  console.log('\n✔ ALL 5 APPLE DASHBOARD VIEWS CAPTURED SUCCESSFULLY!');
+  console.log('\n[OK] ALL 5 APPLE DASHBOARD VIEWS CAPTURED SUCCESSFULLY!');
 }
 
 main().catch(err => {

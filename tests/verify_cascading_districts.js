@@ -128,10 +128,10 @@ async function main() {
       .map(o => o.value)
       .filter(v => Boolean(v))
   `);
-  console.log(`✓ Total states in dropdown: ${stateOptions.length} (Expected: 36)`);
+  console.log(`[OK] Total states in dropdown: ${stateOptions.length} (Expected: 36)`);
   
   const isSorted = JSON.stringify(stateOptions) === JSON.stringify([...stateOptions].sort());
-  console.log(`✓ States are strictly alphabetically sorted: ${isSorted}`);
+  console.log(`[OK] States are strictly alphabetically sorted: ${isSorted}`);
   console.log(`  First 3: ${stateOptions.slice(0, 3).join(', ')}`);
   console.log(`  Last 3: ${stateOptions.slice(-3).join(', ')}`);
 
@@ -155,9 +155,9 @@ async function main() {
       .map(o => o.value)
       .filter(v => Boolean(v))
   `);
-  console.log(`✓ Rajasthan rendered as SELECT: ${rjIsSelect}`);
-  console.log(`✓ Rajasthan district count: ${rjDistricts.length}`);
-  console.log(`✓ Contains Banswara, Jaipur, Jodhpur, Udaipur: ${['Banswara', 'Jaipur', 'Jodhpur', 'Udaipur'].every(d => rjDistricts.includes(d))}`);
+  console.log(`[OK] Rajasthan rendered as SELECT: ${rjIsSelect}`);
+  console.log(`[OK] Rajasthan district count: ${rjDistricts.length}`);
+  console.log(`[OK] Contains Banswara, Jaipur, Jodhpur, Udaipur: ${['Banswara', 'Jaipur', 'Jodhpur', 'Udaipur'].every(d => rjDistricts.includes(d))}`);
 
   // Select West Bengal
   await client.eval(`(() => {
@@ -173,7 +173,7 @@ async function main() {
       .map(o => o.value)
       .filter(v => Boolean(v))
   `);
-  console.log(`✓ West Bengal rendered as SELECT: ${wbIsSelect}`);
+  console.log(`[OK] West Bengal rendered as SELECT: ${wbIsSelect}`);
 
   // Select Bihar (verify authentic districts with zero fake placeholders)
   console.log('\n--- VERIFICATION 2A: Bihar Real Districts Check ---');
@@ -190,13 +190,13 @@ async function main() {
       .map(o => o.value)
       .filter(v => Boolean(v))
   `);
-  console.log(`✓ Bihar rendered as SELECT: ${brIsSelect}`);
-  console.log(`✓ Bihar district count: ${brDistricts.length} (Expected: 16)`);
-  console.log(`✓ Bihar districts: ${brDistricts.join(', ')}`);
+  console.log(`[OK] Bihar rendered as SELECT: ${brIsSelect}`);
+  console.log(`[OK] Bihar district count: ${brDistricts.length} (Expected: 16)`);
+  console.log(`[OK] Bihar districts: ${brDistricts.join(', ')}`);
   const biharRealCheck = ['Patna', 'Gaya', 'Muzaffarpur', 'Bhagalpur', 'Begusarai', 'Nalanda', 'Rohtas'].every(d => brDistricts.includes(d));
-  console.log(`✓ Contains Patna, Gaya, Muzaffarpur, Bhagalpur, Begusarai, Nalanda, Rohtas: ${biharRealCheck}`);
+  console.log(`[OK] Contains Patna, Gaya, Muzaffarpur, Bhagalpur, Begusarai, Nalanda, Rohtas: ${biharRealCheck}`);
   const hasFakeBihar = brDistricts.some(d => /district\s+\d+/i.test(d));
-  console.log(`✓ Zero placeholder districts ("Bihar District X"): ${!hasFakeBihar}`);
+  console.log(`[OK] Zero placeholder districts ("Bihar District X"): ${!hasFakeBihar}`);
   if (hasFakeBihar) {
     throw new Error(`Found fake districts in Bihar: ${brDistricts.filter(d => /district\s+\d+/i.test(d))}`);
   }
@@ -217,9 +217,9 @@ async function main() {
       .map(o => o.value)
       .filter(v => Boolean(v))
   `);
-  console.log(`✓ Uttar Pradesh rendered as SELECT: ${upIsSelect}`);
-  console.log(`✓ Uttar Pradesh district count: ${upDistricts.length} (Expected: 75)`);
-  console.log(`✓ Contains Lucknow, Varanasi, Prayagraj, Agra, Noida: ${['Lucknow', 'Varanasi', 'Prayagraj', 'Agra', 'Gautam Buddha Nagar (Noida)'].every(d => upDistricts.includes(d))}`);
+  console.log(`[OK] Uttar Pradesh rendered as SELECT: ${upIsSelect}`);
+  console.log(`[OK] Uttar Pradesh district count: ${upDistricts.length} (Expected: 75)`);
+  console.log(`[OK] Contains Lucknow, Varanasi, Prayagraj, Agra, Noida: ${['Lucknow', 'Varanasi', 'Prayagraj', 'Agra', 'Gautam Buddha Nagar (Noida)'].every(d => upDistricts.includes(d))}`);
 
   if (upDistricts.length !== 75) {
     throw new Error(`Expected 75 districts for Uttar Pradesh, got ${upDistricts.length}`);
@@ -236,9 +236,9 @@ async function main() {
   const fallbackTag = await client.eval(`document.getElementById('inp-district').tagName`);
   const fallbackNoteDisplay = await client.eval(`window.getComputedStyle(document.getElementById('district-fallback-note')).display`);
   const fallbackNoteText = await client.eval(`document.getElementById('district-fallback-note').textContent.trim()`);
-  console.log(`✓ When 0 districts exist, rendered as: ${fallbackTag} (Expected: INPUT)`);
-  console.log(`✓ Fallback note display: "${fallbackNoteDisplay}"`);
-  console.log(`✓ Fallback note message: "${fallbackNoteText}"`);
+  console.log(`[OK] When 0 districts exist, rendered as: ${fallbackTag} (Expected: INPUT)`);
+  console.log(`[OK] Fallback note display: "${fallbackNoteDisplay}"`);
+  console.log(`[OK] Fallback note message: "${fallbackNoteText}"`);
 
   // --- VERIFICATION 4: Reset District when State Changes ---
   console.log('\n--- VERIFICATION 4: District Reset on State Change ---');
@@ -251,7 +251,7 @@ async function main() {
   await sleep(200);
 
   const mhSelectedBefore = await client.eval(`document.getElementById('inp-district').value`);
-  console.log(`✓ Picked Maharashtra district: "${mhSelectedBefore}"`);
+  console.log(`[OK] Picked Maharashtra district: "${mhSelectedBefore}"`);
 
   // Now change state to Gujarat
   await client.eval(`
@@ -261,7 +261,7 @@ async function main() {
   await sleep(200);
 
   const gjDistrictVal = await client.eval(`document.getElementById('inp-district').value`);
-  console.log(`✓ After switching to Gujarat, district value reset to: "${gjDistrictVal}" (Cleared from Pune)`);
+  console.log(`[OK] After switching to Gujarat, district value reset to: "${gjDistrictVal}" (Cleared from Pune)`);
 
   // --- VERIFICATION 5: End-to-End Prediction with new dropdowns ---
   console.log('\n--- VERIFICATION 5: End-to-End Prediction Submission ---');
@@ -278,8 +278,8 @@ async function main() {
   const lastDistrict = await client.eval(`window.lastPredictorPayload.district`);
   const predProb = await client.eval(`document.getElementById('out-prob').textContent`);
   const predCrs = await client.eval(`document.getElementById('out-crs').textContent`);
-  console.log(`✓ Prediction sent to /predict with state: "${lastState}", district: "${lastDistrict}"`);
-  console.log(`✓ Prediction output updated: Delay Prob ${predProb}, CRS ${predCrs.trim()}`);
+  console.log(`[OK] Prediction sent to /predict with state: "${lastState}", district: "${lastDistrict}"`);
+  console.log(`[OK] Prediction output updated: Delay Prob ${predProb}, CRS ${predCrs.trim()}`);
 
   // Also test with manual fallback input
   console.log('\n--- VERIFICATION 5B: Prediction with Manual Fallback Input ---');
@@ -290,7 +290,7 @@ async function main() {
   await sleep(1500);
 
   const fallbackDistrictSent = await client.eval(`window.lastPredictorPayload.district`);
-  console.log(`✓ Manual input correctly captured into payload: "${fallbackDistrictSent}"`);
+  console.log(`[OK] Manual input correctly captured into payload: "${fallbackDistrictSent}"`);
 
   // Reset back to Highway scenario
   await client.eval(`loadPresetScenario('highway'); executePredictRisk();`);
@@ -301,7 +301,7 @@ async function main() {
   const screenshot = await client.send('Page.captureScreenshot', { format: 'png' });
   const outPath = path.join(__dirname, 'cascading_districts_predictor.png');
   fs.writeFileSync(outPath, Buffer.from(screenshot.data, 'base64'));
-  console.log(`✓ Saved screenshot to: ${outPath}`);
+  console.log(`[OK] Saved screenshot to: ${outPath}`);
 
   const artifactDir = process.env.ARTIFACT_DIR || "C:\\Users\\PRATYUSH\\.gemini\\antigravity-ide\\brain\\7ba89fa9-0af4-4990-8409-a40eda4316ff";
   try {
@@ -333,9 +333,9 @@ async function main() {
       return { total: states.length, withDistricts, withoutDistricts, details };
     })()
   `);
-  console.log(`✓ Total States/UTs checked: ${coverage.total}`);
-  console.log(`✓ States with real district dropdown data: ${coverage.withDistricts}`);
-  console.log(`✓ States falling back to manual entry: ${coverage.withoutDistricts}`);
+  console.log(`[OK] Total States/UTs checked: ${coverage.total}`);
+  console.log(`[OK] States with real district dropdown data: ${coverage.withDistricts}`);
+  console.log(`[OK] States falling back to manual entry: ${coverage.withoutDistricts}`);
 
   // Close browser
   try {

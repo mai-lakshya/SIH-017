@@ -133,7 +133,7 @@ async function main() {
     throw new Error('GIS Map, projects or national boundary failed to initialize in DOM within 20s');
   }
 
-  console.log('✔ Map, projects, and boundary layers initialized.');
+  console.log('[OK] Map, projects, and boundary layers initialized.');
 
   // 2. Verify India National Boundary Layer
   console.log('\n2. Verifying India Boundary Dark Highlighting...');
@@ -154,9 +154,9 @@ async function main() {
     })()
   `);
 
-  console.log(`✔ National Boundary Layer Active on Map: ${boundaryCheck.hasLayer}`);
-  console.log(`✔ Boundary Stroke Color: ${boundaryCheck.strokeColor} (Dark clear tone)`);
-  console.log(`✔ Boundary Stroke Weight: ${boundaryCheck.strokeWidth}px (Thick outline)`);
+  console.log(`[OK] National Boundary Layer Active on Map: ${boundaryCheck.hasLayer}`);
+  console.log(`[OK] Boundary Stroke Color: ${boundaryCheck.strokeColor} (Dark clear tone)`);
+  console.log(`[OK] Boundary Stroke Weight: ${boundaryCheck.strokeWidth}px (Thick outline)`);
 
   if (!boundaryCheck.hasLayer || !boundaryCheck.strokeColor) {
     edge.kill();
@@ -201,8 +201,8 @@ async function main() {
   await sleep(1500);
   const zoomedLevel = await client.eval(`window.map.getZoom()`);
   const mapCenter = await client.eval(`[window.map.getCenter().lat, window.map.getCenter().lng]`);
-  console.log(`✔ New Map Zoom after click: ${zoomedLevel} (Zoom-in triggered successfully: ${zoomedLevel > initialZoom})`);
-  console.log(`✔ Map Centered on: [${mapCenter[0].toFixed(2)}, ${mapCenter[1].toFixed(2)}]`);
+  console.log(`[OK] New Map Zoom after click: ${zoomedLevel} (Zoom-in triggered successfully: ${zoomedLevel > initialZoom})`);
+  console.log(`[OK] Map Centered on: [${mapCenter[0].toFixed(2)}, ${mapCenter[1].toFixed(2)}]`);
 
   if (zoomedLevel <= initialZoom) {
     edge.kill();
@@ -252,10 +252,10 @@ async function main() {
     })()
   `);
 
-  console.log(`✔ Drawer Street View Button Href: ${streetViewCheck.drawerHref}`);
-  console.log(`✔ Drawer Street View Button Visible: ${streetViewCheck.drawerVisible}`);
-  console.log(`✔ Quick Card contains Street View button: ${streetViewCheck.quickCardHasSv}`);
-  console.log(`✔ Marker Popup contains Street View button: ${streetViewCheck.popupHasSv}`);
+  console.log(`[OK] Drawer Street View Button Href: ${streetViewCheck.drawerHref}`);
+  console.log(`[OK] Drawer Street View Button Visible: ${streetViewCheck.drawerVisible}`);
+  console.log(`[OK] Quick Card contains Street View button: ${streetViewCheck.quickCardHasSv}`);
+  console.log(`[OK] Marker Popup contains Street View button: ${streetViewCheck.popupHasSv}`);
 
   if (!streetViewCheck.drawerHref || !streetViewCheck.drawerHref.includes('map_action=pano')) {
     edge.kill();
@@ -278,11 +278,11 @@ async function main() {
   const buf = Buffer.from(screenshot.data, 'base64');
   const screenshotPath = path.join(__dirname, '..', 'dashboard', 'screens', 'gis_zoom_streetview_boundary.png');
   fs.writeFileSync(screenshotPath, buf);
-  console.log(`✔ Screenshot saved to: ${screenshotPath} (${buf.length} bytes)`);
+  console.log(`[OK] Screenshot saved to: ${screenshotPath} (${buf.length} bytes)`);
 
   edge.kill();
   console.log('\n=============================================================');
-  console.log('✔ ALL GIS MAP FIXES VERIFIED AND VALIDATED 100% SUCCESSFULLY!');
+  console.log('[OK] ALL GIS MAP FIXES VERIFIED AND VALIDATED 100% SUCCESSFULLY!');
   console.log('=============================================================');
 }
 

@@ -153,7 +153,7 @@ async function main() {
   await sleep(1500);
 
   const savedCount = await client.eval(`window.savedAnalyses.length`);
-  console.log(`✓ Total saved analyses available: ${savedCount}`);
+  console.log(`[OK] Total saved analyses available: ${savedCount}`);
 
   // Test opening the window modal
   console.log('\n2. Testing opening the separate Saved Analyses window modal...');
@@ -168,14 +168,14 @@ async function main() {
     const cs = window.getComputedStyle(el);
     return { x: r.x, y: r.y, width: r.width, height: r.height, zIndex: cs.zIndex, display: cs.display, opacity: cs.opacity, visibility: cs.visibility };
   })()`);
-  console.log(`✓ Modal opened, display style: "${modalDisplay}", rendered cards: ${cardsCount}`, rect);
+  console.log(`[OK] Modal opened, display style: "${modalDisplay}", rendered cards: ${cardsCount}`, rect);
 
   // Capture screenshot of the opened window modal
   console.log('\n3. Capturing screenshot of Saved Analyses window modal...');
   const screenshot = await client.send('Page.captureScreenshot', { format: 'png' });
   const outPath = path.join(__dirname, 'saved_analyses_modal_window.png');
   fs.writeFileSync(outPath, Buffer.from(screenshot.data, 'base64'));
-  console.log(`✓ Saved screenshot to: ${outPath}`);
+  console.log(`[OK] Saved screenshot to: ${outPath}`);
 
   // Copy to artifacts directory
   const artifactDir = "C:\\Users\\Lakshya Valecha\\.gemini\\antigravity-ide\\brain\\6a5cd46e-a182-438d-a6eb-41835a92f98b";
@@ -190,7 +190,7 @@ async function main() {
   await sleep(400);
 
   const filteredCount = await client.eval(`document.querySelectorAll('.saved-analysis-window-card').length`);
-  console.log(`✓ Filtered by 'Pune': ${filteredCount} card(s) shown`);
+  console.log(`[OK] Filtered by 'Pune': ${filteredCount} card(s) shown`);
 
   // Reset filter
   await client.eval(`
@@ -207,8 +207,8 @@ async function main() {
 
   const modalAfterSelect = await client.eval(`document.getElementById('saved-analyses-window-modal').style.display`);
   const popupOpen = await client.eval(`Boolean(document.querySelector('.leaflet-popup'))`);
-  console.log(`✓ Modal closed after selection: ${modalAfterSelect === 'none'}`);
-  console.log(`✓ Leaflet marker popup opened for selected project: ${popupOpen}`);
+  console.log(`[OK] Modal closed after selection: ${modalAfterSelect === 'none'}`);
+  console.log(`[OK] Leaflet marker popup opened for selected project: ${popupOpen}`);
 
   // Clean up
   try {

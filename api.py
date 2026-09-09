@@ -450,13 +450,13 @@ def load_artifacts():
             timeline_path=timeline_path
         )
         monitor = ModelMonitor()
-        logging.info("✅ RiskAnalysisSystem and Monitor successfully loaded and ready.")
+        logging.info("[READY] RiskAnalysisSystem and Monitor successfully loaded and ready.")
 
         # Initialize Continuous Learning Automated Scheduler
         try:
             from scheduler import start_scheduler
             start_scheduler()
-            logging.info("✅ Continuous Learning Scheduler (APScheduler) started.")
+            logging.info("[STARTED] Continuous Learning Scheduler (APScheduler) started.")
         except Exception as se:
             logging.warning(f"Could not start Continuous Learning Scheduler: {se}")
     except Exception as e:
@@ -1211,7 +1211,7 @@ async def save_analysis(request: Request, req: SaveAnalysisRequest, user: Any = 
                             ensemble_path='ensemble.joblib',
                             timeline_path='timeline.joblib'
                         )
-                        logging.info("✅ Hot-reloaded newly retrained continuous learning model weights into active API serving.")
+                        logging.info("[RELOADED] Hot-reloaded newly retrained continuous learning model weights into active API serving.")
                     except Exception as hot_err:
                         logging.warning(f"Note on continuous learning hot-reload: {hot_err}")
                 logging.info(f"[ContinuousLearning] Retraining completed. Promoted: {res.get('promoted')}, Version: {res.get('version')}")
@@ -1716,7 +1716,7 @@ async def trigger_retrain(request: Request, user: Any = Depends(get_current_user
                     ensemble_path='ensemble.joblib',
                     timeline_path='timeline.joblib'
                 )
-                logging.info("✅ Hot-reloaded promoted models into active API serving.")
+                logging.info("[PROMOTED] Hot-reloaded promoted models into active API serving.")
             except Exception as re_err:
                 logging.warning(f"Note on hot-reload: {re_err}")
 

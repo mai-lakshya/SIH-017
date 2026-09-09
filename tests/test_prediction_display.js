@@ -39,7 +39,7 @@ async function testPredictionDisplay() {
     if (!html.includes(id)) {
       throw new Error(`Missing expected element in index.html: ${id}`);
     }
-    console.log(`✔ Found DOM Element: ${id}`);
+    console.log(`[OK] Found DOM Element: ${id}`);
   });
 
   // 2. Query live /predict endpoint and verify returned payload schema
@@ -76,7 +76,7 @@ async function testPredictionDisplay() {
   }
 
   const data = await res.json();
-  console.log(`✔ API returned HTTP 200 OK`);
+  console.log(`[OK] API returned HTTP 200 OK`);
 
   const pred = data.predictions;
   if (!pred) throw new Error('Missing predictions object in API response');
@@ -90,7 +90,7 @@ async function testPredictionDisplay() {
   if (!pred.delay_human_readable || !pred.delay_human_readable.includes('Months') && !pred.delay_human_readable.includes('Weeks')) {
     throw new Error(`Missing or malformed delay_human_readable: ${pred.delay_human_readable}`);
   }
-  console.log(`✔ Valid statutory delay duration & human readable format`);
+  console.log(`[OK] Valid statutory delay duration & human readable format`);
 
   // Verify Confidence Score & Probability
   console.log(`Delay Probability: ${pred.delay_probability}%`);
@@ -101,7 +101,7 @@ async function testPredictionDisplay() {
   if (typeof pred.confidence_score !== 'number' || pred.confidence_score < 50 || pred.confidence_score > 100) {
     throw new Error(`Invalid confidence_score: ${pred.confidence_score}`);
   }
-  console.log(`✔ Valid calibrated probability & confidence score`);
+  console.log(`[OK] Valid calibrated probability & confidence score`);
 
   // Verify Error Margins
   console.log(`Delay MAE Error Margin: ±${pred.error_margin_days_mae} days`);
@@ -113,7 +113,7 @@ async function testPredictionDisplay() {
   if (pred.error_margin_crs_mae !== 0.047) {
     throw new Error(`Expected error_margin_crs_mae == 0.047, got ${pred.error_margin_crs_mae}`);
   }
-  console.log(`✔ Valid MAE & Conformal error margins`);
+  console.log(`[OK] Valid MAE & Conformal error margins`);
 
   // Verify Model Diagnostics
   const acc = data.model_accuracy;
@@ -130,14 +130,14 @@ async function testPredictionDisplay() {
   if (acc.timeline_r2 !== 0.9460) throw new Error(`Unexpected timeline_r2: ${acc.timeline_r2}`);
   if (acc.classification_accuracy !== 100.0) throw new Error(`Unexpected classification_accuracy: ${acc.classification_accuracy}`);
 
-  console.log(`✔ All verified model benchmarks matched evaluation standards!`);
+  console.log(`[OK] All verified model benchmarks matched evaluation standards!`);
 
   console.log('\n======================================================');
-  console.log('✔ ALL PREDICTION DISPLAY TESTS PASSED SUCCESSFULLY!');
+  console.log('[OK] ALL PREDICTION DISPLAY TESTS PASSED SUCCESSFULLY!');
   console.log('======================================================\n');
 }
 
 testPredictionDisplay().catch(err => {
-  console.error('❌ Test Failed:', err);
+  console.error('[FAIL] Test Failed:', err);
   process.exit(1);
 });

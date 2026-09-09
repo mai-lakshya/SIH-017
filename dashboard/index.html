@@ -960,7 +960,7 @@
   <!-- 1. Apple Global Navigation Bar -->
   <header class="apple-global-nav">
     <div class="nav-brand-group">
-      <div class="apple-badge-icon">⚡</div>
+      <div class="apple-badge-icon" style="font-size: 11px; font-weight: 700; letter-spacing: -0.5px;">NX</div>
       <span class="nav-title">NEXUS-XAI // LandIntel Infrastructure Risk & Timeline Engine</span>
     </div>
     <div class="nav-status-cluster">
@@ -985,19 +985,19 @@
       <!-- Segmented View Switcher -->
       <div class="segmented-control" role="tablist">
         <button class="segmented-tab active" id="tab-gis-btn" onclick="switchMainTab('gis')">
-          <span>🗺️</span> National GIS Map
+          National GIS Map
         </button>
         <button class="segmented-tab" id="tab-predictor-btn" onclick="switchMainTab('predictor')">
-          <span>⚡</span> Risk Predictor
+          Risk Predictor
         </button>
         <button class="segmented-tab" id="tab-xai-btn" onclick="switchMainTab('xai')">
-          <span>🔬</span> XAI & Survival
+          XAI & Survival
         </button>
         <button class="segmented-tab" id="tab-mitigations-btn" onclick="switchMainTab('mitigations')">
-          <span>🎯</span> Prescriptive AI
+          Prescriptive AI
         </button>
         <button class="segmented-tab" id="tab-monitor-btn" onclick="switchMainTab('monitor')">
-          <span>🛡️</span> Model Governance
+          Model Governance
         </button>
       </div>
     </div>
@@ -1113,11 +1113,11 @@
             <label class="form-label" for="larr-select">RFCTLARR 2013 Statutory Status</label>
             <select id="larr-select" class="form-select">
               <option value="">All Statutory Statuses</option>
-              <option value="pre_lapse">⚠️ Pre-Lapse Urgent (270-365d Sec 19(7))</option>
-              <option value="lapsed">🛑 Statutorily Lapsed (&gt;365d Sec 19(7))</option>
-              <option value="compliant">✅ Compliant Active (&lt;270d)</option>
-              <option value="dispute_high">⚖️ High Title Dispute (&gt;20% Sec 15)</option>
-              <option value="sia_pending">📋 SIA Clearance Pending (Sec 4/7)</option>
+              <option value="pre_lapse">Pre-Lapse Urgent (270-365d Sec 19(7))</option>
+              <option value="lapsed">Statutorily Lapsed (&gt;365d Sec 19(7))</option>
+              <option value="compliant">Compliant Active (&lt;270d)</option>
+              <option value="dispute_high">High Title Dispute (&gt;20% Sec 15)</option>
+              <option value="sia_pending">SIA Clearance Pending (Sec 4/7)</option>
             </select>
           </div>
 
@@ -1228,11 +1228,11 @@
             </div>
             <!-- Preset Scenario Dropdown (13,532 Infrastructure Dataset) -->
             <select id="preset-selector" class="form-select" style="width: auto; height: 32px; font-size: 12px;" onchange="loadPresetScenario(this.value)">
-              <option value="custom">⚡ Preset: Custom Configuration</option>
-              <option value="highway" selected>🛣️ NHAI-RJ-2023-0001 (Highway Corridor, Sec 11: 311d Pre-Lapse Urgent)</option>
-              <option value="railway_critical">🚆 MoR-WB-2021-0001 (High-Density Rail, 4,819 PAFs, SIA Pending)</option>
-              <option value="statutory_lapse">⚠️ MoR-CG-2022-0032 (Forest Rail Link, Sec 11: 730d - Statutorily Lapsed Sec 19(7))</option>
-              <option value="solar">☀️ MNRE-UP-2024-0001 (Greenfield Solar, SIA Approved, Sec 11: 169d Compliant)</option>
+              <option value="custom">Preset: Custom Configuration</option>
+              <option value="highway" selected>NHAI-RJ-2023-0001 (Highway Corridor, Sec 11: 311d Pre-Lapse Urgent)</option>
+              <option value="railway_critical">MoR-WB-2021-0001 (High-Density Rail, 4,819 PAFs, SIA Pending)</option>
+              <option value="statutory_lapse">MoR-CG-2022-0032 (Forest Rail Link, Sec 11: 730d - Statutorily Lapsed Sec 19(7))</option>
+              <option value="solar">MNRE-UP-2024-0001 (Greenfield Solar, SIA Approved, Sec 11: 169d Compliant)</option>
             </select>
           </div>
 
@@ -1361,7 +1361,7 @@
             <div style="background: var(--color-ice); border: 1px solid rgba(0, 113, 227, 0.2); border-radius: var(--radius-cards); padding: 14px; margin-bottom: 16px;">
               <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                 <span style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--color-apple-blue); letter-spacing: 0.5px;">
-                  ⚖️ RFCTLARR Act 2013 Statutory Controls
+                  RFCTLARR Act 2013 Statutory Controls
                 </span>
                 <span id="lapse-badge-pill" class="badge-tier badge-tier-Medium" style="font-size: 10px; padding: 2px 8px;">Pre-Lapse Urgent (<90d left)</span>
               </div>
@@ -1412,7 +1412,7 @@
               <div style="display: flex; gap: 8px;">
                 <button type="button" class="btn-apple-secondary" onclick="loadPresetScenario('highway')">Reset</button>
                 <button type="button" class="btn-apple-secondary" id="btn-save-project-form" onclick="openSaveAnalysisModal()" style="display: inline-flex; align-items: center; gap: 6px; font-weight: 500;" title="Save project to database to continuously train the model">
-                  <span>💾</span> Save to Database
+                  Save to Database
                 </button>
                 <button type="submit" class="btn-apple-primary" id="btn-run-prediction">Calculate Risk &rarr;</button>
               </div>
@@ -1429,7 +1429,7 @@
             </div>
             <div style="display: flex; align-items: center; gap: 8px;">
               <button id="btn-save-analysis" type="button" class="btn-apple-secondary" onclick="openSaveAnalysisModal()" style="display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; padding: 5px 12px; border-radius: 980px; cursor: pointer; border: 1px solid var(--color-border-subtle); background: var(--color-frost); color: var(--color-carbon); transition: all 0.2s;" title="Save this project to database and trigger continuous learning">
-                <span>💾</span> Save to Database &amp; Train
+                Save to Database &amp; Train
               </button>
               <span id="output-badge-tier" class="badge-tier badge-tier-High">High Risk</span>
             </div>
@@ -1485,7 +1485,7 @@
           <!-- RFCTLARR Act 2013 Statutory Compliance Output Banner -->
           <div id="out-larr-banner" style="background: var(--color-frost); border: 1px solid var(--color-border-subtle); border-left: 4px solid var(--risk-med); border-radius: var(--radius-cards); padding: 12px 14px; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between;">
             <div style="display: flex; align-items: center; gap: 10px;">
-              <span style="font-size: 20px;">⚖️</span>
+              
               <div>
                 <div style="font-size: 12px; font-weight: 600; color: var(--color-carbon);" id="out-larr-title">RFCTLARR Act 2013 Statutory Status</div>
                 <div id="out-larr-desc" style="font-size: 11px; color: var(--color-ash); margin-top: 1px;">Section 19(7) Clock: 311/365 days elapsed (54 days left before statutory lapse)</div>
@@ -1829,7 +1829,7 @@
       <div style="background: var(--color-ice); border: 1px solid rgba(0, 113, 227, 0.2); border-radius: var(--radius-cards); padding: 14px; margin-bottom: 20px;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
           <div style="display: flex; align-items: center; gap: 6px;">
-            <span style="font-size: 14px;">⚖️</span>
+            
             <span style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--color-apple-blue); letter-spacing: 0.5px;">RFCTLARR Act 2013 Statutory Status</span>
           </div>
           <span id="drawer-larr-badge" class="badge-tier badge-tier-Low" style="font-size: 10px; padding: 2px 8px;">Compliant</span>
@@ -1948,7 +1948,7 @@
     <div style="background: #ffffff; width: 100%; max-width: 490px; border-radius: 16px; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); display: flex; flex-direction: column;">
       <div style="padding: 16px 20px; border-bottom: 1px solid var(--color-border); display: flex; justify-content: space-between; align-items: center; background: var(--color-frost);">
         <div style="display: flex; align-items: center; gap: 8px;">
-          <span style="font-size: 16px;">💾</span>
+          
           <h3 style="font-size: 15px; font-weight: 600; color: var(--color-carbon); margin: 0;">Save Project to Database</h3>
         </div>
         <button onclick="closeSaveAnalysisModal()" style="width: 28px; height: 28px; border-radius: 50%; border: none; background: rgba(0,0,0,0.06); cursor: pointer; font-size: 16px; color: var(--color-smoke); display: flex; align-items: center; justify-content: center;" title="Close">&times;</button>
@@ -1958,7 +1958,6 @@
           Persist this infrastructure project to the SQLite database (<strong>saved_analyses.db</strong>). Saving automatically appends the project to the training dataset store and initiates <strong>Continuous Model Retraining</strong> in the background.
         </p>
         <div style="margin-bottom: 14px; background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: 8px; padding: 8px 12px; font-size: 11px; color: #065f46; display: flex; align-items: center; gap: 6px;">
-          <span>⚡</span>
           <span><strong>Continuous Learning:</strong> Auto-trains stacking ensemble & survival model on newly saved records.</span>
         </div>
         <div class="form-group" style="margin-bottom: 14px;">
@@ -2169,7 +2168,7 @@
 
         const npuBadge = document.getElementById('health-npu-badge');
         if (npuBadge && data.npu_provider) {
-          npuBadge.textContent = `⚡ ${data.npu_provider} Accelerated`;
+          npuBadge.textContent = `${data.npu_provider} Accelerated`;
         }
 
         // Populate validation metrics
@@ -2229,7 +2228,7 @@
     function createDriftTableRow(name, domain, psi, status, badge) {
       const badgeClass = status === 'green' ? 'badge-tier-Low' : status === 'yellow' ? 'badge-tier-Medium' : 'badge-tier-Critical';
       const statusColor = status === 'green' ? '#10b981' : status === 'yellow' ? '#f59e0b' : '#ef4444';
-      const actionText = status === 'red' ? '⚠️ Retrain Auto-Triggered' : status === 'yellow' ? 'Surveillance Active' : 'Optimal Distribution';
+      const actionText = status === 'red' ? 'Retrain Auto-Triggered' : status === 'yellow' ? 'Surveillance Active' : 'Optimal Distribution';
       return `
         <tr class="drift-row" data-feature="${escapeHtml(name)}" style="border-bottom: 1px solid var(--color-border-subtle); transition: background 0.15s ease;">
           <td style="padding: 12px; font-weight: 600; color: var(--color-carbon); font-family: 'JetBrains Mono', monospace; font-size: 12px;">${escapeHtml(name)}</td>
@@ -2338,14 +2337,14 @@
         });
         const data = await res.json();
         if (res.ok && data.status === 'success') {
-          if (feedback) feedback.textContent = `✅ Successfully ingested ${data.ingested_count} records. Total Store: ${data.total_store_size} projects.`;
+          if (feedback) feedback.textContent = `Successfully ingested ${data.ingested_count} records. Total Store: ${data.total_store_size} projects.`;
           textarea.value = '';
           loadModelHealthDashboard();
         } else {
-          if (feedback) feedback.textContent = `❌ Error: ${data.detail || JSON.stringify(data)}`;
+          if (feedback) feedback.textContent = `Error: ${data.detail || JSON.stringify(data)}`;
         }
       } catch (err) {
-        if (feedback) feedback.textContent = `❌ JSON Parsing Error: ${err.message}`;
+        if (feedback) feedback.textContent = `JSON Parsing Error: ${err.message}`;
       }
     }
 
@@ -2798,7 +2797,7 @@
         const totalAtLoc = locCounts[locKey] || 1;
         const sameLocBadge = totalAtLoc > 1 
           ? `<div style="font-size: 11px; color: var(--color-link-blue); background: var(--color-ice); padding: 3px 8px; border-radius: 4px; margin-top: 5px; font-weight: 500; border: 1px solid rgba(0, 102, 204, 0.15);">
-               📍 ${totalAtLoc} projects monitored in this district
+               ${totalAtLoc} projects monitored in this district
              </div>`
           : '';
 
@@ -3276,7 +3275,7 @@
           larrBadge.className = 'badge-tier badge-tier-High';
           larrBadge.textContent = 'Statutorily Lapsed (Sec 19(7))';
           sec11Bar.style.background = 'var(--risk-high)';
-          sec11Sub.innerHTML = `<strong style="color: var(--risk-high);">⚠️ LAPSED:</strong> Exceeded 12-month statutory limit under Sec 19(7). Fresh Section 11 gazette notification required by law.`;
+          sec11Sub.innerHTML = `<strong style="color: var(--risk-high);">LAPSED:</strong> Exceeded 12-month statutory limit under Sec 19(7). Fresh Section 11 gazette notification required by law.`;
         } else if (sec11Days >= 270) {
           larrBadge.className = 'badge-tier badge-tier-Medium';
           larrBadge.textContent = 'Pre-Lapse Urgent (<90d left)';
@@ -3426,7 +3425,7 @@
       if (days > 365) {
         badge.className = 'badge-tier badge-tier-High';
         badge.textContent = 'LAPSED (Sec 19(7))';
-        hint.innerHTML = `<strong style="color: var(--risk-high);">⚠️ STATUTORY LAPSE:</strong> ${days}d elapsed (>365d limit). Proceedings legally lapsed under Sec 19(7).`;
+        hint.innerHTML = `<strong style="color: var(--risk-high);">STATUTORY LAPSE:</strong> ${days}d elapsed (>365d limit). Proceedings legally lapsed under Sec 19(7).`;
       } else if (days >= 270) {
         badge.className = 'badge-tier badge-tier-Medium';
         badge.textContent = 'Pre-Lapse Urgent (<90d left)';
@@ -3808,7 +3807,7 @@
           outLarrBadge.className = 'badge-tier badge-tier-High';
           outLarrBadge.textContent = 'Statutorily Lapsed (Sec 19(7))';
           outLarrBanner.style.borderLeft = '4px solid var(--risk-high)';
-          outLarrDesc.innerHTML = `<strong style="color: var(--risk-high);">⚠️ PROCEEDINGS LAPSED:</strong> Notification exceeded 365 days under Sec 19(7). Entire acquisition must restart with fresh Gazette notification.`;
+          outLarrDesc.innerHTML = `<strong style="color: var(--risk-high);">PROCEEDINGS LAPSED:</strong> Notification exceeded 365 days under Sec 19(7). Entire acquisition must restart with fresh Gazette notification.`;
         } else if (sec11 >= 270) {
           outLarrBadge.className = 'badge-tier badge-tier-Medium';
           outLarrBadge.textContent = 'Pre-Lapse Urgent (<90d left)';
@@ -4387,7 +4386,7 @@
               <span class="badge-tier badge-tier-${a.risk_tier}">${a.risk_tier} Risk</span>
             </div>
             <div style="font-weight: 700; font-size: 14px; color: var(--color-carbon); line-height: 1.3; margin-top: 4px;">${escapeHtml(a.project_name)}</div>
-            <div style="font-size: 11px; color: var(--color-ash); margin-top: 2px;">📍 ${escapeHtml(a.district || 'District')}, ${escapeHtml(a.state)} (${escapeHtml(a.project_type || 'Infrastructure')})</div>
+            <div style="font-size: 11px; color: var(--color-ash); margin-top: 2px;">${escapeHtml(a.district || 'District')}, ${escapeHtml(a.state)} (${escapeHtml(a.project_type || 'Infrastructure')})</div>
 
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin: 10px 0 8px 0; background: var(--color-frost); padding: 8px; border-radius: 6px; border: 1px solid var(--color-border-subtle);">
               <div>
@@ -4413,7 +4412,7 @@
                 Focus &rarr;
               </button>
               <button onclick="deleteAnalysis('${a.id}', event)" class="btn-apple-secondary" style="font-size: 11px; padding: 6px 10px; color: #ef4444; border-color: rgba(239,68,68,0.3); background: #fef2f2;" title="Delete this saved analysis">
-                🗑️ Delete
+                Delete
               </button>
             </div>
           </div>
@@ -4514,7 +4513,7 @@
                   <span style="font-size: 11px; font-family: var(--font-family-mono); background: var(--color-frost); color: var(--color-ash); padding: 1px 6px; border-radius: 4px;">${escapeHtml(a.project_type || 'Infrastructure')}</span>
                 </div>
                 <div style="font-size: 12px; color: var(--color-ash); margin-top: 4px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
-                  <span>📍 <strong>${escapeHtml(a.district || 'District')}</strong>, ${escapeHtml(a.state)}</span>
+                  <span><strong>${escapeHtml(a.district || 'District')}</strong>, ${escapeHtml(a.state)}</span>
                   <span>&bull;</span>
                   <span>Coordinates: <span style="font-family: var(--font-family-mono);">${a.latitude}, ${a.longitude}</span></span>
                   <span>&bull;</span>
@@ -4526,7 +4525,7 @@
                   <span>Select &amp; Focus Map &rarr;</span>
                 </button>
                 <button onclick="deleteAnalysis('${a.id}', event)" class="btn-apple-secondary" style="font-size: 12px; padding: 7px 12px; color: #ef4444; border-color: rgba(239,68,68,0.25); background: #fef2f2;" title="Delete this saved analysis">
-                  🗑️ Delete
+                  Delete
                 </button>
               </div>
             </div>

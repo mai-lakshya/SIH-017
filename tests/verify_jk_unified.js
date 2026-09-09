@@ -109,7 +109,7 @@ async function main() {
     throw new Error('Could not connect to Edge remote debugging port 9222');
   }
 
-  console.log('✔ Connected to Headless Edge via CDP');
+  console.log('[OK] Connected to Headless Edge via CDP');
   const client = new CDPClient(wsUrl);
   await client.ready();
 
@@ -129,7 +129,7 @@ async function main() {
     mobile: false
   });
 
-  console.log('✔ Navigating to http://127.0.0.1:8000/map?heatmap=1');
+  console.log('[OK] Navigating to http://127.0.0.1:8000/map?heatmap=1');
   await client.send('Page.navigate', { url: 'http://127.0.0.1:8000/map?heatmap=1' });
 
   // Wait for choropleth layer and map to load
@@ -149,13 +149,13 @@ async function main() {
     edge.kill();
     throw new Error('Map or choropleth layer failed to initialize within 15 seconds');
   }
-  console.log('✔ Map and Choropleth Layer fully initialized in DOM');
+  console.log('[OK] Map and Choropleth Layer fully initialized in DOM');
 
   // Verify compliance patch layer is completely removed
   const patchLayerExists = await client.eval(`
     typeof window.soiCompliancePatchLayer !== 'undefined' && window.soiCompliancePatchLayer !== null
   `);
-  console.log(`✔ Verified separate soiCompliancePatchLayer is absent: ${!patchLayerExists}`);
+  console.log(`[OK] Verified separate soiCompliancePatchLayer is absent: ${!patchLayerExists}`);
   if (patchLayerExists) {
     throw new Error('soiCompliancePatchLayer should be completely removed, but is present!');
   }
@@ -197,7 +197,7 @@ async function main() {
     throw new Error('Jammu & Kashmir layer not found in choroplethLayer!');
   }
 
-  console.log(`✔ Found J&K feature in choroplethLayer with SOI extents:`);
+  console.log(`[OK] Found J&K feature in choroplethLayer with SOI extents:`);
   console.log(`   North: ${jkInfo.bounds.north.toFixed(2)}° N (reaches Survey of India boundary > 37° N)`);
   console.log(`   South: ${jkInfo.bounds.south.toFixed(2)}° S`);
   console.log(`   East:  ${jkInfo.bounds.east.toFixed(2)}° E (includes Aksai Chin > 80° E)`);
@@ -208,7 +208,7 @@ async function main() {
   }
 
   // Emulate hovering over J&K shape
-  console.log(`✔ Emulating mouse hover over J&K/Ladakh at screen coords (${Math.round(jkInfo.rect.cx)}, ${Math.round(jkInfo.rect.cy)})...`);
+  console.log(`[OK] Emulating mouse hover over J&K/Ladakh at screen coords (${Math.round(jkInfo.rect.cx)}, ${Math.round(jkInfo.rect.cy)})...`);
   
   await client.send('Input.dispatchMouseEvent', {
     type: 'mouseMoved',
@@ -249,7 +249,7 @@ async function main() {
     })()
   `);
 
-  console.log('✔ Hover style applied to the unified polygon:');
+  console.log('[OK] Hover style applied to the unified polygon:');
   console.log(`   Stroke: ${hoverResult.stroke} (expected: #06b6d4 cyan)`);
   console.log(`   Stroke Width: ${hoverResult.strokeWidth} (expected: 2)`);
   console.log(`   Fill: ${hoverResult.fill} (expected: #374151)`);
@@ -269,7 +269,7 @@ async function main() {
   await sleep(1000);
 
   // Capture screenshot of the full map with hover state
-  console.log('✔ Capturing screenshot of J&K hover state...');
+  console.log('[OK] Capturing screenshot of J&K hover state...');
   const screenshot = await client.send('Page.captureScreenshot', {
     format: 'png'
   });
@@ -284,14 +284,14 @@ async function main() {
   fs.writeFileSync(screenshotPath1, screenshotBuffer);
   try {
     fs.writeFileSync(screenshotPath2, screenshotBuffer);
-    console.log(`✔ Saved screenshot to artifact directory ${screenshotPath2}`);
+    console.log(`[OK] Saved screenshot to artifact directory ${screenshotPath2}`);
   } catch (e) {
     console.warn(`Could not save to ${screenshotPath2}: ${e.message}`);
   }
-  console.log(`✔ Saved screenshot to ${screenshotPath1} (${screenshotBuffer.length} bytes)`);
+  console.log(`[OK] Saved screenshot to ${screenshotPath1} (${screenshotBuffer.length} bytes)`);
 
   // Test click-to-zoom behavior
-  console.log('✔ Testing click-to-zoom on J&K unified layer...');
+  console.log('[OK] Testing click-to-zoom on J&K unified layer...');
   const zoomBefore = await client.eval('window.map.getZoom()');
   await client.eval(`
     (() => {
@@ -306,12 +306,12 @@ async function main() {
   await sleep(1500);
   const zoomAfter = await client.eval('window.map.getZoom()');
   const selectedDropdown = await client.eval('document.getElementById("state-select").value');
-  console.log(`✔ Zoom changed from ${zoomBefore} to ${zoomAfter} (smoothly flew to J&K full bounds)`);
-  console.log(`✔ State filter dropdown synced to: "${selectedDropdown}"`);
+  console.log(`[OK] Zoom changed from ${zoomBefore} to ${zoomAfter} (smoothly flew to J&K full bounds)`);
+  console.log(`[OK] State filter dropdown synced to: "${selectedDropdown}"`);
 
   // Close browser and finish
   edge.kill();
-  console.log('\n✔ ALL AUTOMATED VERIFICATION CHECKS PASSED SUCCESSFULLY!');
+  console.log('\n[OK] ALL AUTOMATED VERIFICATION CHECKS PASSED SUCCESSFULLY!');
 }
 
 main().catch(err => {

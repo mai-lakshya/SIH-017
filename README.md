@@ -12,13 +12,13 @@
 
 ---
 
-## 📖 Complete Master Documentation
+## Complete Master Documentation
 For the complete step-by-step architectural breakdown, mathematical formulations, statutory legal context (RFCTLARR Act 2013), and operational guidelines, please see:
-👉 **[`DOCUMENTATION.md`](DOCUMENTATION.md)**
+**[`DOCUMENTATION.md`](DOCUMENTATION.md)**
 
 ---
 
-## 🚀 Key Highlights
+## Key Highlights
 
 1. **Statutory RFCTLARR Act 2013 Compliance Engine**:
    - Explicit modeling of Section 11 preliminary notifications and the **Section 19(7) 365-day statutory lapse horizon**.
@@ -48,7 +48,7 @@ For the complete step-by-step architectural breakdown, mathematical formulations
 
 ---
 
-## 🛠️ Quickstart & Local Hosting
+## Quickstart & Local Hosting
 
 ### 1. Installation
 
@@ -83,7 +83,7 @@ pip install -r requirements.txt
 
 ---
 
-## 🧪 Comprehensive Verification
+## Comprehensive Verification
 
 To run the complete 9-pillar continuous learning test suite (Ingestion, PSI Drift, Retraining, Validation Gate, Model Versioning, NPUParity, APScheduler, Dashboard API, and Full End-to-End lifecycle):
 
@@ -98,7 +98,7 @@ pytest -v
 
 ---
 
-## 📂 Repository Structure
+## Repository Structure
 
 ```text
 SIh/
@@ -120,5 +120,5 @@ SIh/
 
 ---
 
-## ⚖️ Statutory & Compliance Disclaimer
+## Statutory & Compliance Disclaimer
 All geospatial boundary representations in this repository adhere to the **Survey of India** official cartographic standards. All legal risk classifications conform to the **Right to Fair Compensation and Transparency in Land Acquisition, Rehabilitation and Resettlement (RFCTLARR) Act, 2013**.

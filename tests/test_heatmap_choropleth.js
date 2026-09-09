@@ -11,7 +11,7 @@ async function runTests() {
     throw new Error(`File not found: ${htmlPath}`);
   }
   const htmlContent = fs.readFileSync(htmlPath, 'utf-8');
-  console.log('✔ location_analysis_map.html found (' + htmlContent.length + ' bytes)');
+  console.log('[OK] location_analysis_map.html found (' + htmlContent.length + ' bytes)');
 
   // 2. Verify key DOM IDs and attributes in HTML
   const requiredElements = [
@@ -28,14 +28,14 @@ async function runTests() {
     if (!htmlContent.includes(item)) {
       throw new Error(`Missing expected markup: ${item}`);
     }
-    console.log(`✔ Found DOM markup: ${item}`);
+    console.log(`[OK] Found DOM markup: ${item}`);
   });
 
   // 3. Extract the JS logic and test state aggregation & coloring
   // Load local geojson and projects from backend via fetch
   const geojsonPath = path.join(__dirname, '..', 'dashboard', 'india_states.geojson');
   const geojson = JSON.parse(fs.readFileSync(geojsonPath, 'utf-8'));
-  console.log(`✔ Loaded GeoJSON: ${geojson.features.length} state features`);
+  console.log(`[OK] Loaded GeoJSON: ${geojson.features.length} state features`);
 
   // Fetch projects from local server
   const res = await fetch('http://127.0.0.1:8000/projects/geo', {
@@ -45,7 +45,7 @@ async function runTests() {
     throw new Error(`Failed to fetch /projects/geo: ${res.status}`);
   }
   const projects = await res.json();
-  console.log(`✔ Fetched ${projects.length} projects from GET /projects/geo`);
+  console.log(`[OK] Fetched ${projects.length} projects from GET /projects/geo`);
 
   // Define normalization function exactly as in location_analysis_map.html
   function normalizeStateName(rawName) {
@@ -114,14 +114,14 @@ async function runTests() {
 
   const lookup = calculateStateRiskStats(projects);
   const stateKeys = Object.keys(lookup);
-  console.log(`✔ Computed risk metrics across ${stateKeys.length} distinct states with projects`);
+  console.log(`[OK] Computed risk metrics across ${stateKeys.length} distinct states with projects`);
 
   // Verify total project count across all states matches 200
   const totalCount = stateKeys.reduce((acc, st) => acc + lookup[st].count, 0);
   if (totalCount !== 200) {
     throw new Error(`Expected 200 projects aggregated, got ${totalCount}`);
   }
-  console.log(`✔ Verified total aggregated project count = ${totalCount}`);
+  console.log(`[OK] Verified total aggregated project count = ${totalCount}`);
 
   // Verify J&K / Ladakh has Survey of India boundary (reaches latitude > 37° N)
   const jkFeature = geojson.features.find(f => (f.properties.ST_NM || f.properties.NAME_1 || '').includes('Jammu'));
@@ -140,7 +140,7 @@ async function runTests() {
     return { minLon: Math.min(...lons), maxLon: Math.max(...lons), minLat: Math.min(...lats), maxLat: Math.max(...lats) };
   }
   const jkExt = getExtents(jkFeature.geometry.coordinates);
-  console.log(`✔ Verified Survey of India J&K/Ladakh Bounds: Lat ${jkExt.minLat.toFixed(2)}° to ${jkExt.maxLat.toFixed(2)}° N | Lon ${jkExt.minLon.toFixed(2)}° to ${jkExt.maxLon.toFixed(2)}° E`);
+  console.log(`[OK] Verified Survey of India J&K/Ladakh Bounds: Lat ${jkExt.minLat.toFixed(2)}° to ${jkExt.maxLat.toFixed(2)}° N | Lon ${jkExt.minLon.toFixed(2)}° to ${jkExt.maxLon.toFixed(2)}° E`);
   if (jkExt.maxLat < 37.0) {
     throw new Error(`J&K does not reach official Survey of India boundary (maxLat was ${jkExt.maxLat}, expected > 37.0° N)`);
   }
@@ -191,7 +191,7 @@ async function runTests() {
     }
   });
 
-  console.log('\n✔ ALL TESTS PASSED SUCCESSFULLY!');
+  console.log('\n[OK] ALL TESTS PASSED SUCCESSFULLY!');
 }
 
 runTests().catch(err => {

@@ -131,7 +131,7 @@ async function main() {
       return { btnId, isStreets };
     })()
   `);
-  console.log('✔ Switched basemap to "streets":', switchResult);
+  console.log('[OK] Switched basemap to "streets":', switchResult);
   if (!switchResult.isStreets || switchResult.btnId !== 'basemap-streets-btn') {
     edge.kill();
     throw new Error('Basemap switcher failed to activate streets layer!');
@@ -150,7 +150,7 @@ async function main() {
       return { isVisible, title, iframeHasOsm: iframeSrc.includes('openstreetmap.org'), extHasMaps: extHref.includes('google.com/maps') };
     })()
   `);
-  console.log('✔ Street View Modal Status:', modalCheck);
+  console.log('[OK] Street View Modal Status:', modalCheck);
   if (!modalCheck.isVisible || !modalCheck.iframeHasOsm || !modalCheck.extHasMaps) {
     edge.kill();
     throw new Error('Street View Modal failed to open with correct embeds!');
@@ -166,7 +166,7 @@ async function main() {
   `);
   await sleep(1800);
   const currentZoom = await client.eval(`window.map.getZoom()`);
-  console.log(`✔ Modal Closed: ${focusCheck.modalClosed}, Main Map Zoomed to: ${currentZoom}`);
+  console.log(`[OK] Modal Closed: ${focusCheck.modalClosed}, Main Map Zoomed to: ${currentZoom}`);
   if (!focusCheck.modalClosed || currentZoom < 14) {
     edge.kill();
     throw new Error('Switch main map to street view and zoom failed!');
@@ -177,10 +177,10 @@ async function main() {
   const buf = Buffer.from(screenshot.data, 'base64');
   const screenshotPath = path.join(__dirname, '..', 'dashboard', 'screens', 'street_map_view_active.png');
   fs.writeFileSync(screenshotPath, buf);
-  console.log(`✔ Saved screenshot to: ${screenshotPath} (${buf.length} bytes)`);
+  console.log(`[OK] Saved screenshot to: ${screenshotPath} (${buf.length} bytes)`);
 
   edge.kill();
-  console.log('\n✔ ALL STREET MAP VIEW INTEGRATIONS VALIDATED 100%!');
+  console.log('\n[OK] ALL STREET MAP VIEW INTEGRATIONS VALIDATED 100%!');
 }
 
 main().catch(err => {
