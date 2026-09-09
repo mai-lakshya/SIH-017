@@ -13,6 +13,7 @@ NEXUS-XAI Continuous Learning & NPU Acceleration Engine
 
 import os
 import sys
+import re
 import glob
 import json
 import time
@@ -232,6 +233,10 @@ def validate_project_record(record: Dict[str, Any]) -> Dict[str, Any]:
         raise ValueError(f"land_area_hectares must be > 0, got: {clean_record['land_area_hectares']}")
     if clean_record["estimated_cost_inr_crore"] <= 0:
         raise ValueError(f"estimated_cost_inr_crore must be > 0, got: {clean_record['estimated_cost_inr_crore']}")
+    if "district" in clean_record:
+        d = clean_record["district"].strip()
+        if re.search(r'district\s+\d+', d, re.IGNORECASE):
+            raise ValueError(f"Invalid district '{d}': placeholder or synthetic district names are prohibited.")
 
     for k, default_val in SCHEMA_DEFAULTS.items():
         if k in record and record[k] is not None:

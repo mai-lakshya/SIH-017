@@ -63,6 +63,17 @@ TERRAINS = ["Plain", "Hilly", "Coastal", "Urban", "Desert"]
 SIA_STATUSES = ["Approved", "Pending", "Exempted"]
 FOREST_STATUSES = ["Approved", "Stage 1 Approved", "Pending", "Not_Required"]
 
+STATE_DISTRICTS = {
+    "Bihar": ["Patna", "Gaya", "Muzaffarpur", "Bhagalpur", "Begusarai"],
+    "Gujarat": ["Ahmedabad", "Surat", "Vadodara", "Rajkot", "Gandhinagar"],
+    "Karnataka": ["Bengaluru Urban", "Mysuru", "Belagavi", "Kalaburagi", "Dharwad"],
+    "Maharashtra": ["Pune", "Nagpur", "Nashik", "Thane", "Chhatrapati Sambhajinagar"],
+    "Tamil Nadu": ["Chennai", "Coimbatore", "Madurai", "Salem", "Tiruchirappalli"],
+    "Telangana": ["Hyderabad", "Warangal", "Nizamabad", "Karimnagar", "Khammam"],
+    "Uttar Pradesh": ["Lucknow", "Kanpur Nagar", "Varanasi", "Agra", "Prayagraj"],
+    "West Bengal": ["Kolkata", "Howrah", "North 24 Parganas", "Paschim Bardhaman", "Darjeeling"],
+}
+
 
 def generate_50_synthetic_records(skew_features: bool = False) -> List[Dict[str, Any]]:
     """Generates 50 realistic infrastructure project records."""
@@ -97,10 +108,11 @@ def generate_50_synthetic_records(skew_features: bool = False) -> List[Dict[str,
         delay_days = round(random.uniform(120.0, 450.0) if is_delayed else random.uniform(30.0, 90.0), 1)
         crs = round(random.uniform(55.0, 95.0) if is_delayed else random.uniform(10.0, 45.0), 1)
 
+        dists = STATE_DISTRICTS.get(state, ["Patna"])
         rec = {
             "project_id": f"TEST-SYNTH-{int(time.time() % 100000)}-{i}",
             "state": state,
-            "district": f"{state} District {i%5 + 1}",
+            "district": dists[i % len(dists)],
             "project_type": p_type,
             "terrain_type": terrain,
             "land_area_hectares": area,
@@ -580,6 +592,19 @@ def main():
         print("[SUCCESS] ALL 9 CONTINUOUS LEARNING TESTS PASSED SUCCESSFULLY!\n")
     else:
         print("[WARNING] SOME TESTS FAILED. PLEASE REVIEW DETAILS ABOVE.\n")
+
+    # Clean up test records from CSV data store so production dataset remains intact
+    try:
+        csv_file = "indian_infrastructure_projects_dataset.csv"
+        if os.path.exists(csv_file):
+            import pandas as pd
+            df_curr = pd.read_csv(csv_file, low_memory=False)
+            df_pruned = df_curr[~df_curr['project_id'].str.contains('TEST-SYNTH', case=False, na=False)]
+            if len(df_pruned) != len(df_curr):
+                df_pruned.to_csv(csv_file, index=False)
+                print(f"Cleanup: Removed {len(df_curr) - len(df_pruned)} test records from {csv_file}.\n")
+    except Exception as e:
+        print(f"Cleanup note: {e}\n")
 
 
 if __name__ == "__main__":

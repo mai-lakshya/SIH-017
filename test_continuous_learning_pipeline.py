@@ -37,6 +37,17 @@ TERRAINS = ["Plain", "Hilly", "Coastal", "Urban", "Desert"]
 SIA_STATUSES = ["Approved", "Pending", "Exempted"]
 FOREST_STATUSES = ["Approved", "Stage 1 Approved", "Pending", "Not_Required"]
 
+STATE_DISTRICTS = {
+    "Bihar": ["Patna", "Gaya", "Muzaffarpur", "Bhagalpur", "Begusarai"],
+    "Gujarat": ["Ahmedabad", "Surat", "Vadodara", "Rajkot", "Gandhinagar"],
+    "Karnataka": ["Bengaluru Urban", "Mysuru", "Belagavi", "Kalaburagi", "Dharwad"],
+    "Maharashtra": ["Pune", "Nagpur", "Nashik", "Thane", "Chhatrapati Sambhajinagar"],
+    "Tamil Nadu": ["Chennai", "Coimbatore", "Madurai", "Salem", "Tiruchirappalli"],
+    "Telangana": ["Hyderabad", "Warangal", "Nizamabad", "Karimnagar", "Khammam"],
+    "Uttar Pradesh": ["Lucknow", "Kanpur Nagar", "Varanasi", "Agra", "Prayagraj"],
+    "West Bengal": ["Kolkata", "Howrah", "North 24 Parganas", "Paschim Bardhaman", "Darjeeling"],
+}
+
 
 def generate_50_synthetic_records() -> list:
     """Generates 50 realistic infrastructure project records."""
@@ -61,10 +72,11 @@ def generate_50_synthetic_records() -> list:
         delay_days = round(random.uniform(90.0, 420.0) if is_delayed else random.uniform(30.0, 90.0), 1)
         crs = round(random.uniform(50.0, 90.0) if is_delayed else random.uniform(10.0, 45.0), 1)
 
+        dists = STATE_DISTRICTS.get(state, ["Patna"])
         rec = {
             "project_id": f"TEST-SYNTH-{1000 + i}",
             "state": state,
-            "district": f"{state} District {i%5 + 1}",
+            "district": dists[i % len(dists)],
             "project_type": p_type,
             "terrain_type": terrain,
             "land_area_hectares": area,
@@ -215,6 +227,18 @@ def run_pipeline_verification():
     recs = pred_result.get("recommendations", pred_result.get("prescriptive_actions", []))
     assert len(recs) > 0, "Expected at least 1 prescriptive action"
     print(f"  -> Prescriptive Engine Verified: {len(recs)} actionable mitigations returned")
+
+    # Clean up test records from CSV data store so the dataset remains clean
+    try:
+        csv_file = "indian_infrastructure_projects_dataset.csv"
+        if os.path.exists(csv_file):
+            df_curr = pd.read_csv(csv_file, low_memory=False)
+            df_pruned = df_curr[~df_curr['project_id'].str.contains('TEST-SYNTH', case=False, na=False)]
+            if len(df_pruned) != len(df_curr):
+                df_pruned.to_csv(csv_file, index=False)
+                print(f"  -> Cleanup: Removed {len(df_curr) - len(df_pruned)} test records from dataset.")
+    except Exception as e:
+        print(f"  -> Cleanup note: {e}")
 
     print("\n" + "=" * 76)
     print("   [SUCCESS] ALL 7 CONTINUOUS LEARNING & NPU PIPELINE TESTS PASSED!")

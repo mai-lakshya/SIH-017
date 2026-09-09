@@ -174,7 +174,35 @@ async function main() {
       .filter(v => Boolean(v))
   `);
   console.log(`✓ West Bengal rendered as SELECT: ${wbIsSelect}`);
-  // Select Uttar Pradesh (verify full 75 districts)
+
+  // Select Bihar (verify authentic districts with zero fake placeholders)
+  console.log('\n--- VERIFICATION 2A: Bihar Real Districts Check ---');
+  await client.eval(`(() => {
+    const stateEl = document.getElementById('inp-state');
+    stateEl.value = 'Bihar';
+    handlePredictorStateChange('Bihar');
+  })()`);
+  await sleep(300);
+
+  const brIsSelect = await client.eval(`document.getElementById('inp-district').tagName === 'SELECT'`);
+  const brDistricts = await client.eval(`
+    Array.from(document.getElementById('inp-district').options)
+      .map(o => o.value)
+      .filter(v => Boolean(v))
+  `);
+  console.log(`✓ Bihar rendered as SELECT: ${brIsSelect}`);
+  console.log(`✓ Bihar district count: ${brDistricts.length} (Expected: 16)`);
+  console.log(`✓ Bihar districts: ${brDistricts.join(', ')}`);
+  const biharRealCheck = ['Patna', 'Gaya', 'Muzaffarpur', 'Bhagalpur', 'Begusarai', 'Nalanda', 'Rohtas'].every(d => brDistricts.includes(d));
+  console.log(`✓ Contains Patna, Gaya, Muzaffarpur, Bhagalpur, Begusarai, Nalanda, Rohtas: ${biharRealCheck}`);
+  const hasFakeBihar = brDistricts.some(d => /district\s+\d+/i.test(d));
+  console.log(`✓ Zero placeholder districts ("Bihar District X"): ${!hasFakeBihar}`);
+  if (hasFakeBihar) {
+    throw new Error(`Found fake districts in Bihar: ${brDistricts.filter(d => /district\s+\d+/i.test(d))}`);
+  }
+  if (brDistricts.length !== 16) {
+    throw new Error(`Expected 16 districts for Bihar, got ${brDistricts.length}`);
+  }
   console.log('\n--- VERIFICATION 2B: Uttar Pradesh 75 Districts Check ---');
   await client.eval(`(() => {
     const stateEl = document.getElementById('inp-state');
@@ -275,11 +303,15 @@ async function main() {
   fs.writeFileSync(outPath, Buffer.from(screenshot.data, 'base64'));
   console.log(`✓ Saved screenshot to: ${outPath}`);
 
-  const artifactDir = "C:\\Users\\Lakshya Valecha\\.gemini\\antigravity-ide\\brain\\d7ba2f30-81c8-4fbe-94ee-b86fc6b26aa4";
-  if (!fs.existsSync(artifactDir)) {
-    fs.mkdirSync(artifactDir, { recursive: true });
+  const artifactDir = process.env.ARTIFACT_DIR || "C:\\Users\\PRATYUSH\\.gemini\\antigravity-ide\\brain\\7ba89fa9-0af4-4990-8409-a40eda4316ff";
+  try {
+    if (!fs.existsSync(artifactDir)) {
+      fs.mkdirSync(artifactDir, { recursive: true });
+    }
+    fs.copyFileSync(outPath, path.join(artifactDir, 'cascading_districts_predictor.png'));
+  } catch (err) {
+    console.warn(`Could not copy screenshot to artifact dir: ${err.message}`);
   }
-  fs.copyFileSync(outPath, path.join(artifactDir, 'cascading_districts_predictor.png'));
 
   // --- VERIFICATION 6: Stats on dataset coverage ---
   console.log('\n--- VERIFICATION 6: Dataset Coverage Report ---');

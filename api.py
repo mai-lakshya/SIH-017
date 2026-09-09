@@ -8,6 +8,7 @@ from pydantic import BaseModel, Field
 import pandas as pd
 import numpy as np
 import os
+import re
 import logging
 import json
 import math
@@ -1376,7 +1377,9 @@ def get_state_districts_mapping() -> Dict[str, List[str]]:
                     state_str = str(state).strip()
                     districts = sorted(list(set([
                         str(d).strip() for d in group['district'].dropna().unique() 
-                        if str(d).strip() and str(d).strip().lower() not in ['nan', 'none', 'unknown', '']
+                        if str(d).strip() 
+                        and str(d).strip().lower() not in ['nan', 'none', 'unknown', '', 'null', 'undefined']
+                        and not re.search(r'district\s+\d+', str(d), re.IGNORECASE)
                     ])))
                     mapping[state_str] = districts
                     raw_state_counts[state_str] = len(districts)
@@ -1384,7 +1387,7 @@ def get_state_districts_mapping() -> Dict[str, List[str]]:
                 # Complete official 75 districts for Uttar Pradesh (source CSV contains 25 infrastructure project districts;
                 # augmented with all 75 official districts to provide complete reference dropdown coverage)
                 up_csv_count = len(mapping.get("Uttar Pradesh", []))
-                up_existing = set(mapping.get("Uttar Pradesh", []))
+                up_existing = set(d for d in mapping.get("Uttar Pradesh", []) if not re.search(r'district\s+\d+', d, re.IGNORECASE))
                 up_combined = sorted(list(up_existing.union(set(UP_ALL_75_DISTRICTS))))
                 mapping["Uttar Pradesh"] = up_combined
 
