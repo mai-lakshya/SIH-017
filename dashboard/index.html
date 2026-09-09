@@ -23,6 +23,9 @@
   <!-- Chart.js 4.4.1 for Clean Visualizations -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 
+  <!-- Turf.js 6.5.0 for High-Precision Reverse Geocoding Point-in-Polygon Detection -->
+  <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
+
   <style>
     /* ==========================================================================
        APPLE DESIGN SYSTEM TOKENS (from DESIGN.md)
@@ -2357,6 +2360,11 @@
         map.flyTo(DEFAULT_CENTER, DEFAULT_ZOOM, { duration: 1.2 });
       });
 
+      // Reverse Geocoding Click Handler for Empty Map Area
+      map.on('click', (e) => {
+        handleMapReverseGeocodeClick(e);
+      });
+
       console.log('[GIS Engine] Initialized Apple-styled Leaflet map with Multi-Basemap Engine.');
     }
 
@@ -2765,6 +2773,8 @@
 
         // Click-to-zoom: smoothly fly to the project coordinates at zoom 12
         marker.on('click', () => {
+          window._justClickedMarker = true;
+          setTimeout(() => { window._justClickedMarker = false; }, 350);
           if (p.latitude != null && p.longitude != null) {
             const currentZoom = map.getZoom();
             const targetZoom = Math.max(currentZoom < 11 ? 12 : currentZoom + 1, 12);
@@ -3017,6 +3027,200 @@
       return await remoteRes.json();
     }
 
+    // =========================================================================
+    // REVERSE GEOCODING POINT-IN-POLYGON ENGINE (Turf.js + 755 SOI Districts)
+    // =========================================================================
+    let districtBoundariesData = null;
+    let districtBoundingBoxes = [];
+    let isDistrictDataLoading = false;
+    let districtDataLoadTimeMs = 0;
+    let reverseGeocodePopup = null;
+    let districtsLayer = null;
+
+    async function loadDistrictBoundariesAsync() {
+      if (districtBoundariesData || isDistrictDataLoading) return;
+      isDistrictDataLoading = true;
+      const t0 = performance.now();
+      try {
+        const urls = ['/india_districts.geojson', 'india_districts.geojson', '../india_districts.geojson', 'dashboard/india_districts.geojson'];
+        let res = null;
+        for (const u of urls) {
+          try {
+            const r = await fetch(u);
+            if (r.ok) { res = r; break; }
+          } catch (e) {}
+        }
+        if (!res) throw new Error('Could not fetch india_districts.geojson');
+        const data = await res.json();
+        districtBoundariesData = data;
+        districtDataLoadTimeMs = performance.now() - t0;
+
+        districtBoundingBoxes = data.features.map(f => {
+          const bbox = f.properties && f.properties.bbox ? f.properties.bbox : calculateFeatureBBox(f.geometry);
+          return {
+            bbox: bbox, // [minX, minY, maxX, maxY]
+            feature: f
+          };
+        });
+        window.districtBoundariesData = districtBoundariesData;
+        window.districtBoundingBoxes = districtBoundingBoxes;
+        window.districtDataLoadTimeMs = districtDataLoadTimeMs;
+        console.log(`[Reverse Geocoding] Loaded ${data.features.length} districts in ${districtDataLoadTimeMs.toFixed(1)} ms.`);
+      } catch (err) {
+        console.warn('[Reverse Geocoding] Failed to load district boundaries:', err);
+      } finally {
+        isDistrictDataLoading = false;
+      }
+    }
+    window.loadDistrictBoundariesAsync = loadDistrictBoundariesAsync;
+
+    function calculateFeatureBBox(geometry) {
+      let minX = 180, minY = 90, maxX = -180, maxY = -90;
+      function walk(c) {
+        if (typeof c[0] === 'number') {
+          if (c[0] < minX) minX = c[0];
+          if (c[0] > maxX) maxX = c[0];
+          if (c[1] < minY) minY = c[1];
+          if (c[1] > maxY) maxY = c[1];
+        } else {
+          for (let i = 0; i < c.length; i++) walk(c[i]);
+        }
+      }
+      if (geometry && geometry.coordinates) walk(geometry.coordinates);
+      return [minX, minY, maxX, maxY];
+    }
+
+    function showDistrictsLayer() {
+      if (!districtsLayer && districtBoundariesData) {
+        districtsLayer = L.geoJSON(districtBoundariesData, {
+          style: {
+            color: '#f59e0b',
+            weight: 1.0,
+            opacity: 0.85,
+            fillColor: '#3b82f6',
+            fillOpacity: 0.08
+          }
+        });
+      }
+      if (districtsLayer && !map.hasLayer(districtsLayer)) {
+        districtsLayer.addTo(map);
+        if (nationalBoundaryLayer && map.hasLayer(nationalBoundaryLayer)) {
+          nationalBoundaryLayer.bringToFront();
+        }
+      }
+    }
+    window.showDistrictsLayer = showDistrictsLayer;
+
+    function hideDistrictsLayer() {
+      if (districtsLayer && map.hasLayer(districtsLayer)) {
+        map.removeLayer(districtsLayer);
+      }
+    }
+    window.hideDistrictsLayer = hideDistrictsLayer;
+
+    // Map Click Handler for Empty Map Area
+    function handleMapReverseGeocodeClick(e) {
+      if (!e || !e.latlng) return;
+      const lat = e.latlng.lat;
+      const lng = e.latlng.lng;
+
+      // Ignore if user clicked on a marker, cluster icon, popup, or control
+      if (window._justClickedMarker) return;
+      if (e.originalEvent) {
+        const target = e.originalEvent.target;
+        if (target && (target.closest('.leaflet-marker-icon') || target.closest('.apple-cluster-badge') || target.closest('.leaflet-popup') || target.closest('.leaflet-control'))) {
+          return;
+        }
+      }
+
+      if (!districtBoundariesData) {
+        loadDistrictBoundariesAsync().then(() => {
+          if (districtBoundariesData) performReverseGeocodeLookup(lat, lng);
+        });
+        return;
+      }
+
+      performReverseGeocodeLookup(lat, lng);
+    }
+    window.handleMapReverseGeocodeClick = handleMapReverseGeocodeClick;
+
+    function performReverseGeocodeLookup(lat, lng) {
+      const t0 = performance.now();
+      let foundDistrict = null;
+      let foundState = null;
+
+      if (window.turf && typeof turf.booleanPointInPolygon === 'function' && districtBoundingBoxes.length > 0) {
+        const pt = turf.point([lng, lat]);
+        // 1. Filter candidates using pre-computed bounding boxes
+        const candidates = [];
+        for (let i = 0; i < districtBoundingBoxes.length; i++) {
+          const b = districtBoundingBoxes[i].bbox;
+          if (lng >= b[0] && lng <= b[2] && lat >= b[1] && lat <= b[3]) {
+            candidates.push(districtBoundingBoxes[i].feature);
+          }
+        }
+
+        // 2. Perform point-in-polygon on candidates
+        for (let i = 0; i < candidates.length; i++) {
+          const feat = candidates[i];
+          if (turf.booleanPointInPolygon(pt, feat)) {
+            foundDistrict = feat.properties.district;
+            foundState = feat.properties.state;
+            break;
+          }
+        }
+      }
+
+      const lookupTimeMs = performance.now() - t0;
+      console.log(`[Reverse Geocoding] Point [${lat.toFixed(4)}, ${lng.toFixed(4)}] -> District: ${foundDistrict}, State: ${foundState} (${lookupTimeMs.toFixed(2)} ms)`);
+
+      if (reverseGeocodePopup && map) {
+        map.closePopup(reverseGeocodePopup);
+      }
+
+      let popupContent = '';
+      if (foundDistrict && foundState) {
+        const safeState = String(foundState).replace(/'/g, "\\'");
+        const safeDistrict = String(foundDistrict).replace(/'/g, "\\'");
+        popupContent = `
+          <div class="reverse-geocode-card" style="font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif; min-width: 220px; padding: 2px;">
+            <div style="font-size: 11px; color: var(--color-slate-muted, #64748b); font-weight: 500; margin-bottom: 2px; text-transform: uppercase; letter-spacing: 0.5px;">Detected Location</div>
+            <div style="font-size: 14px; color: var(--color-carbon, #0f172a); font-weight: 600; margin-bottom: 12px; line-height: 1.4;">
+              You clicked in: <strong>${escapeHtml(foundDistrict)}</strong>, ${escapeHtml(foundState)}
+            </div>
+            <button id="btn-start-analysis-here" onclick="startNewAnalysisFromMap('${safeState}', '${safeDistrict}')" class="btn-apple-primary" style="width: 100%; font-size: 11px; padding: 8px 12px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer; border-radius: var(--radius-buttons, 980px); font-weight: 500;" title="Start New Risk Predictor Analysis">
+              <span>Start New Analysis Here &rarr;</span>
+            </button>
+          </div>
+        `;
+      } else {
+        // Outside India's mapped boundaries (ocean or foreign territory)
+        popupContent = `
+          <div class="reverse-geocode-card" style="font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif; min-width: 230px; padding: 2px;">
+            <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 4px; color: #ef4444;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+              <span style="font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Location Notice</span>
+            </div>
+            <div style="font-size: 13px; color: var(--color-carbon, #0f172a); font-weight: 500; line-height: 1.4;">
+              This location is outside India's mapped boundaries
+            </div>
+          </div>
+        `;
+      }
+
+      reverseGeocodePopup = L.popup({
+        autoPan: true,
+        closeButton: true,
+        className: 'apple-map-popup'
+      })
+      .setLatLng([lat, lng])
+      .setContent(popupContent)
+      .openOn(map);
+
+      return { district: foundDistrict, state: foundState, timeMs: lookupTimeMs };
+    }
+    window.performReverseGeocodeLookup = performReverseGeocodeLookup;
+
     // Load Geo Data from /projects/geo
     async function loadGeoData() {
       const overlay = document.getElementById('map-status-overlay');
@@ -3040,6 +3244,9 @@
         loadSavedAnalyses(); // Load user-saved persistent analyses alongside reference markers
         updateStatsCounters(allProjects);
         if (overlay) overlay.style.display = 'none';
+
+        // Load District Boundaries Asynchronously after markers render (non-blocking)
+        loadDistrictBoundariesAsync();
 
         // Update hero KPI strip (if present)
         const heroTotalEl = document.getElementById('hero-total-projects');
@@ -3435,22 +3642,26 @@
 
     function setPredictorStateAndDistrict(state, district) {
       const stateEl = document.getElementById('inp-state');
+      let effectiveState = state || '';
       if (stateEl) {
         if (state) {
-          const targetState = String(state).trim().toLowerCase();
+          const targetState = String(state).trim().toLowerCase().replace(/&/g, 'and').replace(/\s+/g, ' ');
           let matchedState = '';
           for (let i = 0; i < stateEl.options.length; i++) {
-            if (stateEl.options[i].value.toLowerCase() === targetState) {
+            const optVal = stateEl.options[i].value.toLowerCase().replace(/&/g, 'and').replace(/\s+/g, ' ');
+            if (optVal && (optVal === targetState || targetState.includes(optVal) || optVal.includes(targetState))) {
               matchedState = stateEl.options[i].value;
               break;
             }
           }
           stateEl.value = matchedState || state;
+          effectiveState = stateEl.value;
         } else {
           stateEl.value = '';
+          effectiveState = '';
         }
       }
-      populateDistrictField(state, district || '');
+      populateDistrictField(effectiveState, district || '');
     }
     window.setPredictorStateAndDistrict = setPredictorStateAndDistrict;
     window.populateDistrictField = populateDistrictField;
@@ -3583,6 +3794,95 @@
     }
     window.inspectProjectInRiskPredictor = inspectProjectInRiskPredictor;
 
+    function startNewAnalysisFromMap(state, district) {
+      if (reverseGeocodePopup && map) {
+        map.closePopup(reverseGeocodePopup);
+      }
+      closeInspectorDrawer();
+      window.hasCalculatedInitialPredictor = true;
+      switchMainTab('predictor');
+
+      // Task 3: Clear every single other field to empty/defaults
+      const idInp = document.getElementById('inp-project-id');
+      if (idInp) idInp.value = '';
+
+      const typeSelect = document.getElementById('inp-project-type');
+      if (typeSelect) typeSelect.value = '';
+
+      const terrainSelect = document.getElementById('inp-terrain');
+      if (terrainSelect) terrainSelect.value = '';
+
+      const costInp = document.getElementById('inp-cost');
+      if (costInp) costInp.value = '';
+
+      const landInp = document.getElementById('inp-land-area');
+      if (landInp) landInp.value = '';
+
+      const siaSelect = document.getElementById('inp-sia-status');
+      if (siaSelect) siaSelect.value = '';
+
+      const forestSelect = document.getElementById('inp-forest-status');
+      if (forestSelect) forestSelect.value = '';
+
+      const fundInp = document.getElementById('inp-fund-pct');
+      if (fundInp) fundInp.value = '';
+
+      const sec11Inp = document.getElementById('inp-sec11-days');
+      if (sec11Inp) sec11Inp.value = '';
+
+      const compInp = document.getElementById('inp-comp-mult');
+      if (compInp) compInp.value = '';
+
+      const famInp = document.getElementById('inp-affected-families');
+      if (famInp) famInp.value = '';
+
+      const dispInp = document.getElementById('inp-dispute-rate');
+      if (dispInp) dispInp.value = '';
+
+      const protestCheck = document.getElementById('inp-protest-flag');
+      if (protestCheck) protestCheck.checked = false;
+
+      const presetSel = document.getElementById('preset-selector');
+      if (presetSel) presetSel.value = 'custom';
+
+      updateSec11LapseBadge('');
+
+      // Reset output metric tiles to uncalculated placeholder state
+      const outProb = document.getElementById('out-prob');
+      if (outProb) { outProb.textContent = '--%'; outProb.style.color = 'var(--color-carbon)'; }
+      const outCrs = document.getElementById('out-crs');
+      if (outCrs) outCrs.innerHTML = '-- <span style="font-size: 14px; font-weight: 400; color: var(--color-ash);">/ 100</span>';
+      const outDelay = document.getElementById('out-delay-days');
+      if (outDelay) { outDelay.textContent = '-- Days'; outDelay.style.color = 'var(--color-carbon)'; }
+      const outSurv = document.getElementById('out-median-surv');
+      if (outSurv) outSurv.textContent = '-- Days';
+      const outConf = document.getElementById('out-confidence-tag');
+      if (outConf) outConf.textContent = 'Confidence: Awaiting Calculation...';
+      const outCrsCi = document.getElementById('out-crs-ci');
+      if (outCrsCi) outCrsCi.textContent = 'Error Margin: -- • 90% CI: [--]';
+      const outDelayCi = document.getElementById('out-delay-ci');
+      if (outDelayCi) outDelayCi.textContent = 'Error Margin: -- • 90% CI: [--]';
+      const outSurvH = document.getElementById('out-surv-human');
+      if (outSurvH) outSurvH.textContent = '~-- Months Expected Horizon';
+      const outBadge = document.getElementById('output-badge-tier');
+      if (outBadge) { outBadge.className = 'badge-tier'; outBadge.style.background = 'var(--color-frost)'; outBadge.style.color = 'var(--color-ash)'; outBadge.textContent = 'Uncalculated'; }
+      const larrBadge = document.getElementById('out-larr-badge');
+      if (larrBadge) { larrBadge.className = 'badge-tier'; larrBadge.style.background = 'var(--color-frost)'; larrBadge.style.color = 'var(--color-ash)'; larrBadge.textContent = 'Not Started'; }
+      const larrDesc = document.getElementById('out-larr-desc');
+      if (larrDesc) larrDesc.textContent = 'Configure project parameters and click Calculate Risk to evaluate statutory RFCTLARR timeline.';
+      const narrativeText = document.getElementById('ai-delay-narrative-text');
+      if (narrativeText) narrativeText.textContent = 'Awaiting project inputs. Select project characteristics and click "Calculate Risk →" to run dual-paradigm machine learning inference and delay causation diagnostics.';
+      const causalGrid = document.getElementById('ai-delay-causal-grid');
+      if (causalGrid) causalGrid.innerHTML = '';
+
+      // Pre-fill ONLY State & District
+      setPredictorStateAndDistrict(state, district);
+
+      document.getElementById('view-predictor')?.scrollIntoView({ behavior: 'smooth' });
+      showToast(`Started new analysis for ${district}, ${state}.`);
+    }
+    window.startNewAnalysisFromMap = startNewAnalysisFromMap;
+
     async function inspectSavedAnalysisInRiskPredictor(analysisId) {
       let a = (window.savedAnalyses || []).find(item => String(item.id) === String(analysisId));
 
@@ -3697,21 +3997,25 @@
       }
 
       if (districts && districts.length > 0) {
-        const hasMatch = preselectedDistrict && districts.some(d => d.toLowerCase() === preselectedDistrict.toLowerCase());
-        const optionsHtml = districts.map(d => {
+        let districtList = [...districts];
+        const hasMatch = preselectedDistrict && districtList.some(d => d.toLowerCase() === preselectedDistrict.toLowerCase());
+        if (preselectedDistrict && !hasMatch) {
+          districtList.push(preselectedDistrict);
+        }
+        const optionsHtml = districtList.map(d => {
           const isSel = preselectedDistrict && (d.toLowerCase() === preselectedDistrict.toLowerCase());
           return `<option value="${escapeHtml(d)}"${isSel ? ' selected' : ''}>${escapeHtml(d)}</option>`;
         }).join('');
 
         wrapper.innerHTML = `
           <select id="inp-district" class="form-select">
-            <option value="" disabled${!hasMatch ? ' selected' : ''}>Select District (${districts.length})...</option>
+            <option value="" disabled${!preselectedDistrict ? ' selected' : ''}>Select District (${districtList.length})...</option>
             ${optionsHtml}
           </select>
         `;
         if (fallbackNote) fallbackNote.style.display = 'none';
 
-        if (preselectedDistrict && hasMatch) {
+        if (preselectedDistrict) {
           const selectEl = document.getElementById('inp-district');
           if (selectEl) {
             const found = Array.from(selectEl.options).find(o => o.value.toLowerCase() === preselectedDistrict.toLowerCase());
@@ -3753,7 +4057,13 @@
       executePredictRisk();
     }
 
-    async function executePredictRisk() {
+    async function executePredictRisk(force = false) {
+      const costRaw = document.getElementById('inp-cost')?.value;
+      const landRaw = document.getElementById('inp-land-area')?.value;
+      if (!force && (!costRaw || !landRaw)) {
+        return;
+      }
+
       const btn = document.getElementById('btn-run-prediction');
       if (btn) btn.innerHTML = 'Calculating...';
 
@@ -4945,6 +5255,8 @@
 
         marker.bindPopup(popupHtml, { autoPan: true, closeButton: true });
         marker.on('click', () => {
+          window._justClickedMarker = true;
+          setTimeout(() => { window._justClickedMarker = false; }, 350);
           marker.openPopup();
         });
 

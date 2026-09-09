@@ -528,6 +528,14 @@ def serve_jk_patch():
             return FileResponse(path, media_type="application/geo+json")
     raise HTTPException(status_code=404, detail="Patch GeoJSON not found")
 
+@app.get("/india_districts.geojson")
+def serve_india_districts_geojson():
+    from fastapi.responses import FileResponse
+    for path in ["dashboard/india_districts.geojson", "dashboard/screens/india_districts.geojson"]:
+        if os.path.exists(path):
+            return FileResponse(path, media_type="application/geo+json")
+    raise HTTPException(status_code=404, detail="Districts GeoJSON not found")
+
 
 
 
