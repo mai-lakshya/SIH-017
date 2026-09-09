@@ -87,11 +87,12 @@ class TreeWrapperRegressor(RegressorMixin, TreeWrapperBase):
         super().__init__(model_class, random_state, **kwargs)
 
 class HybridRiskPredictor:
-    def __init__(self, cat_features=None, random_state=42, model_params=None, calibration_method='sigmoid'):
+    def __init__(self, cat_features=None, random_state=42, model_params=None, calibration_method='sigmoid', n_jobs=-1):
         self.cat_features = cat_features
         self.random_state = random_state
         self.model_params = model_params or {}
         self.calibration_method = calibration_method
+        self.n_jobs = n_jobs
         self.classifier = None
         self.calibrated_classifier = None
         self.regressor_crs = None
@@ -104,9 +105,10 @@ class HybridRiskPredictor:
         cat_params = self.model_params.get('cat', {})
         et_params = self.model_params.get('et', {})
         
-        lgb_params = {'verbose': -1, **lgb_params}
-        xgb_params = {'verbosity': 0, **xgb_params}
-        cat_params = {'verbose': False, **cat_params}
+        lgb_params = {'verbose': -1, 'n_jobs': self.n_jobs, **lgb_params}
+        xgb_params = {'verbosity': 0, 'n_jobs': self.n_jobs, **xgb_params}
+        cat_params = {'verbose': False, 'thread_count': self.n_jobs, **cat_params}
+        et_params = {'n_jobs': self.n_jobs, **et_params}
         
         lgb_clf = TreeWrapperClassifier(lgb.LGBMClassifier, random_state=self.random_state, **lgb_params)
         xgb_clf = TreeWrapperClassifier(xgb.XGBClassifier, random_state=self.random_state, **xgb_params)
@@ -126,7 +128,8 @@ class HybridRiskPredictor:
             'cv': cv,
             'random_state': self.random_state,
             'l1_ratios': (0.0,),
-            'scoring': 'accuracy'
+            'scoring': 'accuracy',
+            'n_jobs': self.n_jobs
         }
         import inspect
         if 'use_legacy_attributes' in inspect.signature(LogisticRegressionCV.__init__).parameters:
@@ -141,7 +144,7 @@ class HybridRiskPredictor:
             estimators=base_classifiers,
             final_estimator=meta_classifier,
             cv=cv,
-            n_jobs=1,
+            n_jobs=None,
             passthrough=False
         )
 
@@ -151,9 +154,10 @@ class HybridRiskPredictor:
         cat_params = self.model_params.get('cat', {})
         et_params = self.model_params.get('et', {})
         
-        lgb_params = {'verbose': -1, **lgb_params}
-        xgb_params = {'verbosity': 0, **xgb_params}
-        cat_params = {'verbose': False, **cat_params}
+        lgb_params = {'verbose': -1, 'n_jobs': self.n_jobs, **lgb_params}
+        xgb_params = {'verbosity': 0, 'n_jobs': self.n_jobs, **xgb_params}
+        cat_params = {'verbose': False, 'thread_count': self.n_jobs, **cat_params}
+        et_params = {'n_jobs': self.n_jobs, **et_params}
         
         lgb_reg = TreeWrapperRegressor(lgb.LGBMRegressor, random_state=self.random_state, **lgb_params)
         xgb_reg = TreeWrapperRegressor(xgb.XGBRegressor, random_state=self.random_state, **xgb_params)
@@ -174,7 +178,7 @@ class HybridRiskPredictor:
             estimators=base_regressors,
             final_estimator=meta_regressor,
             cv=cv,
-            n_jobs=1,
+            n_jobs=None,
             passthrough=False
         )
 

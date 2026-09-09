@@ -1,0 +1,18 @@
+{
+  "version": "v2.4.0",
+  "timestamp": "2026-09-09T12:48:31.549036+00:00",
+  "training_size": 13734,
+  "feature_count": 27,
+  "npu_provider": "DmlExecutionProvider",
+  "metrics": {
+    "c_index": 0.9028,
+    "ece": 0.0176,
+    "auc": 0.9445,
+    "c_index_passed": true,
+    "ece_passed": true,
+    "auc_passed": true,
+    "promoted": true
+  },
+  "promoted": true,
+  "directory": "v2.4.0_20260909_124814"
+}

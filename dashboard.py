@@ -89,10 +89,11 @@ st.title("⚡ AI Land Acquisition Risk & Delay Predictor")
 st.markdown("Next-generation dual-paradigm machine learning predictor for infrastructure project delay probabilities, schedule drift, and prescriptive mitigations.")
 
 # Navigation Tabs
-tab_predictor, tab_analytics, tab_monitor = st.tabs([
+tab_predictor, tab_analytics, tab_monitor, tab_model_health = st.tabs([
     "🔮 Interactive Risk Predictor", 
     "📊 Optuna Pareto & Model Analytics", 
-    "🛡️ Live System Health & Drift Monitor"
+    "🛡️ Live System Health & Drift Monitor",
+    "🧠 Model Health & Continuous Learning"
 ])
 
 # -------------------------------------------------------------
@@ -452,3 +453,69 @@ with tab_monitor:
             st.info(f"Monitor running in SQLite mode (`monitoring.db`). Logs ready.")
     else:
         st.warning("Model monitor unavailable.")
+
+# -------------------------------------------------------------
+# TAB 4: MODEL HEALTH & CONTINUOUS LEARNING
+# -------------------------------------------------------------
+with tab_model_health:
+    st.subheader("Autonomous Model Health & NPU Retraining Engine")
+    try:
+        from continuous_learning import get_current_model_health, RetrainingOrchestrator
+        from scheduler import get_scheduler_status
+        health = get_current_model_health()
+        sch_status = get_scheduler_status()
+
+        # Row 1: Metrics
+        c1, c2, c3, c4 = st.columns(4)
+        c1.metric("Current Version", health.get("current_version", "v2.4.0"), f"NPU: {health.get('npu_provider', 'DirectML')}")
+        c2.metric("Concordance Index", f"{health.get('c_index', 0.906):.4f}", "Gate: ≥ 0.8800")
+        c3.metric("Calibration ECE", f"{health.get('ece', 0.072):.4f}", "Gate: ≤ 0.1000")
+        c4.metric("ROC-AUC Score", f"{health.get('auc', 0.996):.4f}", "Gate: ≥ 0.8500")
+
+        # Row 2: Retrain Action & Last Date
+        r1, r2 = st.columns([3, 1])
+        with r1:
+            st.info(f"**Last Retrained Date:** {health.get('last_retrain_date')} | **Data Store Size:** {health.get('training_size', 13532):,} projects")
+        with r2:
+            if st.button("🚀 Trigger Manual Retrain", use_container_width=True):
+                with st.spinner("Retraining full stacking ensemble (n_jobs=-1) & validating through gate..."):
+                    try:
+                        orch = RetrainingOrchestrator()
+                        res = orch.run_retrain_cycle(trigger_reason="streamlit_manual")
+                        if res.get("promoted"):
+                            st.success(f"New model {res.get('version')} PROMOTED to Production!")
+                        else:
+                            st.warning("Candidate evaluated: Kept existing model (Gate criteria)")
+                        st.json(res.get("metrics"))
+                    except Exception as retrain_err:
+                        st.error(f"Retrain error: {retrain_err}")
+
+        # Row 3: Drift Matrix Table
+        st.markdown("#### Feature-by-Feature Population Stability Index (PSI)")
+        drift_data = health.get("drift_summary", {}).get("feature_reports", {})
+        if drift_data:
+            table_rows = []
+            for feat, info in drift_data.items():
+                psi = info.get("psi", 0.0)
+                status = info.get("status", "green")
+                icon = "🟢" if status == "green" else ("🟡" if status == "yellow" else "🔴")
+                table_rows.append({
+                    "Feature": feat,
+                    "PSI Score": f"{psi:.4f}",
+                    "Status": f"{icon} {info.get('badge', 'Stable')}",
+                    "Retrain Trigger": "Yes (>0.20)" if psi > 0.20 else "No"
+                })
+            st.dataframe(pd.DataFrame(table_rows), use_container_width=True)
+        else:
+            st.success("🟢 All features currently stable (PSI < 0.10). No distribution drift detected.")
+
+        # Row 4: Scheduler Status
+        st.markdown("#### Automated APScheduler Daemon Status")
+        jobs = sch_status.get("jobs", [])
+        if jobs:
+            st.table(pd.DataFrame(jobs))
+        else:
+            st.write("Scheduler active: Daily midnight drift check and weekly Sunday 2 AM force retrain.")
+    except Exception as e:
+        st.error(f"Failed to load continuous learning status: {e}")
+

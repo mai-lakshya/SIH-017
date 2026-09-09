@@ -450,6 +450,14 @@ def load_artifacts():
         )
         monitor = ModelMonitor()
         logging.info("✅ RiskAnalysisSystem and Monitor successfully loaded and ready.")
+
+        # Initialize Continuous Learning Automated Scheduler
+        try:
+            from scheduler import start_scheduler
+            start_scheduler()
+            logging.info("✅ Continuous Learning Scheduler (APScheduler) started.")
+        except Exception as se:
+            logging.warning(f"Could not start Continuous Learning Scheduler: {se}")
     except Exception as e:
         logging.error(f"Failed to load artifacts: {e}", exc_info=True)
 
@@ -1155,6 +1163,62 @@ async def save_analysis(request: Request, req: SaveAnalysisRequest, user: Any = 
         finally:
             conn.close()
 
+    # --- Phase 11: Continuous Learning & Auto-Retraining ---
+    # Automatically append newly saved project to training data store & trigger continuous retraining
+    training_data_count = None
+    try:
+        from continuous_learning import ingest_new_projects, retrain_pipeline
+        training_record = {
+            "project_id": str(payload_obj.project_id or req.project_name.strip() or f"PROJ-{rec_id[:8]}"),
+            "state": state,
+            "district": district,
+            "project_type": project_type,
+            "terrain_type": getattr(payload_obj, 'terrain_type', None) or req.input_payload.get('terrain_type', 'Plain'),
+            "estimated_cost_inr_crore": float(getattr(payload_obj, 'estimated_cost_inr_crore', 100.0) or 100.0),
+            "land_area_hectares": float(getattr(payload_obj, 'land_area_hectares', 50.0) or 50.0),
+            "sia_approval_status": getattr(payload_obj, 'sia_approval_status', 'Pending') or 'Pending',
+            "forest_clearance_status": getattr(payload_obj, 'forest_clearance_status', 'Not_Required') or 'Not_Required',
+            "fund_disbursement_percent": float(getattr(payload_obj, 'fund_disbursement_percent', 10.0) or 10.0),
+            "affected_families_count": int(getattr(payload_obj, 'affected_families_count', 500) or 500),
+            "title_dispute_rate_percent": float(getattr(payload_obj, 'title_dispute_rate_percent', 5.0) or 5.0),
+            "compensation_multiplier_demand": float(getattr(payload_obj, 'compensation_multiplier_demand', 1.5) or 1.5),
+            "section_11_notification_days": int(getattr(payload_obj, 'section_11_notification_days', 30) or 30),
+            "local_protest_flag": bool(getattr(payload_obj, 'local_protest_flag', False)),
+            "delay_binary_label": 1 if delay_prob >= 0.5 else 0,
+            "delay_risk_tier": risk_tier,
+            "Actual_Delay_Days": pred_delay_days,
+            "CRS": crs,
+            "CRS_tier": risk_tier
+        }
+
+        ingest_res = ingest_new_projects([training_record])
+        training_data_count = ingest_res.get("data_store_count")
+        logging.info(f"[ContinuousLearning] Saved project '{req.project_name.strip()}' ingested into data store. Total records: {training_data_count}")
+
+        # Launch automated background retraining thread to continuously adapt model weights
+        def _bg_continuous_retrain():
+            global system
+            try:
+                logging.info(f"[ContinuousLearning] Starting continuous model retraining cycle for saved project: {req.project_name.strip()} (ID: {rec_id})...")
+                res = retrain_pipeline(trigger_reason=f"db_save_{rec_id}")
+                if res.get("promoted", False):
+                    try:
+                        system = RiskAnalysisSystem(
+                            pipeline_path='pipeline.joblib',
+                            ensemble_path='ensemble.joblib',
+                            timeline_path='timeline.joblib'
+                        )
+                        logging.info("✅ Hot-reloaded newly retrained continuous learning model weights into active API serving.")
+                    except Exception as hot_err:
+                        logging.warning(f"Note on continuous learning hot-reload: {hot_err}")
+                logging.info(f"[ContinuousLearning] Retraining completed. Promoted: {res.get('promoted')}, Version: {res.get('version')}")
+            except Exception as bg_err:
+                logging.error(f"[ContinuousLearning] Continuous retraining background cycle failed: {bg_err}", exc_info=True)
+
+        threading.Thread(target=_bg_continuous_retrain, daemon=True).start()
+    except Exception as ing_err:
+        logging.error(f"Failed to ingest saved project into continuous learning store: {ing_err}", exc_info=True)
+
     return {
         "id": rec_id,
         "project_name": req.project_name.strip(),
@@ -1167,8 +1231,21 @@ async def save_analysis(request: Request, req: SaveAnalysisRequest, user: Any = 
         "risk_tier": risk_tier,
         "predicted_delay_days": pred_delay_days,
         "composite_risk_score": crs,
-        "created_at": created_at
+        "created_at": created_at,
+        "database": "saved_analyses.db",
+        "continuous_learning": {
+            "status": "ingested_and_retraining_triggered",
+            "data_store_count": training_data_count
+        }
     }
+
+@app.post("/projects/save")
+@limiter.limit("60/minute")
+async def save_project(request: Request, req: SaveAnalysisRequest, user: Any = Depends(get_current_user)):
+    """
+    Alias for saving a project to SQLite database with continuous learning ingestion.
+    """
+    return await save_analysis(request, req, user)
 
 @app.get("/analyses")
 @limiter.limit("60/minute")
@@ -1569,6 +1646,97 @@ async def get_metrics(request: Request, user: Any = Depends(get_current_user)):
         "latest_performance": monitor.get_latest_performance(),
         "recent_alerts": monitor.get_alert_summary(limit=10)
     }
+
+# --- Continuous Learning Endpoints ---
+
+@app.get("/model/health")
+async def get_model_health():
+    """
+    Returns current active model health, metrics (C-Index, ECE, AUC),
+    drift summary per feature, NPU provider, and scheduler next run times.
+    """
+    try:
+        from continuous_learning import get_current_model_health
+        from scheduler import get_scheduler_status
+        health = get_current_model_health()
+        health["scheduler"] = get_scheduler_status()
+        health["validation_gate_thresholds"] = {
+            "c_index_min": 0.88,
+            "ece_max": 0.10,
+            "auc_min": 0.85
+        }
+        return health
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to fetch model health: {e}")
+
+@app.get("/model/drift")
+async def get_model_drift():
+    """
+    Computes and returns real-time PSI drift analysis across all infrastructure features.
+    """
+    try:
+        from continuous_learning import DriftDetector, DATA_STORE_PATH
+        if not DATA_STORE_PATH.exists():
+            raise HTTPException(status_code=404, detail="Data store not initialized")
+        df = pd.read_csv(DATA_STORE_PATH)
+        split_point = max(100, int(len(df) * 0.85))
+        base_df = df.iloc[:split_point]
+        recent_df = df.iloc[split_point:]
+        if len(recent_df) < 10:
+            recent_df = df.tail(100)
+        detector = DriftDetector(baseline_df=base_df)
+        report = detector.evaluate_drift(incoming_df=recent_df)
+        return report
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Drift evaluation failed: {e}")
+
+@app.post("/model/retrain")
+async def trigger_retrain(request: Request, user: Any = Depends(get_current_user)):
+    """
+    Manually triggers full stacking ensemble & RSF retraining on all available data.
+    Evaluates through Validation Gate (C-Index >= 0.88, ECE <= 0.10, AUC >= 0.85).
+    If promoted, hot-reloads model weights into active serving.
+    """
+    global system
+    try:
+        from continuous_learning import RetrainingOrchestrator
+        orchestrator = RetrainingOrchestrator()
+        result = await run_in_threadpool(orchestrator.run_retrain_cycle, "manual_api_trigger")
+
+        # If promoted, hot-reload production model in-memory
+        if result.get("promoted", False):
+            try:
+                system = RiskAnalysisSystem(
+                    pipeline_path='pipeline.joblib',
+                    ensemble_path='ensemble.joblib',
+                    timeline_path='timeline.joblib'
+                )
+                logging.info("✅ Hot-reloaded promoted models into active API serving.")
+            except Exception as re_err:
+                logging.warning(f"Note on hot-reload: {re_err}")
+
+        return result
+    except Exception as e:
+        logging.error(f"Retraining cycle failed: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Retraining failed: {e}")
+
+class IngestRequest(BaseModel):
+    records: List[Dict[str, Any]]
+
+@app.post("/model/ingest")
+async def ingest_records(request: Request, payload: IngestRequest, user: Any = Depends(get_current_user)):
+    """
+    Ingests new project records, validates schema, applies preprocessing,
+    and appends to training data store.
+    """
+    try:
+        from continuous_learning import ingest_project_records
+        res = ingest_project_records(payload.records)
+        return res
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Ingestion error: {e}")
+
+
 
 # Serve static assets from dashboard directory (e.g. geojson, images)
 @app.get("/{file_path:path}")

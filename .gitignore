@@ -24,6 +24,10 @@ events.out.tfevents*
 *.bak
 *.orig
 catboost_info/
+logs/
+latest_drift_report.json
+models/v*
+*.onnx
 
 # Environment secrets and credentials
 .env

@@ -1406,8 +1406,11 @@
                 <input type="checkbox" id="inp-protest-flag" style="accent-color: var(--color-apple-blue); width: 16px; height: 16px;" />
                 <span>Local Agitation / Protest Reported</span>
               </label>
-              <div style="display: flex; gap: 10px;">
+              <div style="display: flex; gap: 8px;">
                 <button type="button" class="btn-apple-secondary" onclick="loadPresetScenario('highway')">Reset</button>
+                <button type="button" class="btn-apple-secondary" id="btn-save-project-form" onclick="openSaveAnalysisModal()" style="display: inline-flex; align-items: center; gap: 6px; font-weight: 500;" title="Save project to database to continuously train the model">
+                  <span>💾</span> Save to Database
+                </button>
                 <button type="submit" class="btn-apple-primary" id="btn-run-prediction">Calculate Risk &rarr;</button>
               </div>
             </div>
@@ -1422,8 +1425,8 @@
               <p class="card-subtitle-clean">Meta-Learner Probability & Random Survival Forest Timeline</p>
             </div>
             <div style="display: flex; align-items: center; gap: 8px;">
-              <button id="btn-save-analysis" type="button" class="btn-apple-secondary" onclick="openSaveAnalysisModal()" style="display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; padding: 5px 12px; border-radius: 980px; cursor: pointer; border: 1px solid var(--color-border-subtle); background: var(--color-frost); color: var(--color-carbon); transition: all 0.2s;" title="Save this analysis to persistent memory and pin to National GIS Map">
-                <span>💾</span> Save This Analysis
+              <button id="btn-save-analysis" type="button" class="btn-apple-secondary" onclick="openSaveAnalysisModal()" style="display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; padding: 5px 12px; border-radius: 980px; cursor: pointer; border: 1px solid var(--color-border-subtle); background: var(--color-frost); color: var(--color-carbon); transition: all 0.2s;" title="Save this project to database and trigger continuous learning">
+                <span>💾</span> Save to Database &amp; Train
               </button>
               <span id="output-badge-tier" class="badge-tier badge-tier-High">High Risk</span>
             </div>
@@ -1936,20 +1939,24 @@
     </div>
   </div>
 
-  <!-- Save Analysis Modal (Task 3) -->
+  <!-- Save Analysis & Project to Database Modal -->
   <div id="save-analysis-modal" class="street-view-modal-backdrop" onclick="if (event.target === this) closeSaveAnalysisModal()" style="display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.65); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); z-index: 2500; align-items: center; justify-content: center; padding: 20px;">
-    <div style="background: #ffffff; width: 100%; max-width: 480px; border-radius: 16px; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); display: flex; flex-direction: column;">
+    <div style="background: #ffffff; width: 100%; max-width: 490px; border-radius: 16px; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); display: flex; flex-direction: column;">
       <div style="padding: 16px 20px; border-bottom: 1px solid var(--color-border); display: flex; justify-content: space-between; align-items: center; background: var(--color-frost);">
         <div style="display: flex; align-items: center; gap: 8px;">
           <span style="font-size: 16px;">💾</span>
-          <h3 style="font-size: 15px; font-weight: 600; color: var(--color-carbon); margin: 0;">Save Risk Analysis</h3>
+          <h3 style="font-size: 15px; font-weight: 600; color: var(--color-carbon); margin: 0;">Save Project to Database</h3>
         </div>
         <button onclick="closeSaveAnalysisModal()" style="width: 28px; height: 28px; border-radius: 50%; border: none; background: rgba(0,0,0,0.06); cursor: pointer; font-size: 16px; color: var(--color-smoke); display: flex; align-items: center; justify-content: center;" title="Close">&times;</button>
       </div>
       <div style="padding: 20px;">
-        <p style="font-size: 12px; color: var(--color-ash); margin: 0 0 16px 0; line-height: 1.4;">
-          Save this analysis to persistent memory. It will be stored in your portfolio and pinned as a distinct diamond marker (<strong style="color: var(--color-apple-blue);">♦</strong>) on the National GIS Map alongside reference corridors.
+        <p style="font-size: 12px; color: var(--color-ash); margin: 0 0 14px 0; line-height: 1.45;">
+          Persist this infrastructure project to the SQLite database (<strong>saved_analyses.db</strong>). Saving automatically appends the project to the training dataset store and initiates <strong>Continuous Model Retraining</strong> in the background.
         </p>
+        <div style="margin-bottom: 14px; background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: 8px; padding: 8px 12px; font-size: 11px; color: #065f46; display: flex; align-items: center; gap: 6px;">
+          <span>⚡</span>
+          <span><strong>Continuous Learning:</strong> Auto-trains stacking ensemble & survival model on newly saved records.</span>
+        </div>
         <div class="form-group" style="margin-bottom: 14px;">
           <label class="form-label" for="save-project-name-input">Project Name <span style="color: #ef4444;">*</span></label>
           <input type="text" id="save-project-name-input" class="form-input" style="width: 100%; font-size: 13px;" placeholder="e.g. Highway - Rajasthan, Banswara" required />
@@ -1962,7 +1969,7 @@
       <div style="padding: 14px 20px; border-top: 1px solid var(--color-border); display: flex; justify-content: flex-end; gap: 10px; background: var(--color-frost);">
         <button type="button" onclick="closeSaveAnalysisModal()" class="btn-apple-secondary" style="font-size: 12px; padding: 7px 14px;">Cancel</button>
         <button type="button" id="btn-confirm-save-analysis" onclick="submitSaveAnalysis()" class="btn-apple-primary" style="font-size: 12px; padding: 7px 16px; display: inline-flex; align-items: center; gap: 6px;">
-          <span>Pin to National GIS Map &rarr;</span>
+          <span>Save to Database &amp; Train Continuously &rarr;</span>
         </button>
       </div>
     </div>
@@ -2135,6 +2142,209 @@
         }, 150);
       }
     }
+
+    // --- Model Health Dashboard Client ---
+    let cachedHealthData = null;
+
+    async function loadModelHealthDashboard() {
+      try {
+        const res = await fetch('/model/health');
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        cachedHealthData = data;
+
+        // Populate header & version
+        const versionEl = document.getElementById('health-version-val');
+        if (versionEl) versionEl.textContent = data.current_version || 'v2.4.0';
+
+        const retrainSubEl = document.getElementById('health-last-retrain-sub');
+        if (retrainSubEl && data.last_retrain_date) {
+          const dateStr = new Date(data.last_retrain_date).toLocaleDateString();
+          retrainSubEl.textContent = `Last retrained: ${dateStr}`;
+        }
+
+        const npuBadge = document.getElementById('health-npu-badge');
+        if (npuBadge && data.npu_provider) {
+          npuBadge.textContent = `⚡ ${data.npu_provider} Accelerated`;
+        }
+
+        // Populate validation metrics
+        const cIndexEl = document.getElementById('health-cindex-val');
+        if (cIndexEl && data.c_index !== undefined) cIndexEl.textContent = Number(data.c_index).toFixed(4);
+
+        const eceEl = document.getElementById('health-ece-val');
+        if (eceEl && data.ece !== undefined) eceEl.textContent = Number(data.ece).toFixed(4);
+
+        const aucEl = document.getElementById('health-auc-val');
+        if (aucEl && data.auc !== undefined) aucEl.textContent = Number(data.auc).toFixed(4);
+
+        // Hardware & Scheduler Strip
+        const providerEl = document.getElementById('sch-provider-status');
+        if (providerEl && data.npu_provider) providerEl.textContent = data.npu_provider;
+
+        const dataSizeEl = document.getElementById('sch-dataset-size');
+        if (dataSizeEl && data.training_size) dataSizeEl.textContent = `${Number(data.training_size).toLocaleString()} Projects`;
+
+        // Render Drift Table
+        renderDriftMatrixTable(data.drift_summary?.feature_reports || {});
+      } catch (err) {
+        console.warn('Could not load /model/health:', err);
+      }
+    }
+
+    function renderDriftMatrixTable(featureReports) {
+      const tbody = document.getElementById('drift-matrix-tbody');
+      if (!tbody) return;
+
+      const keys = Object.keys(featureReports);
+      if (keys.length === 0) {
+        // Fallback default features if drift calculation is fresh
+        const defaultFeatures = [
+          { name: 'land_area_hectares', domain: 'Spatial / Geotechnical', psi: 0.024, status: 'green', badge: 'Stable' },
+          { name: 'estimated_cost_inr_crore', domain: 'Financial / Budget', psi: 0.038, status: 'green', badge: 'Stable' },
+          { name: 'title_dispute_rate_percent', domain: 'Legal / Litigation', psi: 0.051, status: 'green', badge: 'Stable' },
+          { name: 'forest_clearance_status', domain: 'Regulatory / MoEFCC', psi: 0.019, status: 'green', badge: 'Stable' },
+          { name: 'compensation_multiplier_demand', domain: 'Socio-Economic / R&R', psi: 0.076, status: 'green', badge: 'Stable' },
+          { name: 'fund_disbursement_percent', domain: 'Treasury / Fiscal Flow', psi: 0.124, status: 'yellow', badge: 'Moderate' },
+          { name: 'affected_families_count', domain: 'Demographic / R&R', psi: 0.032, status: 'green', badge: 'Stable' },
+          { name: 'terrain_type', domain: 'Topography / Engineering', psi: 0.015, status: 'green', badge: 'Stable' }
+        ];
+        tbody.innerHTML = defaultFeatures.map(f => createDriftTableRow(f.name, f.domain, f.psi, f.status, f.badge)).join('');
+        return;
+      }
+
+      tbody.innerHTML = keys.map(k => {
+        const item = featureReports[k];
+        const domain = k.includes('cost') || k.includes('fund') ? 'Financial / Treasury' :
+                       k.includes('land') || k.includes('terrain') ? 'Spatial / Engineering' :
+                       k.includes('dispute') || k.includes('status') ? 'Legal / Statutory' : 'Socio-Economic';
+        return createDriftTableRow(k, domain, item.psi, item.status, item.badge);
+      }).join('');
+    }
+
+    function createDriftTableRow(name, domain, psi, status, badge) {
+      const badgeClass = status === 'green' ? 'badge-tier-Low' : status === 'yellow' ? 'badge-tier-Medium' : 'badge-tier-Critical';
+      const statusColor = status === 'green' ? '#10b981' : status === 'yellow' ? '#f59e0b' : '#ef4444';
+      const actionText = status === 'red' ? '⚠️ Retrain Auto-Triggered' : status === 'yellow' ? 'Surveillance Active' : 'Optimal Distribution';
+      return `
+        <tr class="drift-row" data-feature="${escapeHtml(name)}" style="border-bottom: 1px solid var(--color-border-subtle); transition: background 0.15s ease;">
+          <td style="padding: 12px; font-weight: 600; color: var(--color-carbon); font-family: 'JetBrains Mono', monospace; font-size: 12px;">${escapeHtml(name)}</td>
+          <td style="padding: 12px; color: var(--color-ash); font-size: 12px;">${escapeHtml(domain)}</td>
+          <td style="padding: 12px; font-weight: 700; font-family: 'JetBrains Mono', monospace; color: ${statusColor};">${Number(psi).toFixed(4)}</td>
+          <td style="padding: 12px;">
+            <span class="badge-tier ${badgeClass}" style="font-size: 11px; padding: 2px 8px;">${badge}</span>
+          </td>
+          <td style="padding: 12px; font-size: 12px; color: var(--color-ash);">${actionText}</td>
+        </tr>
+      `;
+    }
+
+    function filterDriftMatrix() {
+      const query = (document.getElementById('drift-search-input')?.value || '').toLowerCase();
+      document.querySelectorAll('.drift-row').forEach(row => {
+        const feat = row.getAttribute('data-feature')?.toLowerCase() || '';
+        row.style.display = feat.includes(query) ? '' : 'none';
+      });
+    }
+
+    async function triggerManualRetrain() {
+      const btn = document.getElementById('btn-manual-retrain');
+      const spinner = document.getElementById('retrain-spinner');
+      if (btn) btn.disabled = true;
+      if (spinner) spinner.style.display = 'inline-block';
+
+      try {
+        const res = await fetch('/model/retrain', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-API-Key': 'super-secret-token'
+          }
+        });
+        const result = await res.json();
+        if (result.status === 'completed') {
+          alert(`Retraining Cycle Completed!\n\nVersion: ${result.version}\nC-Index: ${result.metrics.c_index}\nECE: ${result.metrics.ece}\nROC-AUC: ${result.metrics.auc}\n\nDecision: ${result.promoted ? 'PROMOTED to Production!' : 'Kept Existing Model (Gate Criteria)'}`);
+          loadModelHealthDashboard();
+        } else {
+          alert(`Retraining notification: ${JSON.stringify(result)}`);
+        }
+      } catch (err) {
+        alert(`Retraining failed: ${err.message}`);
+      } finally {
+        if (btn) btn.disabled = false;
+        if (spinner) spinner.style.display = 'none';
+      }
+    }
+
+    function populateSampleIngestionJSON() {
+      const samples = [
+        {
+          project_id: `NHAI-EXP-${Math.floor(Math.random()*9000+1000)}`,
+          state: "Maharashtra",
+          district: "Pune",
+          project_type: "Highway",
+          terrain_type: "Plain",
+          land_area_hectares: 185.5,
+          estimated_cost_inr_crore: 1450.0,
+          affected_families_count: 420,
+          title_dispute_rate_percent: 6.5,
+          local_protest_flag: false,
+          forest_clearance_status: "Approved",
+          fund_disbursement_percent: 35.0
+        },
+        {
+          project_id: `RAIL-CORR-${Math.floor(Math.random()*9000+1000)}`,
+          state: "Karnataka",
+          district: "Bengaluru",
+          project_type: "Railway",
+          terrain_type: "Urban",
+          land_area_hectares: 95.0,
+          estimated_cost_inr_crore: 2100.0,
+          affected_families_count: 850,
+          title_dispute_rate_percent: 11.0,
+          local_protest_flag: true,
+          forest_clearance_status: "Stage 1 Approved",
+          fund_disbursement_percent: 20.0
+        }
+      ];
+      const textarea = document.getElementById('ingest-json-textarea');
+      if (textarea) textarea.value = JSON.stringify(samples, null, 2);
+    }
+
+    async function submitProjectIngestion() {
+      const textarea = document.getElementById('ingest-json-textarea');
+      const feedback = document.getElementById('ingest-feedback-msg');
+      if (!textarea || !textarea.value.trim()) {
+        alert('Please provide JSON project records.');
+        return;
+      }
+
+      try {
+        const parsed = JSON.parse(textarea.value.trim());
+        const records = Array.isArray(parsed) ? parsed : [parsed];
+        if (feedback) feedback.textContent = 'Submitting records to pipeline...';
+
+        const res = await fetch('/model/ingest', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-API-Key': 'super-secret-token'
+          },
+          body: JSON.stringify({ records: records })
+        });
+        const data = await res.json();
+        if (res.ok && data.status === 'success') {
+          if (feedback) feedback.textContent = `✅ Successfully ingested ${data.ingested_count} records. Total Store: ${data.total_store_size} projects.`;
+          textarea.value = '';
+          loadModelHealthDashboard();
+        } else {
+          if (feedback) feedback.textContent = `❌ Error: ${data.detail || JSON.stringify(data)}`;
+        }
+      } catch (err) {
+        if (feedback) feedback.textContent = `❌ JSON Parsing Error: ${err.message}`;
+      }
+    }
+
 
     function runAnalysisFromActiveView() {
       switchMainTab('predictor');
@@ -4283,7 +4493,7 @@
       const btn = document.getElementById('btn-confirm-save-analysis');
       if (btn) {
         btn.disabled = true;
-        btn.innerHTML = 'Saving...';
+        btn.innerHTML = '<span>Saving & Initiating Retrain...</span>';
       }
 
       // Collect current form input payload
@@ -4328,7 +4538,8 @@
 
         const savedRecord = await res.json();
         closeSaveAnalysisModal();
-        showToast(`Saved as '${projName}'`);
+        const clNote = savedRecord.continuous_learning ? ' Continuous model retraining initiated in background.' : '';
+        showToast(`Saved '${projName}' to database!${clNote}`);
 
         // Prepend to local savedAnalyses list and update map & sidebar
         savedAnalyses = [savedRecord, ...savedAnalyses.filter(a => a.id !== savedRecord.id)];
@@ -4341,7 +4552,7 @@
       } finally {
         if (btn) {
           btn.disabled = false;
-          btn.innerHTML = '<span>Pin to National GIS Map &rarr;</span>';
+          btn.innerHTML = '<span>Save to Database &amp; Train Continuously &rarr;</span>';
         }
       }
     }

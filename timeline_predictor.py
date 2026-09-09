@@ -125,10 +125,10 @@ class NonLinearTimelinePredictor:
         self.random_state = random_state
         
         # Configure RSF (compact ensemble for standalone portability <50MB)
-        default_rsf = {'n_estimators': 60, 'min_samples_split': 10, 'max_features': 'sqrt'}
+        default_rsf = {'n_estimators': 60, 'min_samples_split': 10, 'max_features': 'sqrt', 'n_jobs': -1}
         if rsf_params:
             default_rsf.update(rsf_params)
-        self.rsf = RandomSurvivalForest(random_state=random_state, n_jobs=-1, **default_rsf)
+        self.rsf = RandomSurvivalForest(random_state=random_state, **default_rsf)
         
         # Configure DeepSurv
         default_ds = {'epochs': 50, 'batch_size': 128, 'lr': 1e-3, 'hidden_layers': 2, 'dropout_p': 0.2, 'patience': 10}
