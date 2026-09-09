@@ -891,6 +891,48 @@
     /* Utility Helpers */
     .hidden { display: none !important; }
     .text-mono { font-family: var(--font-family-mono); }
+
+    /* Model Governance Perpetual Loading State */
+    .governance-loading-card {
+      min-height: calc(100vh - 170px);
+      min-height: 520px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      margin-bottom: var(--spacing-24);
+      text-align: center;
+      background-color: var(--color-white);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-cards);
+      padding: var(--spacing-24);
+      box-sizing: border-box;
+      width: 100%;
+    }
+
+    .governance-spinner {
+      width: 42px;
+      height: 42px;
+      border: 3.5px solid rgba(0, 0, 0, 0.08);
+      border-top-color: var(--color-link-blue);
+      border-radius: 50%;
+      animation: govSpin 0.85s linear infinite;
+    }
+
+    @keyframes govSpin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .governance-loading-label {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--color-ash);
+      letter-spacing: -0.2px;
+      user-select: none;
+      margin: 0;
+    }
   </style>
 </head>
 <body>
@@ -1597,71 +1639,12 @@
     </section>
 
     <!-- =========================================================================
-         TAB 5: MODEL GOVERNANCE & LIVE HEALTH MONITOR
+         TAB 5: MODEL GOVERNANCE & LIVE HEALTH MONITOR (Perpetual Loading State)
          ========================================================================= -->
     <section id="view-monitor" class="tab-view hidden">
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px;">
-        
-        <!-- Calibration Curve Card -->
-        <div class="apple-card">
-          <div class="card-header-clean">
-            <div>
-              <h3 class="card-title-clean">Platt Scaling Reliability & ECE</h3>
-              <p class="card-subtitle-clean">Expected Calibration Error = 0.0710 (Top 1% benchmark)</p>
-            </div>
-            <span class="btn-apple-subtle" style="font-size: 11px;">Smooth Invertible Sigmoid</span>
-          </div>
-          <div style="height: 320px; position: relative;">
-            <canvas id="calibrationChart"></canvas>
-          </div>
-        </div>
-
-        <!-- Drift Monitoring Card -->
-        <div class="apple-card">
-          <div class="card-header-clean">
-            <div>
-              <h3 class="card-title-clean">Population Stability Index (PSI)</h3>
-              <p class="card-subtitle-clean">Continuous covariate drift detection across all 36 States & UTs (453 Districts)</p>
-            </div>
-            <span class="badge-tier badge-tier-Low">Stable (PSI &lt; 0.10)</span>
-          </div>
-          <div style="height: 320px; position: relative;">
-            <canvas id="driftChart"></canvas>
-          </div>
-        </div>
-
-      </div>
-
-      <!-- Model Specifications Strip -->
-      <div class="apple-card">
-        <div class="card-header-clean">
-          <div>
-            <h3 class="card-title-clean">Production Model Specifications & Artifacts</h3>
-            <p class="card-subtitle-clean">Verification checkpoints and production readiness criteria</p>
-          </div>
-        </div>
-        <div class="grid-4">
-          <div class="metric-grid-tile">
-            <div class="metric-tile-title">Stacking Meta-Learner</div>
-            <div class="metric-tile-val" style="font-size: 20px;">Platt Logistic</div>
-            <div class="metric-tile-sub">Fitted coefficients: a = -0.557, b = 0.539</div>
-          </div>
-          <div class="metric-grid-tile">
-            <div class="metric-tile-title">Timeline Model</div>
-            <div class="metric-tile-val" style="font-size: 20px;">Random Survival</div>
-            <div class="metric-tile-sub">100 Estimators, Log-rank split rule</div>
-          </div>
-          <div class="metric-grid-tile">
-            <div class="metric-tile-title">Inference Latency</div>
-            <div class="metric-tile-val" style="font-size: 20px;">&lt; 42 ms</div>
-            <div class="metric-tile-sub">Cached global background TreeSHAP</div>
-          </div>
-          <div class="metric-grid-tile">
-            <div class="metric-tile-title">Cartographic Boundary</div>
-            <div class="metric-tile-val" style="font-size: 20px;">Survey of India</div>
-            <div class="metric-tile-sub">Official unified J&amp;K/Ladakh boundary</div>
-          </div>
-        </div>
+      <div class="apple-card governance-loading-card">
+        <div class="governance-spinner" role="status" aria-label="Loading governance data"></div>
+        <p class="governance-loading-label">Loading governance data…</p>
       </div>
     </section>
 
@@ -2013,6 +1996,17 @@
         }
       });
 
+      // Maintain routing & URL state
+      if (window.history && window.history.replaceState) {
+        if (tabId === 'monitor') {
+          window.history.replaceState({ tab: 'monitor' }, '', '/model-governance');
+        } else if (tabId === 'gis') {
+          window.history.replaceState({ tab: 'gis' }, '', '/dashboard');
+        } else {
+          window.history.replaceState({ tab: tabId }, '', `/dashboard?tab=${tabId}`);
+        }
+      }
+
       // Special triggers on view change
       if (tabId === 'gis' && map) {
         setTimeout(() => map.invalidateSize(), 150);
@@ -2029,10 +2023,8 @@
       } else if (tabId === 'mitigations') {
         renderFullPrescriptiveActions();
       } else if (tabId === 'monitor') {
-        setTimeout(() => {
-          renderCalibrationChart();
-          renderDriftChart();
-        }, 150);
+        // Model Governance is in a permanent loading state
+        // Suppress chart rendering, data fetching, and background calculations
       }
     }
 
@@ -5559,14 +5551,27 @@
       initMap();
       loadGeoData();
 
-      // Check URL params for deep-linking
+      // Check URL pathname and params for deep-linking & routing
       const urlParams = new URLSearchParams(window.location.search);
       if (urlParams.get('heatmap') === '1' || urlParams.get('heatmap') === 'true') {
         setTimeout(() => setHeatmapMode(true), 300);
       }
-      if (urlParams.get('tab')) {
+      if (window.location.pathname.endsWith('/model-governance') || urlParams.get('tab') === 'monitor' || window.location.hash === '#monitor') {
+        switchMainTab('monitor');
+      } else if (urlParams.get('tab')) {
         switchMainTab(urlParams.get('tab'));
       }
+
+      window.addEventListener('popstate', () => {
+        const params = new URLSearchParams(window.location.search);
+        if (window.location.pathname.endsWith('/model-governance') || params.get('tab') === 'monitor') {
+          switchMainTab('monitor');
+        } else if (params.get('tab')) {
+          switchMainTab(params.get('tab'));
+        } else {
+          switchMainTab('gis');
+        }
+      });
 
       // Initial prediction setup
       loadReferenceDistricts();

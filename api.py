@@ -482,6 +482,7 @@ def serve_landing():
     return RedirectResponse(url="/docs")
 
 @app.get("/dashboard")
+@app.get("/model-governance")
 def serve_dashboard():
     """Task 3: Standalone Dashboard Workbench"""
     path = "dashboard/index.html"
