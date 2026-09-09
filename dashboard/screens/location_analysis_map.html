@@ -427,21 +427,43 @@
       }
     };
 
+    function getProjectRiskTier(p) {
+      if (p.composite_risk_score != null && !isNaN(p.composite_risk_score)) {
+        const crs = Number(p.composite_risk_score);
+        if (crs > 50.0) return 'High';
+        if (crs > 25.0) return 'Medium';
+        return 'Low';
+      }
+      const raw = String(p.risk_tier || '').trim().toLowerCase().replace(/_/g, ' ');
+      if (raw.includes('critical') || raw.includes('very high') || raw.includes('high')) return 'High';
+      if (raw.includes('mod') || raw.includes('med')) return 'Medium';
+      if (raw.includes('low')) return 'Low';
+      if (p.delay_probability != null && !isNaN(p.delay_probability)) {
+        const prob = Number(p.delay_probability);
+        if (prob > 50.0) return 'High';
+        if (prob > 25.0) return 'Medium';
+        return 'Low';
+      }
+      return 'Medium';
+    }
+
+    function getProjectRiskColor(p) {
+      const tier = getProjectRiskTier(p);
+      if (tier === 'Low') return '#10b981';
+      if (tier === 'High') return '#ef4444';
+      return '#f59e0b';
+    }
+
     // Render Markers on Map with click-to-zoom flyTo behavior
     function renderMarkers(projects) {
       if (!markersLayer) return;
       markersLayer.clearLayers();
 
-      const colorMap = {
-        Low: '#10b981',
-        Medium: '#f59e0b',
-        High: '#ef4444'
-      };
-
       projects.forEach(p => {
         if (p.latitude == null || p.longitude == null) return;
 
-        const color = colorMap[p.risk_tier] || '#f59e0b';
+        p.risk_tier = getProjectRiskTier(p);
+        const color = getProjectRiskColor(p);
         const marker = L.circleMarker([p.latitude, p.longitude], {
           radius: 5,
           fillColor: color,

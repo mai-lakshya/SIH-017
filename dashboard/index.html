@@ -2725,16 +2725,39 @@
       });
     }
 
+    // Centralized Color Coding & Risk Tier Resolution (100% strictly aligned with map legend)
+    // Low: <= 25 (#10b981), Med: 26-50 (#f59e0b), High: > 50 (#ef4444)
+    function getProjectRiskTier(p) {
+      if (p.composite_risk_score != null && !isNaN(p.composite_risk_score)) {
+        const crs = Number(p.composite_risk_score);
+        if (crs > 50.0) return 'High';
+        if (crs > 25.0) return 'Medium';
+        return 'Low';
+      }
+      const raw = String(p.risk_tier || '').trim().toLowerCase().replace(/_/g, ' ');
+      if (raw.includes('critical') || raw.includes('very high') || raw.includes('high')) return 'High';
+      if (raw.includes('mod') || raw.includes('med')) return 'Medium';
+      if (raw.includes('low')) return 'Low';
+      if (p.delay_probability != null && !isNaN(p.delay_probability)) {
+        const prob = Number(p.delay_probability);
+        if (prob > 50.0) return 'High';
+        if (prob > 25.0) return 'Medium';
+        return 'Low';
+      }
+      return 'Medium';
+    }
+
+    function getProjectRiskColor(p) {
+      const tier = getProjectRiskTier(p);
+      if (tier === 'Low') return '#10b981';
+      if (tier === 'High') return '#ef4444';
+      return '#f59e0b';
+    }
+
     // Render Markers with Apple-Restrained Aesthetic & Shared-Location Awareness
     function renderMarkers(projects) {
       if (!markersLayer) return;
       markersLayer.clearLayers();
-
-      const colorMap = {
-        Low: '#10b981',
-        Medium: '#f59e0b',
-        High: '#ef4444'
-      };
 
       // Count projects per district location
       const locCounts = {};
@@ -2748,7 +2771,8 @@
       projects.forEach(p => {
         if (p.latitude == null || p.longitude == null) return;
 
-        const color = colorMap[p.risk_tier] || '#f59e0b';
+        p.risk_tier = getProjectRiskTier(p);
+        const color = getProjectRiskColor(p);
         const marker = L.circleMarker([p.latitude, p.longitude], {
           radius: 6,
           fillColor: color,
@@ -3059,8 +3083,11 @@
 
         allProjects = await res.json();
         if (!Array.isArray(allProjects)) throw new Error('Expected project array');
+        allProjects.forEach(p => {
+          p.risk_tier = getProjectRiskTier(p);
+        });
         window.allProjects = allProjects;
-        console.log('[GIS Engine] Successfully loaded ' + allProjects.length + ' projects.');
+        console.log('[GIS Engine] Successfully loaded ' + allProjects.length + ' projects with calibrated risk tiers.');
 
         populateFilterDropdowns(allProjects);
         renderMarkers(allProjects);
@@ -3127,12 +3154,15 @@
 
     function createFallbackProjects() {
       allProjects = [
-        { project_id: 'NHAI-RJ-2023-0001', project_name: 'Banswara Greenfield Highway Corridor', state: 'Rajasthan', district: 'Banswara', project_type: 'Highway', terrain_type: 'Rural_Agri', latitude: 23.54, longitude: 74.45, status: 'Notified', delay_probability: 68.2, risk_tier: 'High', composite_risk_score: 48.0, predicted_delay_days: 185, estimated_cost_inr_crore: 1485.37, land_area_hectares: 229.1, affected_families_count: 550, section_11_notification_days: 311, compensation_multiplier_demand: 1.65, title_dispute_rate_percent: 19.78, sia_approval_status: 'Pending', forest_clearance_status: 'Not_Required', fund_disbursement_percent: 24.96 },
+        { project_id: 'NHAI-RJ-2023-0001', project_name: 'Banswara Greenfield Highway Corridor', state: 'Rajasthan', district: 'Banswara', project_type: 'Highway', terrain_type: 'Rural_Agri', latitude: 23.54, longitude: 74.45, status: 'Notified', delay_probability: 48.2, risk_tier: 'Medium', composite_risk_score: 48.0, predicted_delay_days: 185, estimated_cost_inr_crore: 1485.37, land_area_hectares: 229.1, affected_families_count: 550, section_11_notification_days: 311, compensation_multiplier_demand: 1.65, title_dispute_rate_percent: 19.78, sia_approval_status: 'Pending', forest_clearance_status: 'Not_Required', fund_disbursement_percent: 24.96 },
         { project_id: 'MoR-WB-2021-0001', project_name: 'Paschim Medinipur Freight Link', state: 'West Bengal', district: 'Paschim Medinipur', project_type: 'Railway', terrain_type: 'Urban', latitude: 22.42, longitude: 87.32, status: 'Notified', delay_probability: 88.5, risk_tier: 'High', composite_risk_score: 76.5, predicted_delay_days: 280, estimated_cost_inr_crore: 3840.88, land_area_hectares: 598.01, affected_families_count: 4819, section_11_notification_days: 228, compensation_multiplier_demand: 2.13, title_dispute_rate_percent: 25.22, sia_approval_status: 'Pending', forest_clearance_status: 'Not_Required', fund_disbursement_percent: 28.65, local_protest_flag: true },
         { project_id: 'MoR-CG-2022-0032', project_name: 'Dhamtari Eco-Sensitive Rail Corridor', state: 'Chhattisgarh', district: 'Dhamtari', project_type: 'Railway', terrain_type: 'Forest_Eco_Sensitive', latitude: 20.71, longitude: 81.55, status: 'Pending', delay_probability: 91.4, risk_tier: 'High', composite_risk_score: 70.2, predicted_delay_days: 340, estimated_cost_inr_crore: 1544.70, land_area_hectares: 413.89, affected_families_count: 225, section_11_notification_days: 730, compensation_multiplier_demand: 2.65, title_dispute_rate_percent: 33.32, sia_approval_status: 'Pending', forest_clearance_status: 'Stage_1_Pending', fund_disbursement_percent: 0.0 },
-        { project_id: 'MNRE-UP-2024-0001', project_name: 'Moradabad Agri Solar Infrastructure', state: 'Uttar Pradesh', district: 'Moradabad', project_type: 'Renewable_Energy', terrain_type: 'Rural_Agri', latitude: 28.83, longitude: 78.78, status: 'Awarded', delay_probability: 24.5, risk_tier: 'Low', composite_risk_score: 37.7, predicted_delay_days: 42, estimated_cost_inr_crore: 95.28, land_area_hectares: 20.86, affected_families_count: 67, section_11_notification_days: 169, compensation_multiplier_demand: 1.95, title_dispute_rate_percent: 24.03, sia_approval_status: 'Approved', forest_clearance_status: 'Not_Required', fund_disbursement_percent: 69.96 },
+        { project_id: 'MNRE-UP-2024-0001', project_name: 'Moradabad Agri Solar Infrastructure', state: 'Uttar Pradesh', district: 'Moradabad', project_type: 'Renewable_Energy', terrain_type: 'Rural_Agri', latitude: 28.83, longitude: 78.78, status: 'Awarded', delay_probability: 34.5, risk_tier: 'Medium', composite_risk_score: 37.7, predicted_delay_days: 42, estimated_cost_inr_crore: 95.28, land_area_hectares: 20.86, affected_families_count: 67, section_11_notification_days: 169, compensation_multiplier_demand: 1.95, title_dispute_rate_percent: 24.03, sia_approval_status: 'Approved', forest_clearance_status: 'Not_Required', fund_disbursement_percent: 69.96 },
         { project_id: 'MoR-TS-2024-0001', project_name: 'Hyderabad Strategic Rail Line', state: 'Telangana', district: 'Hyderabad', project_type: 'Railway', terrain_type: 'Tribal_Schedule_V', latitude: 17.38, longitude: 78.48, status: 'Notified', delay_probability: 82.0, risk_tier: 'High', composite_risk_score: 66.3, predicted_delay_days: 260, estimated_cost_inr_crore: 1469.81, land_area_hectares: 492.64, affected_families_count: 477, section_11_notification_days: 565, compensation_multiplier_demand: 3.51, title_dispute_rate_percent: 52.64, sia_approval_status: 'Approved', forest_clearance_status: 'Stage_1_Pending', fund_disbursement_percent: 0.0, local_protest_flag: true }
       ];
+      allProjects.forEach(p => {
+        p.risk_tier = getProjectRiskTier(p);
+      });
       populateFilterDropdowns(allProjects);
       renderMarkers(allProjects);
       updateStatsCounters(allProjects);
@@ -4331,15 +4361,10 @@
       if (!savedAnalysesMarkersLayer) return;
       savedAnalysesMarkersLayer.clearLayers();
 
-      const colorMap = {
-        Low: '#10b981',
-        Medium: '#f59e0b',
-        High: '#ef4444'
-      };
-
       analyses.forEach(a => {
         if (a.latitude == null || a.longitude == null) return;
-        const color = colorMap[a.risk_tier] || '#f59e0b';
+        a.risk_tier = getProjectRiskTier(a);
+        const color = getProjectRiskColor(a);
         const icon = createDiamondIcon(color);
         const marker = L.marker([a.latitude, a.longitude], {
           icon: icon,
@@ -4465,10 +4490,9 @@
         return;
       }
 
-      const colorMap = { Low: '#10b981', Medium: '#f59e0b', High: '#ef4444' };
-
       container.innerHTML = analyses.map(a => {
-        const color = colorMap[a.risk_tier] || '#f59e0b';
+        a.risk_tier = getProjectRiskTier(a);
+        const color = getProjectRiskColor(a);
         const dateStr = a.created_at ? new Date(a.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Recent';
         return `
           <div class="saved-analysis-window-card" style="background: #ffffff; border: 1px solid var(--color-border-subtle); border-radius: 12px; padding: 14px 18px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); transition: all 0.2s ease; display: flex; flex-direction: column; gap: 10px;">

@@ -777,18 +777,16 @@ def get_or_load_geo_cache(max_projects: Optional[int] = None, force_refresh: boo
                 prob_val = float(preds['delay_probability'][idx])
                 crs_val = float(preds['crs'][idx])
                 delay_days_val = float(preds['delay_days'][idx])
-                tier_val = "High" if crs_val > 50 else "Medium" if crs_val > 25 else "Low"
+                crs_rounded = round(crs_val, 1)
+                tier_val = "High" if crs_rounded > 50.0 else ("Medium" if crs_rounded > 25.0 else "Low")
                 med_surv = int(round(float(median_times[idx])))
             else:
                 raw_crs = raw_dict.get('CRS')
                 crs_val = float(raw_crs) if raw_crs is not None and not pd.isna(raw_crs) else 50.0
-                raw_tier = raw_dict.get('delay_risk_tier') or raw_dict.get('CRS_tier')
-                if raw_tier and str(raw_tier).strip() not in ['', 'nan']:
-                    tier_val = str(raw_tier).strip()
-                    if tier_val == 'Very_High':
-                        tier_val = 'High'
-                else:
-                    tier_val = "High" if crs_val > 50 else "Medium" if crs_val > 25 else "Low"
+                crs_rounded = round(crs_val, 1)
+                # Directly calibrate risk tier from CRS to match map legend:
+                # Low: <= 25.0, Medium: 25.0-50.0, High: > 50.0
+                tier_val = "High" if crs_rounded > 50.0 else ("Medium" if crs_rounded > 25.0 else "Low")
                 prob_val = 1.0 / (1.0 + math.exp(-0.06 * (crs_val - 48.0)))
                 delay_days_val = max(0.0, crs_val * 2.8 - 30.0)
                 med_surv = max(60, int(round(180 + (crs_val - 50) * 1.5)))
@@ -1141,10 +1139,13 @@ async def save_analysis(request: Request, req: SaveAnalysisRequest, user: Any = 
 
     preds = frontend_response.get('predictions', {})
     delay_prob = float(preds.get('delay_probability', 0.0))
-    raw_tier = str(preds.get('calibrated_risk_tier', 'Medium'))
-    risk_tier = "High" if raw_tier in ["Critical", "Very_High", "High"] else ("Medium" if raw_tier == "Medium" else "Low")
-    pred_delay_days = int(preds.get('predicted_delay_days', 0))
     crs = float(preds.get('crs', 0.0))
+    raw_tier = str(preds.get('calibrated_risk_tier', 'Medium'))
+    if crs > 0:
+        risk_tier = "High" if crs > 50.0 else ("Medium" if crs > 25.0 else "Low")
+    else:
+        risk_tier = "High" if raw_tier in ["Critical", "Very_High", "High"] else ("Medium" if raw_tier in ["Medium", "Moderate"] else "Low")
+    pred_delay_days = int(preds.get('predicted_delay_days', 0))
 
     input_payload_json = json.dumps(req.input_payload)
 
