@@ -483,6 +483,7 @@ def serve_landing():
 
 @app.get("/dashboard")
 @app.get("/model-governance")
+@app.get("/prescriptive-ai")
 def serve_dashboard():
     """Task 3: Standalone Dashboard Workbench"""
     path = "dashboard/index.html"

@@ -1518,96 +1518,12 @@
     </section>
 
     <!-- =========================================================================
-         TAB 4: PRESCRIPTIVE MITIGATIONS & WHAT-IF SIMULATOR
+         TAB 4: PRESCRIPTIVE MITIGATIONS (Perpetual Loading State)
          ========================================================================= -->
     <section id="view-mitigations" class="tab-view hidden">
-      <div style="display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 24px;">
-        
-        <!-- Left: Actionable Prescriptive Recommendations -->
-        <div class="apple-card">
-          <div class="card-header-clean">
-            <div>
-              <h3 class="card-title-clean">Prescriptive AI Interventions</h3>
-              <p class="card-subtitle-clean">Ranked by delay days saved and capital protection</p>
-            </div>
-          </div>
-
-          <div id="full-prescriptive-actions-list">
-            <!-- Dynamically populated -->
-          </div>
-        </div>
-
-        <!-- Right: Interactive What-If Simulator -->
-        <div class="apple-card">
-          <div class="card-header-clean">
-            <div>
-              <h3 class="card-title-clean">What-If Intervention Simulator</h3>
-              <p class="card-subtitle-clean">Simulate operational actions and measure real-time delta</p>
-            </div>
-          </div>
-
-          <div style="background: var(--color-ice); border: 1px solid var(--color-border-subtle); border-radius: var(--radius-cards); padding: 18px; margin-bottom: 20px;">
-            <div class="metric-tile-title">Simulated Impact Delta</div>
-            <div style="display: flex; gap: 20px; align-items: baseline; margin-top: 6px;">
-              <div>
-                <span style="font-size: 32px; font-weight: 700; color: var(--risk-low);" id="sim-days-saved">+45</span>
-                <span style="font-size: 14px; font-weight: 500; color: var(--color-ash);">Days Saved</span>
-              </div>
-              <div>
-                <span style="font-size: 32px; font-weight: 700; color: var(--color-apple-blue);" id="sim-risk-reduced">-24.2%</span>
-                <span style="font-size: 14px; font-weight: 500; color: var(--color-ash);">Risk Drop</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Sliders -->
-          <div class="form-group">
-            <div style="display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 4px;">
-              <span>Advance Fund Disbursement</span>
-              <strong id="val-sim-fund">+25%</strong>
-            </div>
-            <input type="range" id="sim-slider-fund" min="0" max="60" value="25" class="form-input" style="padding: 0;" oninput="updateSimulationValues()" />
-          </div>
-
-          <div class="form-group">
-            <div style="display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 4px;">
-              <span>Expedite SIA Public Hearing</span>
-              <strong id="val-sim-sia">Active</strong>
-            </div>
-            <select id="sim-select-sia" class="form-select" onchange="updateSimulationValues()">
-              <option value="Approved">Fast-Track Approval (Exempted)</option>
-              <option value="In_Progress">Advance to In-Progress</option>
-              <option value="Pending" selected>Current (Pending)</option>
-            </select>
-          </div>
-
-          <div class="form-group">
-            <div style="display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 4px;">
-              <span>Deploy GIS Demarcation Team</span>
-              <strong id="val-sim-gis">Active (-10% Disputes)</strong>
-            </div>
-            <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--color-smoke); cursor: pointer;">
-              <input type="checkbox" id="sim-check-gis" checked style="accent-color: var(--color-apple-blue); width: 16px; height: 16px;" onchange="updateSimulationValues()" />
-              <span>Deploy specialized Survey of India boundary verification</span>
-            </label>
-          </div>
-
-          <div class="form-group">
-            <div style="display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 4px;">
-              <span>Direct Resettlement Dialogue</span>
-              <strong id="val-sim-dialogue">Yes</strong>
-            </div>
-            <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--color-smoke); cursor: pointer;">
-              <input type="checkbox" id="sim-check-dialogue" checked style="accent-color: var(--color-apple-blue); width: 16px; height: 16px;" onchange="updateSimulationValues()" />
-              <span>Resolve local agitation through ombudsman committee</span>
-            </label>
-          </div>
-
-          <button class="btn-apple-primary" style="width: 100%; margin-top: 10px;" onclick="applySimulationToPredictor()">
-            Apply Interventions to Predictor &rarr;
-          </button>
-        </div>
-
+      <div class="apple-card governance-loading-card">
+        <div class="governance-spinner" role="status" aria-label="Loading prescriptive analysis"></div>
+        <p class="governance-loading-label">Loading prescriptive analysis…</p>
       </div>
     </section>
 
@@ -1973,6 +1889,8 @@
       if (window.history && window.history.replaceState) {
         if (tabId === 'monitor') {
           window.history.replaceState({ tab: 'monitor' }, '', '/model-governance');
+        } else if (tabId === 'mitigations') {
+          window.history.replaceState({ tab: 'mitigations' }, '', '/prescriptive-ai');
         } else if (tabId === 'gis') {
           window.history.replaceState({ tab: 'gis' }, '', '/dashboard');
         } else {
@@ -1994,7 +1912,8 @@
           renderSurvivalChart();
         }, 150);
       } else if (tabId === 'mitigations') {
-        renderFullPrescriptiveActions();
+        // Prescriptive AI is in a permanent loading state
+        // Suppress rendering, calculations, and simulator mounting
       } else if (tabId === 'monitor') {
         // Model Governance is in a permanent loading state
         // Suppress chart rendering, data fetching, and background calculations
@@ -5205,6 +5124,8 @@
       }
       if (window.location.pathname.endsWith('/model-governance') || urlParams.get('tab') === 'monitor' || window.location.hash === '#monitor') {
         switchMainTab('monitor');
+      } else if (window.location.pathname.endsWith('/prescriptive-ai') || urlParams.get('tab') === 'mitigations' || window.location.hash === '#mitigations') {
+        switchMainTab('mitigations');
       } else if (urlParams.get('tab')) {
         switchMainTab(urlParams.get('tab'));
       }
@@ -5213,6 +5134,8 @@
         const params = new URLSearchParams(window.location.search);
         if (window.location.pathname.endsWith('/model-governance') || params.get('tab') === 'monitor') {
           switchMainTab('monitor');
+        } else if (window.location.pathname.endsWith('/prescriptive-ai') || params.get('tab') === 'mitigations') {
+          switchMainTab('mitigations');
         } else if (params.get('tab')) {
           switchMainTab(params.get('tab'));
         } else {
