@@ -61,4 +61,5 @@ scratch_edge_*/
 scratch_edge_user/
 test_edge_*/
 scratch/
-
+.agents/
+.spec/

@@ -1,0 +1,100 @@
+# Remoteness & Urban-Tier Accessibility Delay Module Constants
+# Reference Specification: Section 4 - Travel-time grounded estimation (No optimization/fitting)
+# Version: 1.0.0
+# Description: All values derived from stated procedural, physical, and statutory assumptions under RFCTLARR Act 2013 & FRA 2006.
+
+# 1. Site Visit Frequency & Batching Assumptions
+# Average number of required physical touchpoints over a project lifecycle
+# Grounded in RFCTLARR Act procedural stages: SIA joint inspection, preliminary boundary survey,
+# valuation assessment, Section 15 objection hearings, award inquiry, compensation disbursement verification,
+# physical possession handover, and rehabilitation monitoring.
+avg_required_site_visits: 10
+
+# Distance threshold (in km) beyond which survey and administrative teams consolidate/batch visits
+visit_batching_threshold_km: 150.0
+
+# Visit reduction multiplier applied beyond visit_batching_threshold_km due to trip consolidation
+visit_batching_factor: 0.70
+
+# 2. Road Connectivity & Effective Travel Speeds
+# Average effective vehicle transit speed (km/h) across Indian transport network hierarchies
+# Grounded in NHAI, State PWD, and PMGSY operational benchmarks.
+effective_speeds_kmph:
+  # National Highway: 4-lane/6-lane divided carriageway, steady vehicular velocity
+  "National Highway": 60.0
+  # State Highway: 2-lane paved corridor with moderate intersection density
+  "State Highway": 45.0
+  # Major / Other District Road (MDR/ODR): Intermediate lane, frequent village crossings
+  "District Road": 30.0
+  # Kachcha Road: Unpaved gravel/earthen track, severe weather/rutting friction
+  "Kachcha Road": 15.0
+  # No Formal Road: Non-motorable pedestrian/tractor trail, off-road terrain navigation
+  "No Formal Road": 5.0
+  # Default fallback when road type is unidentified (conservative district road baseline)
+  "default": 25.0
+
+# 3. Administrative Scheduling Friction
+# Calendar days of scheduling slack per added round-trip travel hour.
+# Stated assumption: A full travel day requires coordination among district collectorate staff,
+# revenue patwaris, surveyors, and police escort, causing ~0.35 days of schedule elongation per travel hour.
+admin_friction_days_per_travel_hour: 0.35
+
+# 4. Urban-Tier Base Delay
+# Distance (km) to the nearest tier-appropriate government office, bank branch, and labour market.
+# Tier-1/Metro: 0 km (all sub-registrar, treasury, and administrative offices located on-site)
+# Tier-2: 5 km (municipal and district offices easily reachable)
+# Tier-3: 12 km (sub-divisional magistrate / revenue offices within standard taluka radius)
+# Census Town: 22 km (revenue tehsildar / local bank branch travel required)
+# Village: 35 km (remote gram panchayat to district collectorate / land acquisition tribunal travel)
+tier_assumed_office_distance_km:
+  "Metro": 0.0
+  "Tier-2": 5.0
+  "Tier-3": 12.0
+  "Census Town": 22.0
+  "Village": 35.0
+
+# Reference speed for base tier travel calculation (standard district road transit)
+base_tier_speed_kmph: 30.0
+
+# 5. Population Thresholds for Urban-Tier Classification
+# Based on Census of India classification standards (Census 2011 definition)
+population_tier_thresholds:
+  metro_min: 1000000        # > 1,000,000 (1 Million)
+  tier2_min: 500000         # 500,000 - 1,000,000
+  tier3_min: 100000         # 100,000 - 500,000
+  census_town_min: 5000     # 5,000 - 100,000
+  # Village / Rural: < 5,000
+
+# Agglomeration radius (in km): If a higher-tier settlement is within this distance in top 3,
+# adopt the higher tier for base administrative services.
+agglomeration_radius_km: 15.0
+
+# 6. Terrain Modifiers
+# Topographic multipliers applied to (base_delay + distance_penalty)
+terrain_modifiers:
+  # Plain: Standard alluvial/flat topography, minimal physical impediment
+  "plain": 1.00
+  # Coastal: Tidal creeks, mangrove marshland, saline soil foundation delays
+  "coastal": 1.15
+  # Hilly: Topographic gradient, switchbacks, slope stabilization, landslide risks
+  "hilly": 1.35
+  # Forest / Tribal: Dense canopy, restricted forest paths, wildlife corridor clearances
+  "forest_tribal": 1.45
+
+# 7. Statutory Forest Rights Act (FRA 2006) Flat Penalty
+# Mandatory statutory processing window (calendar days) for Gram Sabha consent,
+# quorum notices, Joint Forest Management Committee verification, and non-alienation certification.
+fra_flat_penalty_days: 90.0
+
+# 8. Normalization Ceiling (Theoretical Maximum Delay Days)
+# Derived from worst plausible case:
+# Village base delay (~8.2d) + 200 km over "No Formal Road" (5 km/h, batched 7 visits -> 196d)
+# Multiplied by forest_tribal modifier (1.45) -> 296.1d + FRA flat penalty (90d) = ~386 days.
+theoretical_max_delay_days: 385.0
+
+# 9. Geospatial Bounding Box Validation (India Territory)
+india_bounding_box:
+  min_lat: 6.0
+  max_lat: 38.0
+  min_lon: 68.0
+  max_lon: 98.0

@@ -47,6 +47,7 @@ from risk_analysis_system import RiskAnalysisSystem
 from monitor import ModelMonitor
 from recommendation_engine import calculate_roi_for_recommendation
 from ai_advisor import AIAdvisor, PromptSecurityValidator, DomainGroundingValidator, IndianContextNormalizer
+from remoteness.remoteness_score import evaluate_remoteness
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(levelname)s] %(message)s')
 
@@ -364,6 +365,22 @@ class ProjectPayload(BaseModel):
     project_age_years: Optional[int] = 1
     schedule_tasks: Optional[List[Dict[str, Any]]] = None
     target_completion_days: Optional[float] = None
+    latitude: Optional[float] = Field(default=None, description="Project site latitude in decimal degrees")
+    longitude: Optional[float] = Field(default=None, description="Project site longitude in decimal degrees")
+    road_type: Optional[str] = Field(default=None, description="Road connectivity type near site")
+    road_connectivity_type: Optional[str] = Field(default=None, description="Alias for road_type")
+    address: Optional[str] = Field(default=None, description="Address or village name for geocoding")
+
+class RemotenessRequest(BaseModel):
+    latitude: Optional[float] = Field(default=None, description="Site latitude")
+    longitude: Optional[float] = Field(default=None, description="Site longitude")
+    address: Optional[str] = Field(default=None, description="Address, village, or town name to geocode")
+    project_type: Optional[str] = Field(default=None, description="Infrastructure sector (e.g. Highway, Railway)")
+    district: Optional[str] = Field(default=None, description="District name")
+    state: Optional[str] = Field(default=None, description="State or UT name")
+    road_type: Optional[str] = Field(default=None, description="Road classification")
+    terrain_type: Optional[str] = Field(default=None, description="Terrain classification (plain, hilly, coastal, forest_tribal)")
+    allow_online: Optional[bool] = Field(default=False, description="Enable live OSM Overpass/Nominatim queries")
 
 class AIAdvisoryRequest(BaseModel):
     query: str
@@ -463,6 +480,7 @@ def load_artifacts():
         logging.error(f"Failed to load artifacts: {e}", exc_info=True)
 
 @app.get("/health")
+@app.head("/health")
 def health_check():
     return {
         "status": "healthy",
@@ -472,8 +490,11 @@ def health_check():
     }
 
 @app.get("/")
+@app.head("/")
 @app.get("/home")
+@app.head("/home")
 @app.get("/landing")
+@app.head("/landing")
 def serve_landing():
     """Task 1: Standalone Landing Page"""
     path = "dashboard/landing.html"
@@ -482,6 +503,7 @@ def serve_landing():
     return RedirectResponse(url="/docs")
 
 @app.get("/dashboard")
+@app.head("/dashboard")
 @app.get("/model-governance")
 @app.get("/prescriptive-ai")
 def serve_dashboard():
@@ -925,8 +947,8 @@ def generate_statutory_delay_explanation(
         })
 
     if fc_status in ["Pending", "Stage_1_Pending"]:
-        severity = "High" if terrain in ["Forest_Eco_Sensitive", "Hilly"] else "Medium"
-        if not primary_bottleneck or terrain == "Forest_Eco_Sensitive":
+        severity = "High" if terrain in ["Forest Eco Sensitive", "Hilly", "Forest_Eco_Sensitive"] else "Medium"
+        if not primary_bottleneck or terrain in ["Forest Eco Sensitive", "Forest_Eco_Sensitive"]:
             primary_bottleneck = "MoEF&CC Stage-1 Forest Clearance Deadlock on Parivesh"
             critical_milestone = "Forest & Environmental Clearances"
             statutory_act = "Forest (Conservation) Act 1980 & EIA 2006 Notification"
@@ -938,12 +960,24 @@ def generate_statutory_delay_explanation(
             "severity": severity
         })
 
+    if pafs >= 1000:
+        contributing_factors.append({
+            "label": "Large-Scale Resettlement (PAFs)",
+            "value": f"{pafs:,} Affected Families",
+            "impact": "+45d Second Schedule R&R",
+            "severity": "High" if pafs >= 3000 else "Medium"
+        })
+
     if protest or comp_mult > 1.8:
-        if not primary_bottleneck or protest:
-            primary_bottleneck = "Landowner Compensation Disparity & Public Resistance"
+        if not primary_bottleneck:
+            primary_bottleneck = "Landowner Compensation Disparity & Public Resistance" if protest else "Landowner Compensation Multiplier Disparity"
             critical_milestone = "Compensation & Rehabilitation Settlement"
             statutory_act = "RFCTLARR Act 2013, Section 23 & 30 (Award & 100% Solatium)"
-            legal_hazard = f"Disparity in landowner expectations ({comp_mult:.2f}x multiplier demand) and community protests prevent smooth disbursement of awards and halt Section 38 possession handover."
+            legal_hazard = (
+                f"Disparity in landowner expectations ({comp_mult:.2f}x multiplier demand) "
+                f"{'coupled with active community protests' if protest else 'and compensation determination negotiations'} "
+                f"prevent smooth disbursement of awards and halt Section 38 possession handover."
+            )
         contributing_factors.append({
             "label": "Compensation Demand",
             "value": f"{comp_mult:.2f}x Multiplier",
@@ -1039,6 +1073,11 @@ def generate_statutory_delay_explanation(
             f"this creates substantial deadlock during Section 23 award determination and threatens voluntary handover under Section 38."
         )
 
+    if pafs >= 2000:
+        p2_parts.append(
+            f"Additionally, the large displacement of **{pafs:,} Project-Affected Families (PAFs)** requires mandatory Rehabilitation & Resettlement schemes under the **Second Schedule of RFCTLARR Act 2013**, including Administrator for R&R appointment (Section 43) and formal rehabilitation colony site approvals."
+        )
+
     if dispute_rate > 15.0:
         p2_parts.append(
             f"Furthermore, a **{dispute_rate:.1f}% title dispute rate** in {district} cadastral records indicates widespread co-tenancy and mutation conflicts, "
@@ -1096,9 +1135,41 @@ async def _execute_prediction_pipeline(payload: ProjectPayload) -> dict:
                 raise HTTPException(status_code=400, detail=f"Security rejection: {reason}")
 
     payload_dict = payload.model_dump(exclude_unset=True) if hasattr(payload, 'model_dump') else payload.dict(exclude_unset=True)
-    # Remove schedule-specific metadata fields so they don't pollute the ML feature dataframe
+    # Remove schedule-specific and geospatial metadata fields so they don't pollute the ML feature dataframe
     sched_tasks = payload_dict.pop('schedule_tasks', None)
     target_comp = payload_dict.pop('target_completion_days', None)
+    geo_lat = payload_dict.pop('latitude', None)
+    geo_lon = payload_dict.pop('longitude', None)
+    geo_road = payload_dict.pop('road_type', None) or payload_dict.pop('road_connectivity_type', None)
+    geo_addr = payload_dict.pop('address', None)
+
+    # Remoteness & Urban-Tier Accessibility Evaluation
+    remoteness_analysis = None
+    try:
+        query_addr = geo_addr
+        if not query_addr and payload.district and str(payload.district).strip() not in ["", "Unknown", "nan"]:
+            query_addr = f"{payload.district}, {payload.state}"
+
+        eff_lat = geo_lat
+        eff_lon = geo_lon
+        if (eff_lat is None or eff_lon is None) and payload.state and payload.district:
+            coords = get_district_coordinates(payload.state, payload.district)
+            if coords:
+                eff_lat, eff_lon = coords
+
+        remoteness_analysis = evaluate_remoteness(
+            lat=eff_lat,
+            lon=eff_lon,
+            address=query_addr,
+            project_type=payload.project_type,
+            district=payload.district,
+            state=payload.state,
+            provided_road_type=geo_road,
+            provided_terrain=payload.terrain_type,
+            allow_online=False
+        )
+    except Exception as re_err:
+        logging.warning("Remoteness evaluation non-fatal error for %s: %s", payload.project_id, re_err)
 
     raw_payload = _prepare_df(payload_dict)
 
@@ -1327,6 +1398,7 @@ async def _execute_prediction_pipeline(payload: ProjectPayload) -> dict:
                 "global_importance": result['explanation'].get('global_importance_approx', [])[:8]
             },
             "survival_curve": survival_curve,
+            "remoteness_analysis": remoteness_analysis,
             "recommendations": prescriptive_actions,
             "prescriptive_actions": prescriptive_actions
         }
@@ -1339,6 +1411,49 @@ async def _execute_prediction_pipeline(payload: ProjectPayload) -> dict:
 @limiter.limit("60/minute")
 async def predict_risk(request: Request, payload: ProjectPayload, user: Any = Depends(get_current_user)):
     return await _execute_prediction_pipeline(payload)
+
+@app.post("/remoteness/evaluate")
+@limiter.limit("120/minute")
+async def evaluate_site_remoteness(
+    request: Request,
+    payload: RemotenessRequest
+):
+    """
+    Evaluates physical remoteness and urban-tier accessibility delay for a project site.
+    Returns:
+    - nearest settlement (name, tier, distance km, Census vintage)
+    - road connectivity classification
+    - terrain type & Forest/Tribal status
+    - estimated remoteness-driven delay days
+    - normalized Remoteness Score (0-1)
+    - component breakdown for explainability
+    - data quality flags
+    """
+    try:
+        eff_lat = payload.latitude
+        eff_lon = payload.longitude
+        if (eff_lat is None or eff_lon is None) and payload.state and payload.district:
+            coords = get_district_coordinates(payload.state, payload.district)
+            if coords:
+                eff_lat, eff_lon = coords
+
+        res = evaluate_remoteness(
+            lat=eff_lat,
+            lon=eff_lon,
+            address=payload.address or (f"{payload.district}, {payload.state}" if payload.district and payload.district != "Unknown" else None),
+            project_type=payload.project_type,
+            district=payload.district,
+            state=payload.state,
+            provided_road_type=payload.road_type,
+            provided_terrain=payload.terrain_type,
+            allow_online=bool(payload.allow_online)
+        )
+        return res
+    except ValueError as ve:
+        raise HTTPException(status_code=400, detail=str(ve))
+    except Exception as e:
+        logging.error("Remoteness evaluation error: %s", e, exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Remoteness evaluation failed: {e}")
 
 # --- Phase 10: Persistent Memory Endpoints ---
 @app.post("/analyses/save")
@@ -1674,6 +1789,16 @@ async def get_reference_districts(request: Request):
     """
     mapping = get_state_districts_mapping()
     return mapping
+
+@app.get("/reference/coordinates")
+async def get_reference_coordinates(request: Request):
+    """
+    Returns official reference coordinates map for all Indian districts from district_coordinates.json.
+    """
+    global _DISTRICT_COORDS
+    if not _DISTRICT_COORDS:
+        get_district_coordinates("Rajasthan", "Banswara")
+    return _DISTRICT_COORDS
 
 @app.get("/projects/geo")
 @limiter.limit("120/minute")
